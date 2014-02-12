@@ -19,6 +19,7 @@ class ListScreen(Screen_):
     
     def __init__(self, **kwargs):
         self.register_event_type('on_drop')
+        self.register_event_type('on_comments')
         self.register_event_type('on_due_date')
         self.register_event_type('on_importance')
         super(ListScreen, self).__init__(**kwargs)
@@ -116,9 +117,9 @@ class ListScreen(Screen_):
         cursor.execute("""
                        UPDATE notebook
                        SET why=?
-                       WHERE page=? AND ix=? AND what=?
+                       WHERE page_number=? AND page=? AND ix=? AND what=?
                        """,
-                       (int(value), self.page, instance.ix, instance.text))
+                       (int(value), self.page_number, self.page, instance.ix, instance.text))
 
     def on_due_date(self, instance, value):
         if value:
@@ -127,6 +128,16 @@ class ListScreen(Screen_):
             manager.add_widget(dpms)
             manager.transition = RiseInTransition(duration=0.2)
             manager.current = 'DatePicker Mini-Screen'
+            
+    def on_comments(self, instance, value):
+        instance.how = value
+        cursor = self.root_directory.cursor()
+        cursor.execute("""
+                       UPDATE notebook
+                       SET how=?
+                       WHERE page_number=? AND page=? AND ix=? AND what=?
+                       """,
+                       (value, self.page_number, self.page, instance.ix, instance.text))
 
     def on_drop(self, d):
         if d:
