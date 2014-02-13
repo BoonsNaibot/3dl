@@ -150,13 +150,16 @@ class Clickable(Base):
             return False
     
     state = OptionProperty('normal', options=('normal', 'down'))
-    trigger_press = ObjectProperty(Clock.create_trigger(_press_, 0.0625))
-    trigger_release = ObjectProperty(Clock.create_trigger(_release_, .15))
+    #trigger_press = ObjectProperty(Clock.create_trigger(_press_, 0.0625))
+    #trigger_release = ObjectProperty(Clock.create_trigger(_release_, .15))
 
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
         super(Clickable, self).__init__(**kwargs)
+
+        self.trigger_press = Clock.create_trigger(self._press_, 0.0625)
+        self.trigger_release = Clock.create_trigger(self._release_, .15)
 
     def _do_press(self):
         self.state = 'down'
@@ -208,8 +211,6 @@ class DelayedClickable(Clickable):
             self._do_release()
         else:
             return False
-    
-    trigger_release = ObjectProperty(Clock.create_trigger(_release_, .15))
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
@@ -387,7 +388,7 @@ class Completable(Base):
                     touch.ungrab(self)
                     layout = self.layout
 
-                    if (layout.x > 0.078125*self.width):
+                    if (layout.x > self.complete_button.center_x):
                         self._anim = Animation(x=self.complete_button.right, t='out_quad', d=0.2).start(layout)
                     else:
                          self.dispatch('on_complete_out', layout)
@@ -467,7 +468,6 @@ class Editable(DoubleClickable):
                 return super(Editable, self).on_touch_up(touch)
 
         #return super(Editable, self).on_touch_up(touch)
-        print self.__mro__
         return super(DoubleClickable, self).on_touch_up(touch)
 
     def on_double_click_switch(self, instance, value):
