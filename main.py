@@ -52,9 +52,10 @@ class ThreeDoListApp(App):
     dark_gray = ListProperty((0.533, 0.533, 0.533, 1.0))
     shadow_gray = ListProperty((0.8, 0.8, 0.8, 1.0))
     
+    
+    preferences = ObjectProperty(JsonStore('preferences.json'))
     try:
         db = ObjectProperty(Connection('db.db', flags=SQLITE_OPEN_READWRITE))
-        preferences = ObjectProperty(JsonStore('preferences.json'))
     except CantOpenError:
         db = ObjectProperty(None)
 
