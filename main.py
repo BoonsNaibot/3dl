@@ -95,7 +95,9 @@ class ThreeDoListApp(App):
             self.preferences['Time'] = {'24-Hour Time': False}
 
     def on_pre_start(self):
+        global kv
         Builder.load_string(kv)
+        del kv
     
     def build(self):
         ''''''
