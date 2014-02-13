@@ -135,6 +135,11 @@ class ListScreenItem(AccordionListItem):
         if self.why <> value:
             _l = lambda *_: self.screen.dispatch('on_importance', self, value)
             Clock.schedule_once(_l, 0.25)
+            
+    def on_comments(self, instance, value):
+        if self.how <> value:
+            _l = lambda *_: self.screen.dispatch('on_comments', self, value)
+            Clock.schedule_once(_l, 0.25)
 
 class ActionListItem(ListScreenItem):
     pass
