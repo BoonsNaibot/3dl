@@ -299,7 +299,7 @@ class Deletable(Base):
                     touch.ungrab(self)
                     layout = self.layout
 
-                    if (layout.right < 0.9*self.right):
+                    if (layout.right < self.delete_button.center_x):#0.9*self.right):
                         self._anim = Animation(right=self.delete_button.x, t='out_quad', d=0.2).start(layout)
                     else:
                          self.dispatch('on_delete_out', layout)
