@@ -83,11 +83,6 @@ class ThreeDoListApp(App):
                             why INTEGER DEFAULT 0,
                             how TEXT);
 
-                            CREATE TRIGGER [on_complete]
-                            INSERT ON archive
-                            BEGIN DELETE FROM notebook WHERE page=new.page AND ix=new.ix AND what=new.what;
-                            END;
-
                             INSERT INTO notebook(page_number, page)
                             VALUES(0, 'Main List')
                             """)
