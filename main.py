@@ -1,5 +1,6 @@
 from kivy.app import App
 from kivy.lang import Builder
+from kivy.storage import JsonStore
 from kivy.uix.widget import Widget
 from kivy.uix.screenmanager import NoTransition
 from kivy.properties import ObjectProperty, ListProperty
@@ -53,6 +54,7 @@ class ThreeDoListApp(App):
     
     try:
         db = ObjectProperty(Connection('db.db', flags=SQLITE_OPEN_READWRITE))
+        preferences = ObjectProperty(JsonStore('preferences.json'))
     except CantOpenError:
         db = ObjectProperty(None)
 
@@ -91,6 +93,11 @@ class ThreeDoListApp(App):
                             """)
             #cursor.execute("commit")
             self.db = connection
+            self.preferences['Lists'] = {'Target List': 'Main List', 
+                                         'Auto-Fetch': 'Next'}
+            self.preferences['Date'] = {'Week Start': 'Sunday',
+                                        'Date Format': 'MDY'}
+            self.preferences['Time'] = {'24-Hour Time': False}
 
     def on_pre_start(self):
         Builder.load_string(kv)
