@@ -1,7 +1,7 @@
 from kivy.properties import ObjectProperty, ListProperty, NumericProperty, StringProperty, BooleanProperty, OptionProperty, AliasProperty
 from uiux import Selectable, Clickable, Editable, Completable, Deletable, TouchDownAndHoldable
 from kivy.uix.screenmanager import RiseInTransition, SlideTransition
-from kivy.uix.gridlayout import GridLayout
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.animation import Animation
 from kivy.utils import escape_markup
@@ -10,7 +10,7 @@ from kivy.lang import Builder
 from functools import partial
 from kivy.clock import Clock
 
-class AccordionListItem(Selectable, GridLayout):
+class AccordionListItem(Selectable, FloatLayout):
     title = ObjectProperty(None)
     content = ObjectProperty(None)
     drag_opacity = NumericProperty(0.75)
@@ -271,6 +271,7 @@ Builder.load_string("""
         text: root.text
         screen: root.screen
         size_hint: 1, None
+        pos_hint: {'x': 0, 'top': 1}
         height: root.screen.height*root.title_height_hint
         on_release: root.listview.handle_selection(root)
         state_color: root.state_color
