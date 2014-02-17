@@ -280,6 +280,7 @@ Builder.load_string("""
         id: content_id
         orientation: 'vertical'
         size_hint: 1, None
+        pos_hint: {'x': 0}
         top: title_id.y
         height: root.screen.height*root.content_height_hint
         canvas.before:
