@@ -195,6 +195,38 @@ class Week(AccordionListItem):
 Builder.load_string("""
 #:import DoubleClickButton uiux.DoubleClickButton
 
+<-EditButton>:
+    label: label_id
+    layout: layout_id
+    size_hint: 0.5, 1
+    pos_hint: {'center_x': 0.5}
+    icon_font_name: 'breezi_font-webfont.ttf'
+    icon_text: 'd'
+
+    BoxLayout:
+        id: layout_id
+        size: root.size
+        pos: root.pos
+        #spacing: 10
+
+        Label:
+            id: icon_id
+            text: root.icon_text
+            size_hint: None, 0.45
+            width: self.height
+            color: root.font_color
+            font_name: root.icon_font_name
+            font_size: root.font_size
+        Label:
+            size_hint: None, 1
+            width: root.width - icon_id.width
+            color: root.font_color
+            font_name: 'Walkway Bold.ttf'
+            font_size: (self.height*0.1)
+            text_size: self.size[0], None
+            text: root.how
+            valign: 'top'
+
 <-AccordionListItem>:
     cols: 1
     size_hint: 1, None
