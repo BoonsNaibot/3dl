@@ -1,4 +1,3 @@
-from kivy.event import EventDispatcher
 from kivy.properties import ObjectProperty, NumericProperty, ListProperty, OptionProperty, DictProperty, BooleanProperty
 
 class ListViewAdapter(object):
