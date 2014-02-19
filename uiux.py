@@ -1,9 +1,9 @@
 from kivy.properties import ObjectProperty, NumericProperty, ListProperty, OptionProperty, StringProperty, BooleanProperty, DictProperty, AliasProperty
 from kivy.uix.screenmanager import SlideTransition, Screen
 from kivy.graphics.transformation import Matrix
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.textinput import TextInput
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.listview import ListView
 from kivy.animation import Animation
 from kivy.uix.widget import Widget
 from kivy.vector import Vector
@@ -103,7 +103,7 @@ class Selectable(object):
     def on_release(self):
         pass
 
-class Base(Widget):
+class ButtonRoot(Widget):
     text = StringProperty('')
     aleft = BooleanProperty(False)
     text_color = ListProperty([0, 0.824, 1, 1])
@@ -127,39 +127,35 @@ class Base(Widget):
         if touch.grab_current is not self:
             return False
 
-    def on_touch_up(self, touch):
+    """def on_touch_up(self, touch):
         if touch.grab_current is self:
             touch.ungrab(self)
             return True
         else:
-            return False
+            return False"""
 
-class Clickable(Base):
+class Clickable(ButtonRoot):
+    state = OptionProperty('normal', options=('normal', 'down'))
 
-    def _press_(self, dt):
+    def __init__(self, **kwargs):
+        self.register_event_type('on_press')
+        self.register_event_type('on_release')
+        self._press_ = Clock.create_trigger(self.trigger_press, 0.0625)
+        self._release_ = Clock.create_trigger(self.trigger_release, .15)        
+        super(Clickable, self).__init__(**kwargs)
+
+    def trigger_press(self, dt):
         if ((self.state == 'normal') and not self.disabled):
             self._do_press()
             self.dispatch('on_press')
         else:
             return False
 
-    def _release_(self, dt):
+    def trigger_release(self, dt):
         if self.state == 'normal':
             self.dispatch('on_release')
         else:
             return False
-    
-    state = OptionProperty('normal', options=('normal', 'down'))
-    #trigger_press = ObjectProperty(Clock.create_trigger(_press_, 0.0625))
-    #trigger_release = ObjectProperty(Clock.create_trigger(_release_, .15))
-
-    def __init__(self, **kwargs):
-        self.register_event_type('on_press')
-        self.register_event_type('on_release')
-        super(Clickable, self).__init__(**kwargs)
-
-        self.trigger_press = Clock.create_trigger(self._press_, 0.0625)
-        self.trigger_release = Clock.create_trigger(self._release_, .15)
 
     def _do_press(self):
         self.state = 'down'
@@ -172,12 +168,12 @@ class Clickable(Base):
             return False
 
         if self.state == 'normal':
-            sup = super(Base, self).on_touch_down(touch)
+            sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if sup:
                 return sup
             else:
-                self.trigger_press()
+                self._press_()
 
         return super(Clickable, self).on_touch_down(touch)
 
@@ -186,14 +182,14 @@ class Clickable(Base):
             assert(self in touch.ud)
 
             if self.state == 'down':
-                sup = super(Base, self).on_touch_up(touch)
+                sup = super(ButtonRoot, self).on_touch_up(touch)
 
                 if sup:
                     touch.ungrab(self)
                     return sup
                 else:
                     self._do_release()
-                    self.trigger_release()
+                    self._release_()
 
         return super(Clickable, self).on_touch_up(touch)
 
@@ -205,7 +201,7 @@ class Clickable(Base):
 
 class DelayedClickable(Clickable):
 
-    def _release_(self, dt):
+    def trigger_release(self, dt):
         if self.state == 'down':
             self.dispatch('on_release')
             self._do_release()
@@ -217,17 +213,17 @@ class DelayedClickable(Clickable):
             assert(self in touch.ud)
 
             if self.state == 'down':
-                sup = super(Base, self).on_touch_up(touch)
+                sup = super(ButtonRoot, self).on_touch_up(touch)
 
                 if sup:
                     touch.ungrab(self)
                     return sup
                 else:
-                    self.trigger_release()
+                    self._release_()
 
         return super(Clickable, self).on_touch_up(touch)
 
-class Deletable(Base):    
+class Deletable(ButtonRoot):    
     state = OptionProperty('normal', options=('normal', 'delete'))
     delete_button = ObjectProperty(None, allownone=True)
 
@@ -251,11 +247,11 @@ class Deletable(Base):
             instance.add_widget(deletebutton, 1)
             instance.screen.polestar = instance
 
-        return super(Deletable, self).on_state(instance, value)
+        super(Deletable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
         if self.state == 'delete':
-            sup = super(Base, self).on_touch_down(touch)
+            sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
                 self.dispatch('on_delete_out', self.layout)
@@ -270,7 +266,7 @@ class Deletable(Base):
             assert(self in touch.ud)
 
             if self.state == 'down':#in ('down', 'normal'):
-                sup = super(Base, self).on_touch_move(touch)
+                sup = super(ButtonRoot, self).on_touch_move(touch)
 
                 if sup:
                     touch.ungrab(self)
@@ -290,7 +286,7 @@ class Deletable(Base):
             assert(self in touch.ud)
 
             if self.state == 'delete':
-                sup = super(Base, self).on_touch_up(touch)
+                sup = super(ButtonRoot, self).on_touch_up(touch)
 
                 if sup:
                     touch.ungrab(self)
@@ -299,7 +295,7 @@ class Deletable(Base):
                     touch.ungrab(self)
                     layout = self.layout
 
-                    if (layout.right < self.delete_button.center_x):#0.9*self.right):
+                    if (layout.right < 0.9*self.right):
                         self._anim = Animation(right=self.delete_button.x, t='out_quad', d=0.2).start(layout)
                     else:
                          self.dispatch('on_delete_out', layout)
@@ -319,7 +315,7 @@ class Deletable(Base):
 
         self._anim = _anim.start(layout)
 
-class Completable(Base):
+class Completable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'complete'))
     complete_button = ObjectProperty(None, allownone=True)
 
@@ -340,11 +336,11 @@ class Completable(Base):
             instance.add_widget(completebutton, 1)
             instance.screen.polestar = instance
 
-        return super(Completable, self).on_state(instance, value)
+        super(Completable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
         if self.state == 'complete':
-            sup = super(Base, self).on_touch_down(touch)
+            sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
                 self.dispatch('on_complete_out', self.layout)
@@ -359,7 +355,7 @@ class Completable(Base):
             assert(self in touch.ud)
 
             if self.state == 'down':#in ('down', 'normal'):
-                sup = super(Base, self).on_touch_move(touch)
+                sup = super(ButtonRoot, self).on_touch_move(touch)
 
                 if sup:
                     touch.ungrab(self)
@@ -379,7 +375,7 @@ class Completable(Base):
             assert(self in touch.ud)
 
             if self.state == 'complete':
-                sup = super(Base, self).on_touch_up(touch)
+                sup = super(ButtonRoot, self).on_touch_up(touch)
 
                 if sup:
                     touch.ungrab(self)
@@ -408,7 +404,7 @@ class Completable(Base):
 
         self._anim = _anim.start(layout)
 
-class DoubleClickable(Base):
+class DoubleClickable(ButtonRoot):
     double_click_switch = BooleanProperty(False)
 
     def on_touch_up(self, touch):
@@ -420,20 +416,22 @@ class DoubleClickable(Base):
                 self.double_click_switch = not self.double_click_switch
                 return True
                 
-            else:
-                #return super(DoubleClickable, self).on_touch_up(touch)
-                return False
+        return super(DoubleClickable, self).on_touch_up(touch)
 
 class Editable(DoubleClickable):
     state = OptionProperty('normal', options=('normal', 'edit'))
     textinput = ObjectProperty(None, allownone=True)
 
-    def on_text_validate(self, instance):
-        if not instance.text: #if instance.text == ""
+    def __init__(self, **kwargs):
+        self.register_event_type('on_text_validate')
+        super(Editable, self).__init__(**kwargs)
+
+    def on_text_validate(self, instance, value):
+        if not value: #if instance.text == ""
             instance.focus = False
             return False
         else:
-            self.text = instance.text.lstrip()
+            self.text = value.lstrip()
             instance.focus = False
             return True
 
@@ -444,7 +442,7 @@ class Editable(DoubleClickable):
 
     def on_touch_down(self, touch):
         if self.state == 'edit':
-            sup = super(Base, self).on_touch_down(touch)
+            sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
                 self.state = 'normal'
@@ -458,7 +456,7 @@ class Editable(DoubleClickable):
             assert(self in touch.ud)
 
             if self.state == 'edit':
-                touched_children = super(Base, self).on_touch_up(touch)
+                touched_children = super(ButtonRoot, self).on_touch_up(touch)
 
                 if touched_children:
                     touch.ungrab(self)
@@ -467,8 +465,8 @@ class Editable(DoubleClickable):
             elif self.state == 'normal':
                 return super(Editable, self).on_touch_up(touch)
 
-        #return super(Editable, self).on_touch_up(touch)
-        return super(DoubleClickable, self).on_touch_up(touch)
+        return super(Editable, self).on_touch_up(touch)
+        #return super(DoubleClickable, self).on_touch_up(touch)
 
     def on_double_click_switch(self, instance, value):
         if value:
@@ -494,9 +492,9 @@ class Editable(DoubleClickable):
             t.focus = True
             instance.screen.polestar = instance
 
-        return super(Editable, self).on_state(instance, value)
+        super(Editable, self).on_state(instance, value)
 
-class TouchDownAndHoldable(Base):
+class TouchDownAndHoldable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'down', 'dragged'))
     hold_time = NumericProperty(0.0)
     droppable_zone_objects = ListProperty([])
@@ -525,11 +523,11 @@ class TouchDownAndHoldable(Base):
             listview.dispatch('on_drag_start', widget)
             listview.deparent(widget)
 
-        return super(TouchDownAndHoldable, self).on_state(instance, value)
+        super(TouchDownAndHoldable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
         if self.state == 'normal':
-            sup = super(Base, self).on_touch_down(touch)
+            sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
                 Clock.schedule_interval(self.on_hold_down, 0.1)
@@ -543,7 +541,7 @@ class TouchDownAndHoldable(Base):
             assert(self in touch.ud)
 
             if self.state == 'down':
-                sup = super(Base, self).on_touch_move(touch)
+                sup = super(ButtonRoot, self).on_touch_move(touch)
 
                 if sup:
                     return sup
@@ -568,7 +566,7 @@ class TouchDownAndHoldable(Base):
         return super(TouchDownAndHoldable, self).on_touch_move(touch)
 
     def on_touch_up(self, touch):
-        #super(Base, self).on_touch_up(touch)
+        #super(ButtonRoot, self).on_touch_up(touch)
 
         if touch.grab_current is self:
             assert(self in touch.ud)
@@ -618,7 +616,7 @@ class TouchDownAndHoldable(Base):
             
             instance.listview.deparent(instance)
 
-        return super(DragNDroppable, self).on_state(instance, value)
+        super(DragNDroppable, self).on_state(instance, value)
 
     def on_touch_move(self, touch):
         if touch.grab_current is self.title:
@@ -686,6 +684,14 @@ class CompleteButton(DeleteButton):
         if self.button:
             return self.button.screen.on_complete(self.button)
 
+class EditButton(Editable):
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return False
+        else:
+            return super(EditButton, self).on_touch_down(touch)
+
 class DoubleClickButton(DoubleClickable):
     icon_text = StringProperty('')
     icon_font_name = StringProperty('heydings_icons.ttf')
@@ -696,6 +702,50 @@ class DoubleClickButton(DoubleClickable):
             return False
         else:
             return super(DoubleClickButton, self).on_touch_down(touch)
+
+class AccordionListItem(Selectable, FloatLayout):
+    title = ObjectProperty(None)
+    content = ObjectProperty(None)
+    listview = ObjectProperty(None)
+    text_color = ListProperty([])
+    shadow_color = ListProperty([])
+    text = StringProperty('')
+    collapse_alpha = NumericProperty(1.0)
+    title_height_hint = NumericProperty(0.0)
+    content_height_hint = NumericProperty(0.0)
+
+    def __init__(self, **kwargs):
+        self._anim_collapse = None
+        #self.register_event_type('on_release')
+        super(AccordionListItem, self).__init__(**kwargs)
+
+    def select(self, *args):
+        if self._anim_collapse:
+            self._anim_collapse.stop()
+            self._anim_collapse = None
+
+        self._anim_collapse = Animation(collapse_alpha=0.0,
+                                        t='out_expo',
+                                        d=0.25).start(self)
+
+    def deselect(self, *args):
+        if self._anim_collapse:
+            self._anim_collapse.stop()
+            self._anim_collapse = None
+
+        self._anim_collapse = Animation(collapse_alpha=1.0,
+                                        t='out_expo',
+                                        d=0.25).start(self)
+
+    def on_collapse_alpha(self, instance, value):
+        #instance.listview._do_layout()
+        instance.listview._sizes[instance.index] = instance.height
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return False
+        else:
+            return super(AccordionListItem, self).on_touch_down(touch)
 
 class FreeRotateLayout(Widget):
     content = ObjectProperty(None)
@@ -880,7 +930,7 @@ Builder.load_string("""
             size: self.size
             pos: self.pos
 
-<Base>:
+<ButtonRoot>:
     label: label_id
     layout: layout_id
     state_color: app.no_color
@@ -909,6 +959,34 @@ Builder.load_string("""
             markup: root.markup
             text_size: (self.size[0]-(0.1*self.size[0]), None) if root.aleft else (None, None)
 
+<-DoubleClickButton>:
+    size_hint: 0.5, 1
+    pos_hint: {'center_x': 0.5}
+    font_size: self.height*0.421875
+    text_color: app.white
+    opacity: 1.0 if self.double_click_switch else 0.5
+
+    BoxLayout:
+        size: root.size
+        pos: root.pos
+
+        Label:
+            id: icon_id
+            text: root.icon_text
+            size_hint: None, 1
+            width: self.height
+            color: root.text_color
+            font_name: root.icon_font_name
+            font_size: root.font_size
+        Label:
+            text: root.text
+            size_hint: None, 1
+            width: root.width - icon_id.width
+            color: root.text_color
+            font_name: 'Walkway Bold.ttf'
+            font_size: root.font_size
+            text_size: self.size[0], None
+
 <Button_>:
     state_color: app.blue
     text_color: app.white
@@ -933,6 +1011,39 @@ Builder.load_string("""
     rectangle_pos: self.right-self.rectangle_size_x, self.top-self.height
     state_color: app.purple
     text_color: app.white
+
+<EditButton>:
+    label: label_id
+    font_size: self.height*0.1
+    text_color: app.blue
+
+    Label:
+        id: label_id
+        pos: root.pos
+        size: root.size
+        text: root.text
+        font_size: root.font_size
+        font_name: root.font_name
+        shorten: root.shorten
+        color: root.text_color
+        markup: root.markup
+        text_size: (self.size[0]-(0.1*self.size[0]), None)
+
+<AccordionListItem>:
+    cols: 1
+    shadow_color: app.shadow_gray
+    canvas.before:
+        StencilPush
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilUse
+    canvas.after:
+        StencilUnUse
+        Rectangle:
+            pos: self.pos
+            size: self.size
+        StencilPop
 
 <-BoundedTextInput>:
     font_name: 'Walkway Bold.ttf'
@@ -976,7 +1087,7 @@ Builder.load_string("""
             pos: self.pos
 
 <Screen_>:
-    canvas.before:
+    canvas:
         Color:
             rgb: app.smoke_white
         Rectangle:
