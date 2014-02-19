@@ -1,61 +1,13 @@
 from kivy.properties import ObjectProperty, ListProperty, NumericProperty, StringProperty, BooleanProperty, OptionProperty, AliasProperty
-from uiux import Selectable, Clickable, Editable, Completable, Deletable, TouchDownAndHoldable
+from uiux import Selectable, Clickable, Editable, Completable, Deletable, TouchDownAndHoldable, AccordionListItem
 from kivy.uix.screenmanager import RiseInTransition, SlideTransition
-from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.animation import Animation
 from kivy.utils import escape_markup
-from kivy.uix.widget import Widget
 from kivy.lang import Builder
-from functools import partial
 from kivy.clock import Clock
 
-class AccordionListItem(Selectable, FloatLayout):
-    title = ObjectProperty(None)
-    content = ObjectProperty(None)
-    drag_opacity = NumericProperty(0.75)
-    listview = ObjectProperty(None)
-    shadow_color = ListProperty([])
-    ix = NumericProperty(None)
-    text = StringProperty('')
-    why = BooleanProperty(False)
-    collapse_alpha = NumericProperty(1.0)
-    title_height_hint = NumericProperty(0.0)
-    content_height_hint = NumericProperty(0.0)
-
-    def __init__(self, **kwargs):
-        self._anim_collapse = None
-        self.register_event_type('on_release')
-        super(AccordionListItem, self).__init__(**kwargs)
-
-    def select(self, *args):
-        if self._anim_collapse:
-            self._anim_collapse.stop()
-            self._anim_collapse = None
-
-        self._anim_collapse = Animation(collapse_alpha=0.0,
-                                        t='out_expo',
-                                        d=0.25).start(self)
-
-    def deselect(self, *args):
-        if self._anim_collapse:
-            self._anim_collapse.stop()
-            self._anim_collapse = None
-
-        self._anim_collapse = Animation(collapse_alpha=1.0,
-                                        t='out_expo',
-                                        d=0.25).start(self)
-
-    def on_collapse_alpha(self, instance, value):
-        instance.listview._do_layout()
-
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            return False
-        else:
-            return super(AccordionListItem, self).on_touch_down(touch)
-
-class PagesScreenItem(Editable, Completable, Deletable, Clickable):
+class PagesScreenItem(Clickable, Deletable, Completable, Editable):
     index = NumericProperty(-1)
     screen = ObjectProperty(None)
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'edit', 'normal'))
@@ -64,7 +16,6 @@ class PagesScreenItem(Editable, Completable, Deletable, Clickable):
         screen = self.screen
         cursor = screen.root_directory.cursor()
         screen.manager.transition = SlideTransition(direction="left", duration=0.2)
-        #config[whatever] = instance.text
         cursor.execute("""
                        SELECT COUNT(what)
                        FROM notebook
@@ -83,71 +34,83 @@ class PagesScreenItem(Editable, Completable, Deletable, Clickable):
             list_screen = screen.manager.get_screen('QuickView Screen')
             list_screen.page = self.text
             list_screen.page_number = self.index
-            screen.manager.current = 'QuickView Screen'  
+            screen.manager.current = 'QuickView Screen'
 
-    def on_text_validate(self, instance):
+    def on_text_validate(self, instance, value):
         if super(PagesScreenItem, self).on_text_validate(instance):
-            cursor = self.screen.root_directory.cursor()
-            cursor.execute("""
-                           UPDATE notebook
-                           SET page=?
-                           WHERE page_number=?
-                           """,
-                           (instance.text, self.index))
-            #cursor.execute("commit")
-    
+            _l = lambda *_: self.screen.dispatch('on_what', self, value)
+            Clock.schedule_once(_l, 0.25)
+
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
+            ok = self.state == 'normal'
 
-            if self.state == 'normal':
-                return False
-            else:
+            if not ok:
                 self.state = 'normal'
-                return True
-
+            
+            return not ok
         else:
             return super(PagesScreenItem, self).on_touch_down(touch)
 
-class ListScreenItemTitle(Editable, Completable, Deletable, Clickable, TouchDownAndHoldable):
+class NoteItemTitle(Clickable, Completable, Deletable, TouchDownAndHoldable, Editable):
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'dragged', 'edit', 'normal'))
     screen = ObjectProperty(None)
 
     def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):# and self.text):
-            return False
+        if not self.collide_point(*touch.pos):
+            ok = self.state == 'normal'
 
+            if not ok:
+                self.state = 'normal'
+            
+            return not ok
         else:
-            return super(ListScreenItemTitle, self).on_touch_down(touch)
+            return super(NoteItemTitle, self).on_touch_down(touch)
 
-class ListScreenItem(AccordionListItem):
+    def on_text_validate(self, instance, value):
+        if super(NoteItemTitle, self).on_text_validate(instance, value):
+            _l = lambda *_: self.screen.dispatch('on_what', self.parent, value)
+            Clock.schedule_once(_l, 0.25)
+
+class NoteItem(AccordionListItem):
+    how = StringProperty('')
+    ix = NumericProperty(None)
+    why = BooleanProperty(False)
     screen = ObjectProperty(None)
+    drag_opacity = NumericProperty(0.75)
 
     def __init__(self, **kwargs):
+        self.register_event_type('on_comments')
         self.register_event_type('on_importance')
-        super(ListScreenItem, self).__init__(**kwargs)
+        super(NoteItem, self).__init__(**kwargs)
 
         self.title.droppable_zone_objects = kwargs['droppable_zone_objects']
         self.title.aleft = kwargs['aleft']
         self.title.font_name = kwargs['font_name']
-        self.title.screen = kwargs['screen']
+
+    def on_comments(self, instance, value):
+        value = value.lstrip()
+        instance.focus = False
+
+        if self.how <> value:
+            _l = lambda *_: self.screen.dispatch('on_comments', self, value)
+            Clock.schedule_once(_l, 0.25)
 
     def on_importance(self, instance, value):
         if self.why <> value:
             _l = lambda *_: self.screen.dispatch('on_importance', self, value)
             Clock.schedule_once(_l, 0.25)
-            
-    def on_comments(self, instance, value):
-        if self.how <> value:
-            _l = lambda *_: self.screen.dispatch('on_comments', self, value)
-            Clock.schedule_once(_l, 0.25)
+
+class ListScreenItem(NoteItem):
+    pass
 
 class ActionListItem(ListScreenItem):
     pass
     '''def on_state(self, instance, value):
         if value in ('normal', 'down'):
             if not instance.is_selected:
-                instance.label.text = "[font='heydings_icons.ttf'][color=ffffff]- [/color][/font]" + escape_markup(instance.text)
                 instance.markup = True
+                instance.label.text = "[font='heydings_icons.ttf'][color=ffffff]- [/color][/font]" + escape_markup(instance.text)
         else:
             instance.label.text = instance.text'''
 
@@ -181,7 +144,6 @@ class ArchiveScreenItemTitle(Deletable, Clickable):
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return False
-
         else:
             return super(ArchiveScreenItemTitle, self).on_touch_down(touch)
 
@@ -194,67 +156,13 @@ class Week(AccordionListItem):
 
 Builder.load_string("""
 #:import DoubleClickButton uiux.DoubleClickButton
-
-<-EditButton>:
-    label: label_id
-    layout: layout_id
-    size_hint: 0.5, 1
-    pos_hint: {'center_x': 0.5}
-    icon_font_name: 'breezi_font-webfont.ttf'
-    icon_text: 'd'
-
-    BoxLayout:
-        id: layout_id
-        size: root.size
-        pos: root.pos
-        #spacing: 10
-
-        Label:
-            id: icon_id
-            text: root.icon_text
-            size_hint: None, 0.45
-            width: self.height
-            color: root.font_color
-            font_name: root.icon_font_name
-            font_size: root.font_size
-        Label:
-            size_hint: None, 1
-            width: root.width - icon_id.width
-            color: root.font_color
-            font_name: 'Walkway Bold.ttf'
-            font_size: (self.height*0.1)
-            text_size: self.size[0], None
-            text: root.how
-            valign: 'top'
-
-<-AccordionListItem>:
-    cols: 1
-    size_hint: 1, None
-    #height: self.title.height + (self.content.height*(1-self.collapse_alpha))
-    shadow_color: app.shadow_gray
-    canvas.before:
-        StencilPush
-        Rectangle:
-            pos: self.pos
-            size: self.size
-        StencilUse
-    canvas.after:
-        StencilUnUse:
-            Rectangle:
-                pos: self.pos
-                size: self.size
-        StencilPop
-        #Color:
-            #rgba: root.shadow_color
-        #Line:
-            #points: self.x, self.y, self.right, self.y
-            #width: 1.0
+#:import EditButton uiux.EditButton
 
 <PagesScreenItem>:
     aleft: True
     shorten: True
     height: self.screen.height*0.088
-    state_color: app.light_gray if self.state == 'down' else app.white
+    state_color: app.gray if self.state == 'down' else app.white
     canvas.after:
         Color:
             rgba: app.shadow_gray
@@ -262,62 +170,38 @@ Builder.load_string("""
             points: self.x, self.y, self.right, self.y
             width: 1.0
 
-<-DoubleClickButton>:
-    size_hint: 0.5, 1
-    pos_hint: {'center_x': 0.5}
-    font_size: self.height*0.421875
-    font_color: app.white
-    opacity: 1.0 if self.double_click_switch else 0.5
-
-    BoxLayout:
-        size: root.size
-        pos: root.pos
-
-        Label:
-            id: icon_id
-            text: root.icon_text
-            size_hint: None, 1
-            width: self.height
-            color: root.font_color
-            font_name: root.icon_font_name
-            font_size: root.font_size
-        Label:
-            text: root.text
-            size_hint: None, 1
-            width: root.width - icon_id.width
-            color: root.font_color
-            font_name: 'Walkway Bold.ttf'
-            font_size: root.font_size
-            text_size: self.size[0], None
-
-<ListScreenItem>:
+<NoteItem>:
     title: title_id
-    content: content_id
-    state_color: app.white
-    text_color: app.blue
     size_hint: 1, None
-    height: title_id.height + (content_id.height*(1-self.collapse_alpha))
+    text_color: app.blue
+    state_color: app.white
 
-    ListScreenItemTitle:
+    NoteItemTitle:
         id: title_id
         text: root.text
-        screen: root.screen
         size_hint: 1, None
         pos_hint: {'x': 0, 'top': 1}
-        height: root.screen.height*root.title_height_hint
-        on_release: root.listview.handle_selection(root)
-        state_color: root.state_color
+        screen: root.screen
         text_color: root.text_color
+        state_color: root.state_color
+        on_release: root.listview.handle_selection(root)
+        height: root.screen.height*root.title_height_hint
+    
+<ListScreenItem>:
+    content: content_id
+    text_color: app.blue
+    height: self.title.height + (content_id.height*(1-self.collapse_alpha))
+
     BoxLayout:
         id: content_id
         orientation: 'vertical'
         size_hint: 1, None
         pos_hint: {'x': 0}
-        top: title_id.y
+        top: root.title.y
         height: root.screen.height*root.content_height_hint
         canvas.before:
             Color:
-                rgba: title_id.state_color
+                rgba: root.state_color
             Rectangle:
                 size: self.size
                 pos: self.pos
@@ -325,15 +209,36 @@ Builder.load_string("""
         DoubleClickButton:
             icon_text: '!'
             text: 'IMPORTANT'
+            text_color: root.text_color
             double_click_switch: root.why
             on_double_click_switch: root.dispatch('on_importance', *args)
         DoubleClickButton:
             icon_text: 'T'
             #text: root.when
+            opacity: 1.0
+            text_color: root.text_color
             on_double_click_switch: root.screen.dispatch('on_due_date', root, args[1])
-        Label:
-            text: 'foobar'
-            font_size: self.height*0.421875
+        BoxLayout:
+            size_hint: 0.5, 1
+            pos_hint: {'center_x': 0.5}
+
+            Label:
+                id: icon_id
+                text: 'b'
+                font_name: 'breezi_font-webfont.ttf'
+                size_hint: None, 1
+                width: self.height
+                color: root.text_color
+                font_size: self.height*0.421875
+            EditButton:
+                text: root.how
+                size_hint: None, 1                
+                font_name: 'Walkway Bold.ttf'
+                width: root.width - icon_id.width
+                font_size: self.height*0.1
+                #text_color root.text_color
+                screen: root.screen
+                on_text_validate: root.dispatch('on_comments', *args)
 
 <ActionListItem>:
     state_color: app.blue if root.collapse_alpha==0.0 else (app.light_blue if self.title.state=='down' else app.gray)
@@ -374,7 +279,7 @@ Builder.load_string("""
         size: root.size
         pos: root.pos
 
-        CustomBoxLayout:
+        BoxLayout:
             id: layout_id
             orientation: 'horizontal'
             spacing: 5
