@@ -1,12 +1,8 @@
-'''
-Created on Jul 23, 2013
-
-@author: Divine
-'''
 from uiux import Screen_
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from kivy.animation import Animation
+from listitems import PagesScreenItem
 from kivy.properties import ObjectProperty, ListProperty
 
 class ConfigPanel(Widget):
@@ -25,11 +21,22 @@ class ConfigPanel(Widget):
 class PagesScreen(Screen_):
     pages = ListProperty([])
     list_view = ObjectProperty(None)
+    list_item = ObjectProperty(PagesScreenItem)
 
     def __init__(self, **kwargs):
-        self.register_event_type('on_root_directory')
+        self.register_event_type('on_what')
+        self.register_event_type('on_new_item')
         self.register_event_type('on_settings')
+        self.register_event_type('on_root_directory')
         super(PagesScreen, self).__init__(**kwargs)
+
+    def _args_converter(self, row_index, an_obj):
+        dict = {'index': an_obj[0],
+                'text': an_obj[1],
+                'is_selected': False,
+                'size_hint_y': None,
+                'screen': self}
+        return dict
 
     def on_root_directory(self, *args):
         cursor = self.root_directory.cursor()
@@ -43,16 +50,6 @@ class PagesScreen(Screen_):
     def on_status_bar(self, *args):
         self.list_view.scroll_to()
 
-    def on_leave(self, *args):
-        cursor = self.root_directory.cursor()
-        screen = self.manager.current_screen
-        cursor.execute("""
-                       UPDATE notebook
-                       SET bookmark=1
-                       WHERE page=?
-                       """,
-                       (screen.page,))
-
     def on_settings(self, *args):
         if not self.polestar:
             self.polestar = ConfigPanel()
@@ -60,15 +57,7 @@ class PagesScreen(Screen_):
             self._anim = Animation(x=self.size[0]*0.75, duration=0.2)
             self._anim.start(self)
 
-    def _args_converter(self, row_index, an_obj):
-        dict = {'index': an_obj[0],
-                'text': an_obj[1],
-                'is_selected': False,
-                'size_hint_y': None,
-                'screen': self}
-        return dict
-
-    def new_page(self, instance, text):
+    def on_new_item(self, instance, text):
         text = text.lstrip()
 
         if text:
@@ -85,6 +74,15 @@ class PagesScreen(Screen_):
         instance.text = ''
         instance.focus = False
 
+    def on_what(self, instance, value):
+        cursor = self.root_directory.cursor()
+        cursor.execute("""
+                       UPDATE notebook
+                       SET page=?
+                       WHERE page_number=?
+                       """,
+                       (instance.text, self.index))
+
     def on_delete(self, instance):
         cursor = self.root_directory.cursor()
         cursor.execute("""
@@ -95,12 +93,21 @@ class PagesScreen(Screen_):
         self.dispatch('on_root_directory')
         self.polestar = None
 
+    def on_leave(self, *args):
+        cursor = self.root_directory.cursor()
+        page = self.manager.current_screen.page
+        cursor.execute("""
+                       UPDATE notebook
+                       SET bookmark=1
+                       WHERE page=?
+                       """,
+                       (page,))
+
 Builder.load_string("""
 #:import NavBar uiux
 #:import Button_ uiux.Button_
 #:import DNDListView listviews.DNDListView
 #:import BoundedTextInput uiux.BoundedTextInput
-#:import PagesScreenItem listitems.PagesScreenItem
 
 <ConfigPanel>:
     size_hint: 0.75, 1
@@ -139,10 +146,10 @@ Builder.load_string("""
         id: list_view_id
         data: root.pages
         selection_mode: 'None'
-        list_item: PagesScreenItem
+        list_item: root.list_item
         args_converter: root._args_converter
         size_hint: 1, .8
-        top: navbar_id.y
+        pos_hint: {'top': 0.8873}
 
     FloatLayout:
         size_hint: 1, .086
@@ -165,11 +172,11 @@ Builder.load_string("""
                 size_hint: 0.774, 1
                 hint_text: 'Create New List...'
                 multiline: False
-                on_text_validate: root.new_page(self, self.text)
+                on_text_validate: root.dispatch('on_new_item', args[0], self.text)
             Button_:
                 size_hint: 0.226, 1
                 text: 'Add'
-                on_press: root.new_page(textinput_id, textinput_id.text)
+                on_press: root.dispatch('on_new_item', textinput_id, textinput_id.text)
         
             
 """)
