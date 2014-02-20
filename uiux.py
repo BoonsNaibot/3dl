@@ -40,6 +40,8 @@ class Screen_(Screen):
     _anim = ObjectProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
+        self.register_event_type('on_delete')
+        self.register_event_type('on_complete')
         self.register_event_type('on_status_bar')
         super(Screen_, self).__init__(**kwargs)
 
@@ -127,12 +129,12 @@ class ButtonRoot(Widget):
         if touch.grab_current is not self:
             return False
 
-    """def on_touch_up(self, touch):
+    def on_touch_up(self, touch):
         if touch.grab_current is self:
             touch.ungrab(self)
             return True
         else:
-            return False"""
+            return False
 
 class Clickable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'down'))
@@ -241,8 +243,8 @@ class Deletable(ButtonRoot):
             instance.screen.polestar = None
 
         elif value == 'delete':
-            instance.delete_button = deletebutton = DeleteButton(size=(0.2*instance.size[0], instance.size[1]),
-                                                                 pos=((instance.right-(0.2*instance.size[0])), instance.pos[1]),
+            instance.delete_button = deletebutton = DeleteButton(size=(instance.size[1], instance.size[1]),
+                                                                 pos=((instance.right-instance.size[1]), instance.pos[1]),
                                                                  button=instance)
             instance.add_widget(deletebutton, 1)
             instance.screen.polestar = instance
@@ -295,7 +297,7 @@ class Deletable(ButtonRoot):
                     touch.ungrab(self)
                     layout = self.layout
 
-                    if (layout.right < 0.9*self.right):
+                    if (layout.right < self.delete_button.center_x):
                         self._anim = Animation(right=self.delete_button.x, t='out_quad', d=0.2).start(layout)
                     else:
                          self.dispatch('on_delete_out', layout)
@@ -655,6 +657,10 @@ class Notes(Editable):
 class Button_(Clickable):
     state = OptionProperty('normal', options=('down', 'normal'))
 
+    def __init__(self, **kwargs):
+        super(Button_, self).__init__(**kwargs)
+        self._press_ = Clock.create_trigger(self.trigger_press, 0)
+
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return False
@@ -664,27 +670,22 @@ class Button_(Clickable):
 
 class DeleteButton(Button_):
     button = ObjectProperty(None, allownone=True)
-    rectangle_size_x = NumericProperty(100)
-    rectangle_pos = ListProperty([0, 0])
-    _anim = ObjectProperty(None, allownone=True)
-
-    def __init__(self, **kwargs):
-        super(DeleteButton, self).__init__(**kwargs)
-        self.trigger_action = Clock.create_trigger(self.trigger_release, 0)
 
     def on_press(self):
-        if self.button:
-            return self.button.screen.on_delete(self.button)
+        self.button.screen.dispatch('on_delete', self.button)
             
 
 class CompleteButton(DeleteButton):
-    rectangle_size_x = NumericProperty(-100)
 
     def on_press(self):
-        if self.button:
-            return self.button.screen.on_complete(self.button)
+        self.button.screen.dispatch('on_complete', self.button)
 
 class EditButton(Editable):
+
+    def on_text_validate(self, instance):
+        if super(EditButton, self).on_text_validate(instance, instance.text):
+            _l = lambda *_: self.screen.dispatch('on_comments', self.parent.parent.parent, instance.text)
+            Clock.schedule_once(_l, 0.25)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -964,7 +965,6 @@ Builder.load_string("""
     pos_hint: {'center_x': 0.5}
     font_size: self.height*0.421875
     text_color: app.white
-    opacity: 1.0 if self.double_click_switch else 0.5
 
     BoxLayout:
         size: root.size
@@ -992,9 +992,12 @@ Builder.load_string("""
     text_color: app.white
 
 <DeleteButton>:
-    text: 'Delete'
+    text: 'X'
+    width: self.height
+    font_name: 'heydings_icons.ttf'
+    font_size: self.height*0.7
     state_color: app.red
-    text_color: app.purple
+    text_color: app.purple                                                                 
     canvas.before:
         Color:
             rgba: app.shadow_gray
@@ -1004,15 +1007,10 @@ Builder.load_string("""
 
 <CompleteButton>:
     text: 'O'
-    width: self.height
-    font_name: 'heydings_icons.ttf'
-    font_size: self.height*0.7
-    rectangle_size_x: self.size[0]
-    rectangle_pos: self.right-self.rectangle_size_x, self.top-self.height
     state_color: app.purple
     text_color: app.white
 
-<EditButton>:
+<-EditButton>:
     label: label_id
     font_size: self.height*0.1
     text_color: app.blue
