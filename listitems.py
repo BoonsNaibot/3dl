@@ -1,54 +1,32 @@
 from kivy.properties import ObjectProperty, ListProperty, NumericProperty, StringProperty, BooleanProperty, OptionProperty, AliasProperty
 from uiux import Selectable, Clickable, Editable, Completable, Deletable, TouchDownAndHoldable, AccordionListItem
-from kivy.uix.screenmanager import RiseInTransition, SlideTransition
 from kivy.uix.boxlayout import BoxLayout
 from kivy.animation import Animation
 from kivy.utils import escape_markup
 from kivy.lang import Builder
 from kivy.clock import Clock
 
-class PagesScreenItem(Clickable, Deletable, Completable, Editable):
+class PagesScreenItem(Clickable, Deletable, Editable):
     index = NumericProperty(-1)
     screen = ObjectProperty(None)
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'edit', 'normal'))
 
     def on_release(self):
-        screen = self.screen
-        cursor = screen.root_directory.cursor()
-        screen.manager.transition = SlideTransition(direction="left", duration=0.2)
-        cursor.execute("""
-                       SELECT COUNT(what)
-                       FROM notebook
-                       WHERE page=? AND ix<3
-                       """,
-                       (self.text,))
-        i = cursor.fetchall()[0][0]
-        cursor.close()
+        self.screen.dispatch('on_selected_page', self.text, self.index)
 
-        if i < 3:
-            list_screen = screen.manager.get_screen('List Screen')
-            list_screen.page = self.text
-            list_screen.page_number = self.index
-            screen.manager.current = 'List Screen'
-        else:
-            list_screen = screen.manager.get_screen('QuickView Screen')
-            list_screen.page = self.text
-            list_screen.page_number = self.index
-            screen.manager.current = 'QuickView Screen'
-
-    def on_text_validate(self, instance, value):
-        if super(PagesScreenItem, self).on_text_validate(instance):
-            _l = lambda *_: self.screen.dispatch('on_what', self, value)
+    def on_text_validate(self, instance):
+        if super(PagesScreenItem, self).on_text_validate(instance, instance.text):
+            _l = lambda *_: self.screen.dispatch('on_what', self, instance.text)
             Clock.schedule_once(_l, 0.25)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
-            ok = self.state == 'normal'
+            nruter = self.state == 'normal'
 
-            if not ok:
+            if not nruter:
                 self.state = 'normal'
             
-            return not ok
+            return not nruter
         else:
             return super(PagesScreenItem, self).on_touch_down(touch)
 
@@ -58,18 +36,18 @@ class NoteItemTitle(Clickable, Completable, Deletable, TouchDownAndHoldable, Edi
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
-            ok = self.state == 'normal'
+            nruter = self.state == 'normal'
 
-            if not ok:
+            if not nruter:
                 self.state = 'normal'
             
-            return not ok
+            return not nruter
         else:
             return super(NoteItemTitle, self).on_touch_down(touch)
 
-    def on_text_validate(self, instance, value):
-        if super(NoteItemTitle, self).on_text_validate(instance, value):
-            _l = lambda *_: self.screen.dispatch('on_what', self.parent, value)
+    def on_text_validate(self, instance):
+        if super(NoteItemTitle, self).on_text_validate(instance, instance.text):
+            _l = lambda *_: self.screen.dispatch('on_what', self.parent, instance.text)
             Clock.schedule_once(_l, 0.25)
 
 class NoteItem(AccordionListItem):
@@ -211,6 +189,7 @@ Builder.load_string("""
             text: 'IMPORTANT'
             text_color: root.text_color
             double_click_switch: root.why
+            opacity: 1.0 if self.double_click_switch else 0.5
             on_double_click_switch: root.dispatch('on_importance', *args)
         DoubleClickButton:
             icon_text: 'T'
@@ -235,10 +214,10 @@ Builder.load_string("""
                 size_hint: None, 1                
                 font_name: 'Walkway Bold.ttf'
                 width: root.width - icon_id.width
-                font_size: self.height*0.1
+                font_size: self.height*0.5
                 #text_color root.text_color
                 screen: root.screen
-                on_text_validate: root.dispatch('on_comments', *args)
+                #on_text_validate: 
 
 <ActionListItem>:
     state_color: app.blue if root.collapse_alpha==0.0 else (app.light_blue if self.title.state=='down' else app.gray)
