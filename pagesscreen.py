@@ -1,8 +1,14 @@
+'''
+Created on Jul 23, 2013
+
+@author: Divine
+'''
 from uiux import Screen_
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from kivy.animation import Animation
 from listitems import PagesScreenItem
+from kivy.uix.screenmanager import SlideTransition
 from kivy.properties import ObjectProperty, ListProperty
 
 class ConfigPanel(Widget):
@@ -27,6 +33,7 @@ class PagesScreen(Screen_):
         self.register_event_type('on_what')
         self.register_event_type('on_new_item')
         self.register_event_type('on_settings')
+        self.register_event_type('on_selected_page')
         self.register_event_type('on_root_directory')
         super(PagesScreen, self).__init__(**kwargs)
 
@@ -46,6 +53,29 @@ class PagesScreen(Screen_):
                        ORDER BY page_number
                        """)
         self.pages = cursor.fetchall()
+
+    def on_selected_page(self, text, index):
+        manager = self.manager
+        manager.transition = SlideTransition(direction="left", duration=0.2)
+        cursor = self.root_directory.cursor()
+        cursor.execute("""
+                       SELECT COUNT(what)
+                       FROM notebook
+                       WHERE page=? AND ix<3
+                       """,
+                       (text,))
+        i = cursor.fetchall()[0][0]
+        cursor.close()
+
+        if i < 3:
+            screen_name = 'List Screen'
+        else:
+            screen_name = 'QuickView Screen'
+
+        screen = manager.get_screen(screen_name)
+        screen.page = text
+        screen.page_number = index
+        manager.current = screen_name
 
     def on_status_bar(self, *args):
         self.list_view.scroll_to()
@@ -81,7 +111,7 @@ class PagesScreen(Screen_):
                        SET page=?
                        WHERE page_number=?
                        """,
-                       (instance.text, self.index))
+                       (instance.text, instance.index))
 
     def on_delete(self, instance):
         cursor = self.root_directory.cursor()
