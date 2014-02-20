@@ -273,14 +273,15 @@ class ActionListView(AccordionListView):
         super(ActionListView, self).on_motion_out(widget, _dict)
 
 Builder.load_string("""
+#:import Scroller scroller.Scroller
 
 <DNDListView>:
     spacing: 1
     container: container_id
 
-    ScrollView:
+    Scroller:
         pos_hint: {'x': 0, 'y': 0}
-        #scroll_timeout: 1
+        scroll_timeout: 0.2
         on_scroll_y: root._scroll(args[1])
         do_scroll_x: False
 
