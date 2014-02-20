@@ -1,3 +1,8 @@
+'''
+Created on Jul 27, 2013
+
+@author: Divine
+'''
 from kivy.properties import ObjectProperty, ListProperty, StringProperty, NumericProperty
 from datepickerminiscreen import DatePickerMiniScreen
 from listitems import ActionListItem, ListScreenItem
@@ -192,7 +197,8 @@ Builder.load_string("""
     ActionListView:
         id: action_view_id
         size_hint: 1, 0.4
-        pos_hint: {'x': 0, 'top': 0.8873}
+        #pos_hint: {'x': 0, 'top': 0.8873}
+        top: navbar_id.y - 1
         selection: root.selection
         list_item: root.action_view_item
         args_converter: root._args_converter
