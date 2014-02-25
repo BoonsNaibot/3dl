@@ -217,7 +217,7 @@ Builder.load_string("""
                 font_size: self.height*0.5
                 #text_color root.text_color
                 screen: root.screen
-                #on_text_validate: 
+                on_text_validate: root.screen.dispatch('on_comments', root, args[1])
 
 <ActionListItem>:
     state_color: app.blue if root.collapse_alpha==0.0 else (app.light_blue if self.title.state=='down' else app.gray)
