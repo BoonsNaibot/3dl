@@ -17,7 +17,7 @@ pushd $TMPROOT/apsw
 OLD_CFLAGS="$CFLAGS"
 OLD_LDSHARED="$LDSHARED"
 export LDSHARED="$KIVYIOSROOT/tools/liblink"
-export CFLAGS="$CFLAGS -DEXPERIMENTAL -DAPSW_USE_SQLITE_AMALGAMATION=\'sqlite3.c\'"
+export CFLAGS="$CFLAGS -DEXPERIMENTAL -DAPSW_USE_SQLITE_AMALGAMATION=\'sqlite3.c\' -lsqlite -lsrc -c src/apsw.c -o apsw.o"
 
 $HOSTPYTHON setup.py build_ext -v
 $HOSTPYTHON setup.py install -O2
