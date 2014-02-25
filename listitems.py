@@ -68,7 +68,7 @@ class NoteItem(AccordionListItem):
 
     def on_comments(self, instance, value):
         value = value.lstrip()
-        instance.focus = False
+        #instance.focus = False
 
         if self.how <> value:
             _l = lambda *_: self.screen.dispatch('on_comments', self, value)
@@ -217,7 +217,7 @@ Builder.load_string("""
                 font_size: self.height*0.5
                 #text_color root.text_color
                 screen: root.screen
-                on_text_validate: root.screen.dispatch('on_comments', root, args[1])
+                on_text_validate: root.dispatch('on_comments', args[0], self.text)
 
 <ActionListItem>:
     state_color: app.blue if root.collapse_alpha==0.0 else (app.light_blue if self.title.state=='down' else app.gray)
