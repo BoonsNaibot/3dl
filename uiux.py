@@ -687,6 +687,9 @@ class EditButton(Editable):
             return False
         else:
             return super(EditButton, self).on_touch_down(touch)
+            
+    def on_text_validate(self, *args):
+        pass
 
 class DoubleClickButton(DoubleClickable):
     icon_text = StringProperty('')
