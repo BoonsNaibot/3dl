@@ -580,7 +580,8 @@ class TouchDownAndHoldable(ButtonRoot):
 
                 for viewer in dzo:
                     if viewer.collide_point(*widget.center):
-                        Clock.schedule_once(viewer.dispatch('on_motion_out', widget, touch.ud['indices']), 0.15)
+                        indices = touch.ud['indices']
+                        Clock.schedule_once(viewer.dispatch('on_motion_out', widget, indices), 0.15)
                         return True
 
         return super(TouchDownAndHoldable, self).on_touch_up(touch)
