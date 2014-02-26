@@ -24,7 +24,6 @@ export CFLAGS="$CFLAGS -DEXPERIMENTAL -DAPSW_USE_SQLITE_AMALGAMATION=\'sqlite3.c
 $HOSTPYTHON setup.py build_ext -v
 $HOSTPYTHON setup.py install -O2
 
-
 export LDSHARED="$OLD_LDSHARED"
 export CFLAGS="$OLD_CFLAGS"
 popd
