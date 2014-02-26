@@ -682,11 +682,6 @@ class CompleteButton(DeleteButton):
 
 class EditButton(Editable):
 
-    def on_text_validate(self, instance):
-        if super(EditButton, self).on_text_validate(instance, instance.text):
-            _l = lambda *_: self.screen.dispatch('on_comments', self.parent.parent.parent, instance.text)
-            Clock.schedule_once(_l, 0.25)
-
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return False
