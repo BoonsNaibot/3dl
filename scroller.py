@@ -1,91 +1,3 @@
-'''
-Scroll View
-===========
-
-.. versionadded:: 1.0.4
-
-The :class:`Scroller` widget provides a scrollable/pannable viewport that is
-clipped at the Scroller's bounding box.
-
-
-Scrolling Behavior
-------------------
-
-Scroller accepts only one child, and applies a viewport/window to it
-according to the :data:`scroll_x` and :data:`scroll_y` properties. Touches are
-analyzed to determine if the user wants to scroll or control the child in some
-other manner - you cannot do both at the same time. To determine if interaction
-is a scrolling gesture, these properties are used:
-
-    - :data:`Scroller.scroll_distance` a minimum distance to travel, default
-      to 20 pixels.
-    - :data:`Scroller.scroll_timeout` a maximum time period, default to 250
-      milliseconds.
-
-If a touch travels :data:`~Scroller.scroll_distance` pixels within the
-:data:`~Scroller.scroll_timeout` period, it is recognized as a scrolling
-gesture and translatation (scroll/pan) will begin. If the timeout occurs, the
-touch down event is dispatched to the child instead (no translation).
-
-The default value for thoses settings can be changed in the configuration file::
-
-    [widgets]
-    scroll_timeout = 250
-    scroll_distance = 20
-
-.. versionadded:: 1.1.1
-
-    Scroller now animates scrolling in Y when a mousewheel is used.
-
-
-Limiting to X or Y Axis
------------------------
-
-By default, Scroller allows scrolling in both the X and Y axes. You can
-explicitly disable scrolling on an axis by setting
-:data:`Scroller.do_scroll_x` or :data:`Scroller.do_scroll_y` to False.
-
-
-Managing the Content Size
--------------------------
-
-Scroller manages the position of the child content, not the size. You must
-carefully specify the `size_hint` of your content to get the desired
-scroll/pan effect.
-
-By default, size_hint is (1, 1), so the content size will fit your Scroller
-exactly (you will have nothing to scroll). You must deactivate at least one of
-the size_hint instructions (x or y) of the child to enable scrolling.
-
-To scroll a :class:`GridLayout` on Y-axis/vertically, set the child's width
-identical to that of the Scroller (size_hint_x=1, default), and set the
-size_hint_y property to None::
-
-    layout = GridLayout(cols=1, spacing=10, size_hint_y=None)
-    # Make sure the height is such that there is something to scroll.
-    layout.bind(minimum_height=layout.setter('height'))
-    for i in range(30):
-        btn = Button(text=str(i), size_hint_y=None, height=40)
-        layout.add_widget(btn)
-    root = Scroller(size_hint=(None, None), size=(400, 400))
-    root.add_widget(layout)
-
-
-Effects
--------
-
-.. versionadded:: 1.7.0
-
-An effect is a subclass of :class:`~kivy.effects.scroll.ScrollEffect` that will
-compute informations during the dragging, and apply transformation to the
-:class:`Scroller`. Depending of the effect, more computing can be done for
-calculating over-scroll, bouncing, etc.
-
-All the effects are located in the :mod:`kivy.effects`.
-
-
-'''
-
 __all__ = ('Scroller', )
 
 from functools import partial
@@ -469,13 +381,21 @@ class Scroller(StencilView):
         return True
 
     def on_touch_move(self, touch):
-        if self._get_uid('svavoid') in touch.ud:
-            return
-        if self._touch is not touch:
-            super(Scroller, self).on_touch_move(touch)
-            return self._get_uid() in touch.ud
         if touch.grab_current is not self:
-            return True
+            if abs(touch.dy) < self.scroll_distance:
+
+                if 'touch_down' in touch.ud:
+                    _touch = touch.ud.pop('touch_down')
+                    touch.ungrab(self)
+                    super(Scroller, self).on_touch_down(_touch)
+                return super(Scroller, self).on_touch_move(touch)
+
+            else:
+                return False
+            
+        else:
+            
+                
 
         uid = self._get_uid()
         ud = touch.ud[uid]
