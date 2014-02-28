@@ -8,7 +8,7 @@ from kivy.uix.stencilview import StencilView
 from kivy.metrics import sp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
-    ObjectProperty, ListProperty
+    ObjectProperty, ListProperty, OptionProperty
 from kivy.lang import Builder
 
 
@@ -326,122 +326,123 @@ class Scroller(StencilView):
         self.scroll_y = -sy
         self._trigger_update_from_scroll()
 
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            touch.ud[self._get_uid('svavoid')] = True
+    def _change_touch_mode(self, *largs):
+        if not self._touch:
             return
-        if self._touch:
-            return super(Scroller, self).on_touch_down(touch)
+        uid = self._get_uid()
+        touch = self._touch
+        ud = touch.ud[uid]
+        if ud['mode'] != 'unknown' or ud['user_stopped']:
+            return
+        if self.do_scroll_y and self.effect_y:
+            self.effect_y.cancel()
+        # XXX the next line was in the condition. But this stop
+        # the possibily to "drag" an object out of the Scroller in the
+        # non-used direction: if you have an horizontal Scroller, a
+        # vertical gesture will not "stop" the scroll view to look for an
+        # horizontal gesture, until the timeout is done.
+        # and touch.dx + touch.dy == 0:
+        touch.ungrab(self)
+        self._touch = None
+        # correctly calculate the position of the touch inside the
+        # Scroller
+        touch.push()
+        touch.apply_transform_2d(self.to_widget)
+        touch.apply_transform_2d(self.to_parent)
+        super(Scroller, self).on_touch_down(touch)
+        touch.pop()
+        return
 
+    def on_touch_down(self, touch):
         # handle mouse scrolling, only if the viewport size is bigger than the
         # Scroller size, and if the user allowed to do it
-        vp = self._viewport
-        if vp and 'button' in touch.profile and \
-            touch.button.startswith('scroll'):
-            btn = touch.button
-            m = self.scroll_distance
-            e = None
-
-            if (self.effect_x and self.do_scroll_y and vp.height > self.height
-                    and btn in ('scrolldown', 'scrollup')):
-                e = self.effect_y
-
-            elif (self.effect_y and self.do_scroll_x and vp.width > self.width
-                    and btn in ('scrollleft', 'scrollright')):
-                e = self.effect_x
-
-            if e:
-                if btn in ('scrolldown', 'scrollleft'):
-                    e.value = max(e.value - m, e.min)
-                    e.velocity = 0
-                elif btn in ('scrollup', 'scrollright'):
-                    e.value = min(e.value + m, e.max)
-                    e.velocity = 0
-                touch.ud[self._get_uid('svavoid')] = True
-                e.trigger_velocity_update()
-                return True
-
-        # no mouse scrolling, so the user is going to drag the Scroller with
-        # this touch.
-        self._touch = touch
-        uid = self._get_uid()
-        touch.grab(self)
-        touch.ud[uid] = {
-            'mode': 'unknown',
-            'dx': 0,
-            'dy': 0,
-            'user_stopped': False,
-            'time': touch.time_start}
-        if self.do_scroll_x and self.effect_x:
-            self.effect_x.start(touch.x)
-        if self.do_scroll_y and self.effect_y:
-            self.effect_y.start(touch.y)
-        Clock.schedule_once(self._change_touch_mode,
-                            self.scroll_timeout / 1000.)
-        return True
+        
+        if self.collide_point(*touch.pos):
+                
+            if touch.is_mouse_scrolling:
+                vp = self._viewport
+    
+                if vp and 'button' in touch.profile and \
+                    touch.button.startswith('scroll'):
+                    btn = touch.button
+                    m = self.scroll_distance
+                    e = None
+        
+                    if (self.effect_x and self.do_scroll_y and vp.height > self.height
+                            and btn in ('scrolldown', 'scrollup')):
+                        e = self.effect_y
+        
+                    elif (self.effect_y and self.do_scroll_x and vp.width > self.width
+                            and btn in ('scrollleft', 'scrollright')):
+                        e = self.effect_x
+        
+                    if e:
+                        if btn in ('scrolldown', 'scrollleft'):
+                            e.value = max(e.value - m, e.min)
+                            e.velocity = 0
+                        elif btn in ('scrollup', 'scrollright'):
+                            e.value = min(e.value + m, e.max)
+                            e.velocity = 0
+                        touch.ud[self._get_uid('svavoid')] = True
+                        e.trigger_velocity_update()
+                        return True
+            
+            
+            elif self.mode == 'scrolling':
+                self.effect_y.cancel()
+            # no mouse scrolling, so the user is going to drag the Scroller with
+            # this touch.
+            touch.grab(self)
+            touch.ud[uid] = {
+                'touch_down': touch,
+                'mode': 'unknown',
+                'dy': 0,
+                'time': touch.time_start}
+            if self.do_scroll_y and self.effect_y:
+                self.effect_y.start(touch.y)
+            Clock.schedule_once(self._change_touch_mode,
+                                self.scroll_timeout / 1000.)
+            return True
 
     def on_touch_move(self, touch):
         if touch.grab_current is not self:
-            if abs(touch.dy) < self.scroll_distance:
+            if (abs(touch.dy) < self.scroll_distance):
+                touch.ungrab(self)
 
                 if 'touch_down' in touch.ud:
                     _touch = touch.ud.pop('touch_down')
-                    touch.ungrab(self)
-                    super(Scroller, self).on_touch_down(_touch)
-                return super(Scroller, self).on_touch_move(touch)
+                    _touch.push()
+                    _touch.apply_transform_2d(self.to_widget)
+                    _touch.apply_transform_2d(self.to_parent)
+                    ret = super(Scroller, self).on_touch_down(touch)
+                    _touch.pop()
+                    return ret
 
-            else:
-                return False
+            elif self.mode <> 'scrolling':
+                touch.ud['dy'] += abs(touch.dy)
+                self.mode = 'scrolling'
+            
+            return False
             
         else:
-            
-                
-
-        uid = self._get_uid()
-        ud = touch.ud[uid]
-        mode = ud['mode']
-
-        # check if the minimum distance has been travelled
-        if mode == 'unknown' or mode == 'scroll':
-            if self.do_scroll_x and self.effect_x:
-                self.effect_x.update(touch.x)
-            if self.do_scroll_y and self.effect_y:
+            # check if the minimum distance has been travelled
+    
+            if mode == 'scroll':
                 self.effect_y.update(touch.y)
-
-        if mode == 'unknown':
-            ud['dx'] += abs(touch.dx)
-            ud['dy'] += abs(touch.dy)
-            if ud['dx'] > self.scroll_distance:
-                if not self.do_scroll_x:
-                    self._change_touch_mode()
-                    return
-                mode = 'scroll'
-
-            if ud['dy'] > self.scroll_distance:
-                if not self.do_scroll_y:
-                    self._change_touch_mode()
-                    return
-                mode = 'scroll'
-            ud['mode'] = mode
-
-        if mode == 'scroll':
-            ud['dt'] = touch.time_update - ud['time']
-            ud['time'] = touch.time_update
-            ud['user_stopped'] = True
-
-        return True
+                ud['dt'] = touch.time_update - ud['time']
+                ud['time'] = touch.time_update
+                #ud['user_stopped'] = True
+            return True
 
     def on_touch_up(self, touch):
-        if self._get_uid('svavoid') in touch.ud:
-            return
+        if 'touch_down' in touch.ud:
+            del touch.ud['touch_down']
 
         if self in [x() for x in touch.grab_list]:
             touch.ungrab(self)
             self._touch = None
             uid = self._get_uid()
             ud = touch.ud[uid]
-            if self.do_scroll_x and self.effect_x:
-                self.effect_x.stop(touch.x)
             if self.do_scroll_y and self.effect_y:
                 self.effect_y.stop(touch.y)
             if ud['mode'] == 'unknown':
@@ -456,7 +457,7 @@ class Scroller(StencilView):
                 super(Scroller, self).on_touch_up(touch)
 
         # if we do mouse scrolling, always accept it
-        if 'button' in touch.profile and touch.button.startswith('scroll'):
+        if touch.is_mouse_scrolling:
             return True
 
         return self._get_uid() in touch.ud
@@ -539,38 +540,6 @@ class Scroller(StencilView):
         super(Scroller, self).remove_widget(widget)
         if widget is self._viewport:
             self._viewport = None
-
-    def _get_uid(self, prefix='sv'):
-        return '{0}.{1}'.format(prefix, self.uid)
-
-    def _change_touch_mode(self, *largs):
-        if not self._touch:
-            return
-        uid = self._get_uid()
-        touch = self._touch
-        ud = touch.ud[uid]
-        if ud['mode'] != 'unknown' or ud['user_stopped']:
-            return
-        if self.do_scroll_x and self.effect_x:
-            self.effect_x.cancel()
-        if self.do_scroll_y and self.effect_y:
-            self.effect_y.cancel()
-        # XXX the next line was in the condition. But this stop
-        # the possibily to "drag" an object out of the Scroller in the
-        # non-used direction: if you have an horizontal Scroller, a
-        # vertical gesture will not "stop" the scroll view to look for an
-        # horizontal gesture, until the timeout is done.
-        # and touch.dx + touch.dy == 0:
-        touch.ungrab(self)
-        self._touch = None
-        # correctly calculate the position of the touch inside the
-        # Scroller
-        touch.push()
-        touch.apply_transform_2d(self.to_widget)
-        touch.apply_transform_2d(self.to_parent)
-        super(Scroller, self).on_touch_down(touch)
-        touch.pop()
-        return
 
     def _do_touch_up(self, touch, *largs):
         super(Scroller, self).on_touch_up(touch)
