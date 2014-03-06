@@ -22,10 +22,10 @@ OLD_LD="$LD"
 OLD_LDFLAGS="$LDFLAGS"
 OLD_LDSHARED="$LDSHARED"
 export LDSHARED="$KIVYIOSROOT/tools/liblink"
-export LDFLAGS="$ARM_LDFLAGS"
+export LDFLAGS="$ARM_LDFLAGS -lsqlite -lsrc"
 export LD="$ARM_LD"
 export CFLAGS="$ARM_CFLAGS -DEXPERIMENTAL -DAPSW_USE_SQLITE_AMALGAMATION=\'sqlite3.c\'"
-export CC="$ARM_CC"
+export CC="$ARM_CC -I$BUILDROOT/include"
 
 $HOSTPYTHON setup.py build_ext -v
 $HOSTPYTHON setup.py install -O2
