@@ -22,10 +22,10 @@ OLD_LD="$LD"
 OLD_LDFLAGS="$LDFLAGS"
 OLD_LDSHARED="$LDSHARED"
 export LDSHARED="$KIVYIOSROOT/tools/liblink"
-export LDFLAGS="$ARM_LDFLAGS -lsrc"
+export LDFLAGS="$ARM_LDFLAGS"
 export LD="$ARM_LD"
 export CFLAGS="$ARM_CFLAGS -DEXPERIMENTAL=1 -DAPSW_USE_SQLITE_AMALGAMATION=\'sqlite3.c\'"
-export CC="$ARM_CC -I$BUILDROOT/include"
+export CC="$ARM_CC"
 
 $HOSTPYTHON setup.py build_ext -v
 $HOSTPYTHON setup.py install -O2
@@ -40,5 +40,6 @@ popd
 bd=$TMPROOT/apsw/build/lib.macosx-*/
 try $KIVYIOSROOT/tools/biglink $BUILDROOT/lib/libapsw.a $bd
 deduplicate $BUILDROOT/lib/libapsw.a
+try cp $bd/* "$BUILDROOT/python/lib/python2.7/site-packages"
 
 echo '== APSW build is done'
