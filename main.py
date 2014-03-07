@@ -55,7 +55,7 @@ class ThreeDoListApp(App):
     
     #preferences = ObjectProperty(JsonStore('preferences.json'))
     try:
-        db = ObjectProperty(Connection('~/Documents/3dolist/db.db', flags=SQLITE_OPEN_READWRITE))
+        db = ObjectProperty(Connection('~/Documents/ThreeDoList/db.db', flags=SQLITE_OPEN_READWRITE))
     except CantOpenError:
         db = ObjectProperty(None)
 
