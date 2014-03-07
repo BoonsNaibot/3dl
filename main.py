@@ -1,13 +1,13 @@
 from kivy.app import App
 from kivy.lang import Builder
-#from kivy.storage import JsonStore
 from kivy.uix.widget import Widget
+#kivy.storage.jsonstore import JsonStore
 from kivy.uix.screenmanager import NoTransition
 from kivy.properties import ObjectProperty, ListProperty
 
 from apsw import Connection, SQLITE_OPEN_READWRITE, CantOpenError
-from kivy.modules import inspector
-from kivy.core.window import Window
+#from kivy.modules import inspector
+#from kivy.core.window import Window
 
 kv = """
 #:import ListScreen listscreen.ListScreen
@@ -55,7 +55,7 @@ class ThreeDoListApp(App):
     
     #preferences = ObjectProperty(JsonStore('preferences.json'))
     try:
-        db = ObjectProperty(Connection('db.db', flags=SQLITE_OPEN_READWRITE))
+        db = ObjectProperty(Connection('~/Documents/3dolist/db.db', flags=SQLITE_OPEN_READWRITE))
     except CantOpenError:
         db = ObjectProperty(None)
 
@@ -64,7 +64,7 @@ class ThreeDoListApp(App):
         super(ThreeDoListApp, self).__init__(**kwargs)
 
         if not self.db:
-            connection = Connection('db.db')
+            connection = Connection(self.user_data_dir + '/' + self.name + '/db.db')
             cursor = connection.cursor()
             cursor.execute("""
                             CREATE TABLE [notebook](
@@ -104,7 +104,7 @@ class ThreeDoListApp(App):
         ''''''
         self.dispatch('on_pre_start')
         app = Application()
-        inspector.create_inspector(Window, app)
+        #inspector.create_inspector(Window, app)
         return app
 
     def on_start(self):
