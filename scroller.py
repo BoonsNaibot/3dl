@@ -130,6 +130,7 @@ class Scroller(StencilView):
         super(Scroller, self).__init__(**kwargs)
 
         self.effect_y = DampedScrollEffect(target_widget=self._viewport)
+        self.effect_y.bind(scroll=self._update_effect_y)
         self.bind(
             width=self._update_effect_x_bounds,
             height=self._update_effect_y_bounds,
@@ -146,10 +147,6 @@ class Scroller(StencilView):
         if value:
             value.bind(scroll=self._update_effect_y)
             value.target_widget = self._viewport
-
-    def on_effect_cls(self, instance, cls):
-        self.effect_y = self.effect_cls(target_widget=self._viewport)
-        self.effect_y.bind(scroll=self._update_effect_y)
 
     def _update_effect_widget(self, *args):
         if self.effect_y:
@@ -185,9 +182,9 @@ class Scroller(StencilView):
         
         if self.collide_point(*touch.pos):
             touch.grab(self)
-            uid = {'mode': 'unknown',
+            """uid = {'mode': 'unknown',
                    'dy': 0,
-                   'time': touch.time_start}
+                   'time': touch.time_start}"""
             
             if self.mode == 'scrolling':
                 self.effect_y.cancel()
@@ -224,45 +221,27 @@ class Scroller(StencilView):
 
         elif ((touch.grab_current is self) and (self.mode == 'scrolling')):
             min_height = self._viewport.height
-            
+
             if min_height > self.height:
                 self.effect_y.update(touch.y)
-                ud = touch.ud['foobar']
+                """ud = touch.ud['foobar']
                 time_update = touch.time_update
                 ud['dy'] += abs(touch.dy)
                 ud['dt'] = time_update - ud['time']
-                ud['dt'] = time_update
+                ud['dt'] = time_update"""
                 return True
-                
+
         return super(Scroller, self).on_touch_move(touch)
 
     def on_touch_up(self, touch):
 
-        if self in [x() for x in touch.grab_list]:
+        if touch.grab_current is self:
             touch.ungrab(self)
-            self._touch = None
-            uid = self._get_uid()
-            ud = touch.ud[uid]
-            if self.do_scroll_y and self.effect_y:
-                self.effect_y.stop(touch.y)
-            if ud['mode'] == 'unknown':
-                # we must do the click at least..
-                # only send the click if it was not a click to stop
-                # autoscrolling
-                if not ud['user_stopped']:
-                    super(Scroller, self).on_touch_down(touch)
-                Clock.schedule_once(partial(self._do_touch_up, touch), .1)
-        else:
-            if self._touch is not touch and self.uid not in touch.ud:
-                super(Scroller, self).on_touch_up(touch)
+            self.effect_y.stop(touch.y)
 
-        # if we do mouse scrolling, always accept it
-        if touch.is_mouse_scrolling:
-            return True
+        return super(Scroller, self).on_touch_up(touch)
 
-        return self._get_uid() in touch.ud
-
-    def _do_touch_up(self, touch, *largs):
+    """def _do_touch_up(self, touch, *largs):
         super(Scroller, self).on_touch_up(touch)
         # don't forget about grab event!
         for x in xrange(len(touch.grab_list)):
@@ -272,7 +251,7 @@ class Scroller(StencilView):
             if x:
                 touch.grab_current = x
                 super(Scroller, self).on_touch_up(touch)
-        touch.grab_current = None
+        touch.grab_current = None"""
 
     def convert_distance_to_scroll(self, dx, dy):
         '''Convert a distance in pixels to a scroll distance, depending on the
@@ -357,13 +336,8 @@ Builder.load_string("""
 <Scroller>:
     canvas.after:
         Color:
-            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_y else 0]
+            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha]
         Rectangle:
             pos: self.right - self.bar_width - self.bar_margin, self.y + self.height * self.vbar[0]
             size: self.bar_width, self.height * self.vbar[1]
-        Color:
-            rgba: self.bar_color[:3] + [self.bar_color[3] * self.bar_alpha if self.do_scroll_x else 0]
-        Rectangle:
-            pos: self.x + self.width * self.hbar[0], self.y + self.bar_margin
-            size: self.width * self.hbar[1], self.bar_width
 """)
