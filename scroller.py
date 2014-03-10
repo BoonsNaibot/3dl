@@ -2,22 +2,11 @@ __all__ = ('Scroller', )
 
 from functools import partial
 from kivy.animation import Animation
-from kivy.config import Config
-from kivy.clock import Clock
 from kivy.uix.stencilview import StencilView
-from kivy.metrics import sp
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
     ObjectProperty, ListProperty, OptionProperty
 from kivy.lang import Builder
-
-
-# When we are generating documentation, Config doesn't exist
-_scroll_timeout = _scroll_distance = 0
-if Config:
-    _scroll_timeout = Config.getint('widgets', 'scroll_timeout')
-    _scroll_distance = sp(Config.getint('widgets', 'scroll_distance'))
-
 
 class Scroller(StencilView):
     '''Scroller class. See module documentation for more information.
@@ -28,7 +17,7 @@ class Scroller(StencilView):
         been deprecated, use :data:`effect_cls` instead.
     '''
 
-    scroll_distance = NumericProperty(_scroll_distance)
+    scroll_distance = NumericProperty(7)
     '''Distance to move before scrolling the :class:`Scroller`, in pixels. As
     soon as the distance has been traveled, the :class:`Scroller` will start
     to scroll, and no touch event will go to children.
@@ -38,31 +27,6 @@ class Scroller(StencilView):
     :data:`scroll_distance` is a :class:`~kivy.properties.NumericProperty`,
     default to 20 (pixels), according to the default value in user
     configuration.
-    '''
-
-    scroll_timeout = NumericProperty(_scroll_timeout)
-    '''Timeout allowed to trigger the :data:`scroll_distance`, in milliseconds.
-    If the user has not moved :data:`scroll_distance` within the timeout,
-    the scrolling will be disabled, and the touch event will go to the children.
-
-    :data:`scroll_timeout` is a :class:`~kivy.properties.NumericProperty`,
-    default to 55 (milliseconds), according to the default value in user
-    configuration.
-
-    .. versionchanged:: 1.5.0
-        Default value changed from 250 to 55.
-    '''
-
-    scroll_x = NumericProperty(0.)
-    '''X scrolling value, between 0 and 1. If 0, the content's left side will
-    touch the left side of the Scroller. If 1, the content's right side will
-    touch the right side.
-
-    This property is controled by :class:`Scroller` only if
-    :data:`do_scroll_x` is True.
-
-    :data:`scroll_x` is a :class:`~kivy.properties.NumericProperty`,
-    default to 0.
     '''
 
     scroll_y = NumericProperty(1.)
@@ -75,36 +39,6 @@ class Scroller(StencilView):
 
     :data:`scroll_y` is a :class:`~kivy.properties.NumericProperty`,
     default to 1.
-    '''
-
-    do_scroll_x = BooleanProperty(True)
-    '''Allow scroll on X axis.
-
-    :data:`do_scroll_x` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
-    '''
-
-    do_scroll_y = BooleanProperty(True)
-    '''Allow scroll on Y axis.
-
-    :data:`do_scroll_y` is a :class:`~kivy.properties.BooleanProperty`,
-    default to True.
-    '''
-
-    def _get_do_scroll(self):
-        return (self.do_scroll_x, self.do_scroll_y)
-
-    def _set_do_scroll(self, value):
-        if type(value) in (list, tuple):
-            self.do_scroll_x, self.do_scroll_y = value
-        else:
-            self.do_scroll_x = self.do_scroll_y = bool(value)
-    do_scroll = AliasProperty(_get_do_scroll, _set_do_scroll,
-                                bind=('do_scroll_x', 'do_scroll_y'))
-    '''Allow scroll on X or Y axis.
-
-    :data:`do_scroll` is a :class:`~kivy.properties.AliasProperty` of
-    (:data:`do_scroll_x` + :data:`do_scroll_y`)
     '''
 
     def _get_vbar(self):
@@ -130,33 +64,6 @@ class Scroller(StencilView):
     The position and size are normalized between 0-1, and represent a
     percentage of the current Scroller height. This property is used
     internally for drawing the little vertical bar when you're scrolling.
-
-    :data:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
-    '''
-
-    def _get_hbar(self):
-        # must return (x, width) in %
-        # calculate the viewport size / Scroller size %
-        if self._viewport is None:
-            return 0, 1.
-        vw = self._viewport.width
-        w = self.width
-        if vw < w or vw == 0:
-            return 0, 1.
-        pw = max(0.01, w / float(vw))
-        sx = min(1.0, max(0.0, self.scroll_x))
-        px = (1. - pw) * sx
-        return (px, pw)
-
-    hbar = AliasProperty(_get_hbar, None, bind=(
-        'scroll_x', '_viewport', 'viewport_size'))
-    '''Return a tuple of (position, size) of the horizontal scrolling bar.
-
-    .. versionadded:: 1.2.0
-
-    The position and size are normalized between 0-1, and represent a
-    percentage of the current Scroller height. This property is used
-    internally for drawing the little horizontal bar when you're scrolling.
 
     :data:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
     '''
@@ -190,25 +97,6 @@ class Scroller(StencilView):
     to 0
     '''
 
-    effect_cls = ObjectProperty(DampedScrollEffect, allownone=True)
-    '''Class effect to instanciate for X and Y axis.
-
-    .. versionadded:: 1.7.0
-
-    :data:`effect_cls` is a :class:`~kivy.properties.ObjectProperty`, default to
-    :class:`DampedScrollEffect`.
-    '''
-
-    effect_x = ObjectProperty(None, allownone=True)
-    '''Effect to apply for the X axis. If None is set, an instance of
-    :data:`effect_cls` will be created.
-
-    .. versionadded:: 1.7.0
-
-    :data:`effect_x` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None
-    '''
-
     effect_y = ObjectProperty(None, allownone=True)
     '''Effect to apply for the Y axis. If None is set, an instance of
     :data:`effect_cls` will be created.
@@ -238,18 +126,15 @@ class Scroller(StencilView):
             self.viewport_size = value.size
 
     def __init__(self, **kwargs):
-        self._touch = None
-        self._trigger_update_from_scroll = Clock.create_trigger(
-            self.update_from_scroll, -1)
+        self._trigger_update_from_scroll = Clock.create_trigger(self.update_from_scroll, -1)
         super(Scroller, self).__init__(**kwargs)
-        if self.effect_y is None and self.effect_cls is not None:
-            self.effect_y = self.effect_cls(target_widget=self._viewport)
+
+        self.effect_y = DampedScrollEffect(target_widget=self._viewport)
         self.bind(
             width=self._update_effect_x_bounds,
             height=self._update_effect_y_bounds,
             viewport_size=self._update_effect_bounds,
             _viewport=self._update_effect_widget,
-            scroll_x=self._trigger_update_from_scroll,
             scroll_y=self._trigger_update_from_scroll,
             pos=self._trigger_update_from_scroll,
             size=self._trigger_update_from_scroll)
