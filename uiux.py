@@ -235,11 +235,7 @@ class Deletable(ButtonRoot):
 
     def on_state(self, instance, value):
         if ((value <> 'delete') and instance.delete_button):
-            if instance.layout.right <> instance.right:
-                instance.dispatch('on_delete_out', instance.layout)
-
-            instance.remove_widget(instance.delete_button)
-            instance.delete_button = None
+            instance.dispatch('on_delete_out', instance.layout)
             instance.screen.polestar = None
 
         elif value == 'delete':
@@ -256,7 +252,7 @@ class Deletable(ButtonRoot):
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
-                self.dispatch('on_delete_out', self.layout)
+                self.state = 'normal'
 
             return True
 
@@ -300,21 +296,20 @@ class Deletable(ButtonRoot):
                     if (layout.right < self.delete_button.center_x):
                         self._anim = Animation(right=self.delete_button.x, t='out_quad', d=0.2).start(layout)
                     else:
-                         self.dispatch('on_delete_out', layout)
-
+                        self.state = 'normal'
                     return True
 
         return super(Deletable, self).on_touch_up(touch)
 
     def on_delete_out(self, layout, *args):
+
+        def _do_release(a, widget):
+            parent = widget.parent
+            parent.remove_widget(parent.delete_button)
+            parent.delete_button = None
+        
         _anim = Animation(right=self.right, t='out_quad', d=0.2)
-
-        if self.state == 'delete':
-            def _do_release():
-                self.state = 'normal'
-
-            _anim.bind(on_complete=lambda *_: _do_release())
-
+        _anim.bind(on_complete=_do_release)
         self._anim = _anim.start(layout)
 
 class Completable(ButtonRoot):
@@ -330,8 +325,7 @@ class Completable(ButtonRoot):
             if instance.layout.x <> instance.x:
                 instance.dispatch('on_complete_out', instance.layout)
 
-            instance.remove_widget(instance.complete_button)
-            instance.complete_button = instance.screen.polestar = None
+            instance.screen.polestar = None
 
         elif value == 'complete':
             instance.complete_button = completebutton = CompleteButton(size=(instance.size[1], instance.size[1]), pos=instance.pos, button=self)
@@ -345,7 +339,7 @@ class Completable(ButtonRoot):
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
-                self.dispatch('on_complete_out', self.layout)
+                self.state = 'normal'
 
             return True
 
@@ -389,21 +383,20 @@ class Completable(ButtonRoot):
                     if (layout.x > self.complete_button.center_x):
                         self._anim = Animation(x=self.complete_button.right, t='out_quad', d=0.2).start(layout)
                     else:
-                         self.dispatch('on_complete_out', layout)
-
+                        self.state = 'normal'
                     return True
 
         return super(Completable, self).on_touch_up(touch)
 
     def on_complete_out(self, layout, *args):
+
+        def _do_release(a, widget):
+            parent = widget.parent
+            parent.remove_widget(parent.complete_button)
+            parent.complete_button = None
+        
         _anim = Animation(x=self.x, t='out_quad', d=0.2)
-
-        if self.state == 'complete':
-            def _do_release():
-                self.state = 'normal'
-
-            _anim.bind(on_complete=lambda *_: _do_release())
-
+        _anim.bind(on_complete=_do_release)
         self._anim = _anim.start(layout)
 
 class DoubleClickable(ButtonRoot):
@@ -580,8 +573,8 @@ class TouchDownAndHoldable(ButtonRoot):
 
                 for viewer in dzo:
                     if viewer.collide_point(*widget.center):
-                        indices = touch.ud['indices']
-                        Clock.schedule_once(viewer.dispatch('on_motion_out', widget, indices), 0.15)
+                        _l = lambda *_: viewer.dispatch('on_motion_out', widget, touch.ud['indices'])
+                        Clock.schedule_once(_l, 0.15)
                         return True
 
         return super(TouchDownAndHoldable, self).on_touch_up(touch)
@@ -685,12 +678,16 @@ class EditButton(Editable):
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
-            return False
+            if self.state == 'edit':
+                self.state = 'normal'
+                return False
+                
         else:
             return super(EditButton, self).on_touch_down(touch)
             
-    def on_text_validate(self, *args):
-        pass
+    def on_text_validate(self, instance, *args):
+        self.text = instance.text.lstrip()
+        instance.focus = False
 
 class DoubleClickButton(DoubleClickable):
     icon_text = StringProperty('')
@@ -724,22 +721,28 @@ class AccordionListItem(Selectable, FloatLayout):
             self._anim_collapse.stop()
             self._anim_collapse = None
 
-        self._anim_collapse = Animation(collapse_alpha=0.0,
-                                        t='out_expo',
-                                        d=0.25).start(self)
+        def _do_progress(anim, instance, progression):
+            instance.listview._sizes[instance.index] = instance.height
+
+        _anim = Animation(collapse_alpha=0.0,
+                          t='out_expo',
+                          d=0.25)
+        _anim.bind(on_progress=_do_progress)
+        self._anim_collapse = _anim.start(self)
 
     def deselect(self, *args):
         if self._anim_collapse:
             self._anim_collapse.stop()
             self._anim_collapse = None
 
-        self._anim_collapse = Animation(collapse_alpha=1.0,
-                                        t='out_expo',
-                                        d=0.25).start(self)
+        def _do_progress(anim, instance, progression):
+            instance.listview._sizes[instance.index] = instance.height
 
-    def on_collapse_alpha(self, instance, value):
-        #instance.listview._do_layout()
-        instance.listview._sizes[instance.index] = instance.height
+        _anim = Animation(collapse_alpha=1.0,
+                          t='out_expo',
+                          d=0.25)
+        _anim.bind(on_progress=_do_progress)
+        self._anim_collapse = _anim.start(self)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -960,7 +963,7 @@ Builder.load_string("""
             text_size: (self.size[0]-(0.1*self.size[0]), None) if root.aleft else (None, None)
 
 <-DoubleClickButton>:
-    size_hint: 0.5, 1
+    size_hint: 0.9, 1
     pos_hint: {'center_x': 0.5}
     font_size: self.height*0.421875
     text_color: app.white
@@ -1011,8 +1014,8 @@ Builder.load_string("""
 
 <-EditButton>:
     label: label_id
-    font_size: self.height*0.1
     text_color: app.blue
+    font_size: self.height*0.1
 
     Label:
         id: label_id
