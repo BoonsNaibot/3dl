@@ -1,12 +1,15 @@
-from kivy.properties import ObjectProperty, AliasProperty, ListProperty
-from datetimewidgets import DatePicker
+from kivy.properties import ObjectProperty, AliasProperty, ListProperty, NumericProperty
+import datetime, math, itertools
+from datetimewidgets import Day
 from kivy.lang import Builder
 from uiux import Screen_
-import datetime
 
-class DatePickerMiniScreen(Screen_):
+class DateTimeMiniScreen(Screen_):
+    day = NumericProperty(0)
+    year = NumericProperty(1)
+    month = NumericProperty(1)
     item = ObjectProperty(None)
-    datepicker = ObjectProperty(None)
+    body = ObjectProperty(None)
     time = ObjectProperty(datetime.time(12, 00))
     month_names = ListProperty(('January ', 'February ', 'March ', 'April ', 'May ', 'June ', 'July ', 'August ', 'September ', 'October ', 'November ', 'December '))
 
@@ -18,7 +21,9 @@ class DatePickerMiniScreen(Screen_):
 
         return datetime.date(self.year, self.month, day)
     
-    def _set_date(self, value, timedelta=datetime.timedelta, izip=itertools.izip, repeat=itertools.repeat, ravel=itertools.chain.from_iterable, today=datetime.date.today()):
+    def _set_date(self, value, timedelta=datetime.timedelta):
+        ravel = itertools.chain.from_iterable
+        today = datetime.date.today()
 
         def _args_converter(date_cursor, delta):
             date_label = Day(text=str(date_cursor.day))
@@ -39,11 +44,11 @@ class DatePickerMiniScreen(Screen_):
         for child in cached_views.itervalues():
             child.title.clear_widgets()
 
-        these = ravel(repeat(i, 7) for i in sorted(cached_views.itervalues(), key=cached_views.get))
+        these = ravel(itertools.repeat(i, 7) for i in sorted(cached_views.itervalues(), key=cached_views.get))
         those = (_args_converter((date+timedelta(days=delta)), delta) for delta in xrange(-dt, ((7*6)-dt)))
         _on_release = lambda *_: self.body.handle_selection
 
-        for this, that in izip(these, those):
+        for this, that in itertools.izip(these, those):
             that.bind(on_release=_on_release(that))
             that.week = this
             this.title.add_widget(that)
@@ -51,10 +56,8 @@ class DatePickerMiniScreen(Screen_):
     date = AliasProperty(_get_date, _set_date)#, bind=('size', 'pos'))
 
     def _get_when(self):
-        datepicker = self.datepicker
-
-        if datepicker.day:
-            dt = datetime.datetime.combine(datepicker.date, self.time)
+        if self.day:
+            dt = datetime.datetime.combine(self.date, self.time)
             return dt.isoformat()[:16]
         else:
             return ''
@@ -62,24 +65,42 @@ class DatePickerMiniScreen(Screen_):
     def _set_when(self, when):
         if when:
             dt = datetime.datetime.strptime(when, "%Y-%m-%dT%H:%M")
-            self.datepicker.date = dt.date()
+            self.date = dt.date()
             self.time = dt.time()
         else:
             return False
 
     when = AliasProperty(_get_when, _set_when)
+    
+    def __init__(self, **kwargs):
+        self.register_event_type('on_today')
+        super(DateTimeMiniScreen, self).__init__(**kwargs)
 
-    def on_pre_enter(self, *args):
-        if self.item.when:
-            self.when = self.item.when
-        else:
-            #For the timing between sizing and populating days in calendar
-            self.when = datetime.date.today().isoformat() + 'T12:00'
+    def on_item(self, instance, value):
+        if self.item:
+
+            if self.item.when:
+                self.when = self.item.when
+            else:
+                #For the timing between sizing and populating days in calendar?
+                self.when = datetime.date.today().isoformat() + 'T12:00'
+
+    def _args_converter(self, i, _):
+        return {'index': i,
+                'size_hint_y': None,
+                'title_height': self.height/6.0,
+                'content_height': self.height/6.0,
+                'listview': self}
+
+    def on_today(self, instance, *args):
+        instance.dispatch('on_deselect')
+        instance.date = daetime.date.today()
 
 Builder.load_string("""
 #:import NavBar uiux
+#:import Week listitems.Week
 #:import Button_ uiux.Button_
-#:import DatePicker datetimewidgets.DatePicker
+#:import AccordionListView listviews.AccordionListView
 
 <DayofTheWeek@Label>:
     font_name: 'Walkway Bold.ttf'
@@ -90,9 +111,9 @@ Builder.load_string("""
     state_color: app.no_color
     text_color: app.blue
 
-<DatePickerMiniScreen>:
-    datepicker: datepicker_id
-    name: 'DatePicker Mini-Screen'
+<DateTimeMiniScreen>:
+    body: body_id
+    name: 'Date-Time Mini-Screen'
     root_directory: app.db
 
     NavBar:
@@ -142,10 +163,14 @@ Builder.load_string("""
         DayofTheWeek:
             text: 'SAT'
 
-    DatePicker:
-        id: datepicker_id
+    AccordionListView:
+        id: body_id
+        spacing: 0
+        list_item: Week
+        size_hint: 1, 0.4
         pos_hint: {'x': 0, 'top': 0.8373}
-        size_hint: 1, 0.5
+        args_converter: root._args_converter
+        data: range(6)
     BoxLayout:
         pos_hint: {'x': 0, 'y': 0}
         size_hint: 1, 0.0789
@@ -154,7 +179,7 @@ Builder.load_string("""
             text: 'Cancel'
         Foobuttons:
             text: 'Today'
-            on_press: datepicker_id.to_today()
+            on_press: root.dispatch('on_today', *args)
         Foobuttons:
             text: 'Submit'
 
