@@ -74,6 +74,9 @@ class DateTimeMiniScreen(Screen_):
     
     def __init__(self, **kwargs):
         self.register_event_type('on_today')
+        self.register_event_type('on_deselect')
+        self.register_event_type('on_next_month')
+        self.register_event_type('on_previous_month')
         super(DateTimeMiniScreen, self).__init__(**kwargs)
 
     def on_item(self, instance, value):
@@ -92,9 +95,35 @@ class DateTimeMiniScreen(Screen_):
                 'content_height': self.height/6.0,
                 'listview': self}
 
-    def on_today(self, instance, *args):
-        instance.dispatch('on_deselect')
-        instance.date = daetime.date.today()
+    def on_deselect(self, *args):
+        self.body.deselect_all()
+    
+    def on_next_month(self, instance, maxyear=datetime.MAXYEAR):
+        self.dispatch('on_deselect')
+
+        if self.date.month == 12:
+            new_year = self.date.year + 1
+
+            if new_year <= maxyear:
+                self.date = datetime.date(new_year, 1, self.date.day)
+
+        else:
+            self.date = datetime.date(self.date.year, self.date.month + 1, self.date.day)
+
+    def on_previous_month(self, instance, today=datetime.date.today()):
+        self.dispatch('on_deselect')
+
+        if self.date.month == 1:
+            new_date = datetime.date(self.date.year - 1, 12, self.date.day)
+        else:
+            new_date = datetime.date(self.date.year, self.date.month - 1, self.date.day)
+
+        if ((new_date.month >= today.month) and (new_date.year >= today.year)):
+            self.date = new_date
+
+    def on_today(self, *args):
+        self.dispatch('on_deselect')
+        self.date = daetime.date.today()
 
 Builder.load_string("""
 #:import NavBar uiux
@@ -130,7 +159,7 @@ Builder.load_string("""
                 size_hint: None, 1
                 width: self.height
                 font_size: self.height*0.7
-                on_press: root.previous_month()
+                on_press: root.dispatch('previous_month', *args)
             Label:
                 id: title_id
                 color: app.white
@@ -142,7 +171,7 @@ Builder.load_string("""
                 size_hint: None, 1
                 width: self.height
                 font_size: self.height*0.7
-                on_press: root.next_month()
+                on_press: root.dispatch('next_month', *args)
 
     BoxLayout:
         size_hint: 1, 0.05
