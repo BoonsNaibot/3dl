@@ -4,12 +4,11 @@ from kivy.lang import Builder
 from kivy.animation import Animation
 from kivy.uix.stencilview import StencilView
 from kivy.effects.dampedscroll import DampedScrollEffect
-from kivy.properties import NumericProperty, AliasProperty, BooleanProperty, ObjectProperty, ListProperty, OptionProperty
+from kivy.properties import AliasProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty
 
 class ScrollerEffect(DampedScrollEffect):
     _parent = ObjectProperty(None)
     max = NumericProperty(0)
-    round_value = BooleanProperty(False) #We'll do this ourselves
     
     def _get_target_widget(self):
         return self._parent._viewport
@@ -20,16 +19,11 @@ class ScrollerEffect(DampedScrollEffect):
         tw = self.target_widget
 
         if tw:
-            return -(self.target_widget.size[1] - self._parent.height)
+            return -(tw.size[1] - self._parent.height)
         else:
             return 0
         
     min = AliasProperty(_get_min, None, bind=('target_widget',))
-    
-    def _get_value(self):
-        return self.min * self._parent.scroll_y
-
-    value = AliasProperty(_get_value, None, bind=('min', '_parent'))
     
     def on_scroll(self, instance, value):
         parent = instance._parent
@@ -61,6 +55,7 @@ class Scroller(StencilView):
     bar_color = ListProperty([.7, .7, .7, .9])
     bar_width = NumericProperty('2dp')
     bar_margin = NumericProperty(0)
+    bar_anim = ObjectProperty(None, allownone=True)
     effect_y = ObjectProperty(None, allownone=True)
     viewport_size = ListProperty([0, 0])
     _viewport = ObjectProperty(None, allownone=True)
@@ -95,6 +90,9 @@ class Scroller(StencilView):
         self.bind(scroll_y=self._trigger_update_from_scroll,
                   pos=self._trigger_update_from_scroll,
                   size=self._trigger_update_from_scroll)
+                  
+    def on_height(self, instance, *args):
+        instance.effect_y.value = instance.effect_y.min * instance.scroll_y
 
     def on_touch_down(self, touch):
         # handle mouse scrolling, only if the viewport size is bigger than the
@@ -219,8 +217,11 @@ class Scroller(StencilView):
         # new in 1.2.0, show bar when scrolling happen
         # and slowly remove them when no scroll is happening.
         self.bar_alpha = 1.
-        Animation.stop_all(self, 'bar_alpha')
-        Clock.unschedule(self._start_decrease_alpha)
+        
+        if self.bar_anim:
+            self.bar_anim.stop()
+            Clock.unschedule(self._start_decrease_alpha)
+
         Clock.schedule_once(self._start_decrease_alpha, .5)
 
     def _start_decrease_alpha(self, *l):
