@@ -194,7 +194,7 @@ class Scroller(StencilView):
         :data:`scroll_y`, :data:`pos` or :data:`size` properties change, or
         if the size of the content changes.
         '''
-        vp = self._viewport:
+        vp = self._viewport
 
         if vp:
 
