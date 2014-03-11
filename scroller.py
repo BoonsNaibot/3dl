@@ -194,29 +194,31 @@ class Scroller(StencilView):
         :data:`scroll_y`, :data:`pos` or :data:`size` properties change, or
         if the size of the content changes.
         '''
-        if not self._viewport:
-            return
-        vp = self._viewport
+        vp = self._viewport:
 
-        # update from size_hint
-        if vp.size_hint_x is not None:
-            vp.width = vp.size_hint_x * self.width
-        if vp.height > self.height:
-            sh = vp.height - self.height
-            y = self.y - self.scroll_y * sh
-        else:
-            y = self.top - vp.height
-        vp.y = y
+        if vp:
 
-        # new in 1.2.0, show bar when scrolling happen
-        # and slowly remove them when no scroll is happening.
-        self.bar_alpha = 1.
-        
-        if self.bar_anim:
-            self.bar_anim.stop()
-            Clock.unschedule(self._start_decrease_alpha)
+            if vp.width > self.width:
+                sw = vp.width - self.width
+                x = self.x - self.scroll_x * sw
+            else:
+                x = self.x
+            if vp.height > self.height:
+                sh = vp.height - self.height
+                y = self.y - self.scroll_y * sh
+            else:
+                y = self.top - vp.height
+            vp.pos = x, y
 
-        Clock.schedule_once(self._start_decrease_alpha, .5)
+            # new in 1.2.0, show bar when scrolling happen
+            # and slowly remove them when no scroll is happening.
+            self.bar_alpha = 1.
+            
+            if self.bar_anim:
+                self.bar_anim.stop()
+                Clock.unschedule(self._start_decrease_alpha)
+    
+            Clock.schedule_once(self._start_decrease_alpha, .5)
 
     def _start_decrease_alpha(self, *l):
         self.bar_alpha = 1.
