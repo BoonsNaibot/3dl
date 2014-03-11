@@ -36,6 +36,9 @@ class ScrollerEffect(DampedScrollEffect):
                 parent.scroll_y = -sy
                 parent._trigger_update_from_scroll()
                 
+    def on_is_manual(self, instance, value):
+        if not value:
+            instance._parent.mode = 'normal'
 
 
 class Scroller(StencilView):
