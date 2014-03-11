@@ -4,11 +4,12 @@ from kivy.lang import Builder
 from kivy.animation import Animation
 from kivy.uix.stencilview import StencilView
 from kivy.effects.dampedscroll import DampedScrollEffect
-from kivy.properties import NumericProperty, AliasProperty, ObjectProperty, ListProperty, OptionProperty
+from kivy.properties import NumericProperty, AliasProperty, BooleanProperty, ObjectProperty, ListProperty, OptionProperty
 
 class ScrollerEffect(DampedScrollEffect):
     _parent = ObjectProperty(None)
     max = NumericProperty(0)
+    round_value = BooleanProperty(False) #We'll do this ourselves
     
     def _get_target_widget(self):
         return self._parent._viewport
