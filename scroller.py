@@ -8,6 +8,39 @@ from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
     ObjectProperty, ListProperty, OptionProperty
 from kivy.lang import Builder
 
+class ScrollerEffect(DampedScrollEffect):
+    _parent = ObjectProperty(None)
+    max = NumericProperty(0)
+    
+    def _get_target_widget(self):
+        return self._parent._viewport
+        
+    target_widget = AliasProperty(_get_target_widget, None, bind=('_parent',))
+    
+    def _get_min(self):
+        return -(self.target_widget.size[1] - self._parent.height)
+        
+    min = AliasProperty(_get_min, None, bind=('target_widget',))
+    
+    def _get_value(self):
+        return self.min * self._parent.scroll_y
+
+    value = AliasProperty(_get_value, None, bind=('min', '_parent'))
+    
+    def on_scroll(self, instance, value):
+        parent = instance._parent
+        vp = instance.target_widget
+        
+        if vp:
+            sh = vp.height - parent.height
+            
+            if sh >= 1:
+                sy = value/float(sh)
+                parent.scroll_y = -sy
+                parent._trigger_update_from_scroll()
+                
+
+
 class Scroller(StencilView):
     '''Scroller class. See module documentation for more information.
 
@@ -129,8 +162,7 @@ class Scroller(StencilView):
         self._trigger_update_from_scroll = Clock.create_trigger(self.update_from_scroll, -1)
         super(Scroller, self).__init__(**kwargs)
 
-        self.effect_y = DampedScrollEffect(target_widget=self._viewport)
-        self.effect_y.bind(scroll=self._update_effect_y)
+        self.effect_y = DampedScrollEffect(_parent=self)
         self.bind(
             width=self._update_effect_x_bounds,
             height=self._update_effect_y_bounds,
@@ -139,42 +171,6 @@ class Scroller(StencilView):
             scroll_y=self._trigger_update_from_scroll,
             pos=self._trigger_update_from_scroll,
             size=self._trigger_update_from_scroll)
-
-        self._update_effect_widget()
-        self._update_effect_y_bounds()
-
-    def on_effect_y(self, instance, value):
-        if value:
-            value.bind(scroll=self._update_effect_y)
-            value.target_widget = self._viewport
-
-    def _update_effect_widget(self, *args):
-        if self.effect_y:
-            self.effect_y.target_widget = self._viewport
-
-    def _update_effect_y_bounds(self, *args):
-        if not self._viewport or not self.effect_y:
-            return
-        self.effect_y.min = -(self.viewport_size[1] - self.height)
-        self.effect_y.max = 0
-        self.effect_y.value = self.effect_y.min * self.scroll_y
-
-    def _update_effect_bounds(self, *args):
-        if not self._viewport:
-            return
-        if self.effect_y:
-            self._update_effect_y_bounds()
-
-    def _update_effect_y(self, *args):
-        vp = self._viewport
-        if not vp or not self.effect_y:
-            return
-        sh = vp.height - self.height
-        if sh < 1:
-            return
-        sy = self.effect_y.scroll / float(sh)
-        self.scroll_y = -sy
-        self._trigger_update_from_scroll()
 
     def on_touch_down(self, touch):
         # handle mouse scrolling, only if the viewport size is bigger than the
