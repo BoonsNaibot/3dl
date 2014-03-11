@@ -150,19 +150,11 @@ class Scroller(StencilView):
     _viewport = ObjectProperty(None, allownone=True)
     bar_alpha = NumericProperty(1.)
 
-    def _set_viewport_size(self, instance, value):
-        self.viewport_size = value
-
-    def on__viewport(self, instance, value):
-        if value:
-            value.bind(size=self._set_viewport_size)
-            self.viewport_size = value.size
-
     def __init__(self, **kwargs):
         self._trigger_update_from_scroll = Clock.create_trigger(self.update_from_scroll, -1)
         super(Scroller, self).__init__(**kwargs)
 
-        self.effect_y = DampedScrollEffect(_parent=self)
+        self.effect_y = ScrollerEffect(_parent=self)
         self.bind(
             width=self._update_effect_x_bounds,
             height=self._update_effect_y_bounds,
