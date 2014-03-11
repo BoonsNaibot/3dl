@@ -197,7 +197,9 @@ class Scroller(StencilView):
         vp = self._viewport
 
         if vp:
-
+            
+            if vp.size_hint_x is not None:
+                vp.width = vp.size_hint_x * self.width
             if vp.width > self.width:
                 sw = vp.width - self.width
                 x = self.x - self.scroll_x * sw
