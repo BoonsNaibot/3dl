@@ -1,3 +1,4 @@
+from kivy.clock import Clock
 from functools import partial
 from kivy.lang import Builder
 from kivy.animation import Animation
