@@ -3,7 +3,7 @@ from kivy.lang import Builder
 from kivy.animation import Animation
 from kivy.uix.stencilview import StencilView
 from kivy.effects.dampedscroll import DampedScrollEffect
-from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, ObjectProperty, ListProperty, OptionProperty
+from kivy.properties import NumericProperty, AliasProperty, ObjectProperty, ListProperty, OptionProperty
 
 class ScrollerEffect(DampedScrollEffect):
     _parent = ObjectProperty(None)
@@ -38,131 +38,56 @@ class ScrollerEffect(DampedScrollEffect):
                 
     def on_is_manual(self, instance, value):
         if not value:
-            instance._parent.mode = 'normal'
+
+            def _mode_change(*_):
+                if not instance.is_manual:
+                    instance.parent.mode = 'normal'
+                else:
+                    return False
+
+            Clock.schedule_once(_mode_change, 0.05)
 
 
 class Scroller(StencilView):
-    '''Scroller class. See module documentation for more information.
-
-    .. versionchanged:: 1.7.0
-
-        `auto_scroll`, `scroll_friction`, `scroll_moves`, `scroll_stoptime' has
-        been deprecated, use :data:`effect_cls` instead.
-    '''
-
     scroll_distance = NumericProperty(7)
-    '''Distance to move before scrolling the :class:`Scroller`, in pixels. As
-    soon as the distance has been traveled, the :class:`Scroller` will start
-    to scroll, and no touch event will go to children.
-    It is advisable that you base this value on the dpi of your target device's
-    screen.
-
-    :data:`scroll_distance` is a :class:`~kivy.properties.NumericProperty`,
-    default to 20 (pixels), according to the default value in user
-    configuration.
-    '''
-
     scroll_y = NumericProperty(1.)
-    '''Y scrolling value, between 0 and 1. If 0, the content's bottom side will
-    touch the bottom side of the Scroller. If 1, the content's top side will
-    touch the top side.
-
-    This property is controled by :class:`Scroller` only if
-    :data:`do_scroll_y` is True.
-
-    :data:`scroll_y` is a :class:`~kivy.properties.NumericProperty`,
-    default to 1.
-    '''
+    bar_color = ListProperty([.7, .7, .7, .9])
+    bar_width = NumericProperty('2dp')
+    bar_margin = NumericProperty(0)
+    effect_y = ObjectProperty(None, allownone=True)
+    viewport_size = ListProperty([0, 0])
+    _viewport = ObjectProperty(None, allownone=True)
+    bar_alpha = NumericProperty(1.)
+    mode = OptionProperty('normal', options=['normal', 'scrolling'])
 
     def _get_vbar(self):
         # must return (y, height) in %
         # calculate the viewport size / Scroller size %
-        if self._viewport is None:
-            return 0, 1.
-        vh = self._viewport.height
-        h = self.height
-        if vh < h or vh == 0:
-            return 0, 1.
-        ph = max(0.01, h / float(vh))
-        sy = min(1.0, max(0.0, self.scroll_y))
-        py = (1. - ph) * sy
-        return (py, ph)
+        ret = (0, 1.)
 
-    vbar = AliasProperty(_get_vbar, None, bind=(
-        'scroll_y', '_viewport', 'viewport_size'))
-    '''Return a tuple of (position, size) of the vertical scrolling bar.
+        if self._viewport:
+            vh = self._viewport.height
+            h = self.height
+            
+            if vh > h:
+                ph = max(0.01, h / float(vh))
+                sy = min(1.0, max(0.0, self.scroll_y))
+                py = (1. - ph) * sy
+                ret = (py, ph)
 
-    .. versionadded:: 1.2.0
+        return ret
 
-    The position and size are normalized between 0-1, and represent a
-    percentage of the current Scroller height. This property is used
-    internally for drawing the little vertical bar when you're scrolling.
+    vbar = AliasProperty(_get_vbar, None, bind=('scroll_y', '_viewport'))
 
-    :data:`vbar` is a :class:`~kivy.properties.AliasProperty`, readonly.
-    '''
-
-    bar_color = ListProperty([.7, .7, .7, .9])
-    '''Color of horizontal / vertical scroll bar, in RGBA format.
-
-    .. versionadded:: 1.2.0
-
-    :data:`bar_color` is a :class:`~kivy.properties.ListProperty`, default to
-    [.7, .7, .7, .9].
-    '''
-
-    bar_width = NumericProperty('2dp')
-    '''Width of the horizontal / vertical scroll bar. The width is interpreted
-    as a height for the horizontal bar.
-
-    .. versionadded:: 1.2.0
-
-    :data:`bar_width` is a :class:`~kivy.properties.NumericProperty`, default
-    to 2
-    '''
-
-    bar_margin = NumericProperty(0)
-    '''Margin between the bottom / right side of the Scroller when drawing
-    the horizontal / vertical scroll bar.
-
-    .. versionadded:: 1.2.0
-
-    :data:`bar_margin` is a :class:`~kivy.properties.NumericProperty`, default
-    to 0
-    '''
-
-    effect_y = ObjectProperty(None, allownone=True)
-    '''Effect to apply for the Y axis. If None is set, an instance of
-    :data:`effect_cls` will be created.
-
-    .. versionadded:: 1.7.0
-
-    :data:`effect_y` is a :class:`~kivy.properties.ObjectProperty`, default to
-    None, read-only.
-    '''
-
-    viewport_size = ListProperty([0, 0])
-    '''(internal) Size of the internal viewport. This is the size of your only
-    child in the Scroller.
-    '''
-
-    # private, for internal use only
-
-    _viewport = ObjectProperty(None, allownone=True)
-    bar_alpha = NumericProperty(1.)
 
     def __init__(self, **kwargs):
         self._trigger_update_from_scroll = Clock.create_trigger(self.update_from_scroll, -1)
         super(Scroller, self).__init__(**kwargs)
 
         self.effect_y = ScrollerEffect(_parent=self)
-        self.bind(
-            width=self._update_effect_x_bounds,
-            height=self._update_effect_y_bounds,
-            viewport_size=self._update_effect_bounds,
-            _viewport=self._update_effect_widget,
-            scroll_y=self._trigger_update_from_scroll,
-            pos=self._trigger_update_from_scroll,
-            size=self._trigger_update_from_scroll)
+        self.bind(scroll_y=self._trigger_update_from_scroll,
+                  pos=self._trigger_update_from_scroll,
+                  size=self._trigger_update_from_scroll)
 
     def on_touch_down(self, touch):
         # handle mouse scrolling, only if the viewport size is bigger than the
