@@ -47,7 +47,7 @@ class ScrollerEffect(DampedScrollEffect):
 
             def _mode_change(*_):
                 if not instance.is_manual:
-                    instance.parent.mode = 'normal'
+                    instance._parent.mode = 'normal'
                 else:
                     return False
 
