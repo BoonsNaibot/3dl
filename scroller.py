@@ -1,12 +1,9 @@
-__all__ = ('Scroller', )
-
 from functools import partial
+from kivy.lang import Builder
 from kivy.animation import Animation
 from kivy.uix.stencilview import StencilView
 from kivy.effects.dampedscroll import DampedScrollEffect
-from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, \
-    ObjectProperty, ListProperty, OptionProperty
-from kivy.lang import Builder
+from kivy.properties import NumericProperty, BooleanProperty, AliasProperty, ObjectProperty, ListProperty, OptionProperty
 
 class ScrollerEffect(DampedScrollEffect):
     _parent = ObjectProperty(None)
@@ -170,16 +167,12 @@ class Scroller(StencilView):
         
         if self.collide_point(*touch.pos):
             touch.grab(self)
-            """uid = {'mode': 'unknown',
-                   'dy': 0,
-                   'time': touch.time_start}"""
             
             if self.mode == 'scrolling':
                 self.effect_y.cancel()
             else:
-                uid['touch_down'] = touch
-                
-            touch.ud['foobar'] = uid
+                touch.ud['touch_down'] = touch
+
             self.effect_y.start(touch.y)
             return True
 
@@ -212,11 +205,6 @@ class Scroller(StencilView):
 
             if min_height > self.height:
                 self.effect_y.update(touch.y)
-                """ud = touch.ud['foobar']
-                time_update = touch.time_update
-                ud['dy'] += abs(touch.dy)
-                ud['dt'] = time_update - ud['time']
-                ud['dt'] = time_update"""
                 return True
 
         return super(Scroller, self).on_touch_move(touch)
