@@ -1,5 +1,4 @@
 from kivy.clock import Clock
-from functools import partial
 from kivy.lang import Builder
 from kivy.animation import Animation
 from kivy.uix.stencilview import StencilView
@@ -169,19 +168,22 @@ class Scroller(StencilView):
         The result will be a tuple of scroll distance that can be added to
         :data:`scroll_x` and :data:`scroll_y`
         '''
-        if not self._viewport:
-            return 0, 0
-        vp = self._viewport
-        if vp.width > self.width:
-            sw = vp.width - self.width
-            sx = dx / float(sw)
-        else:
-            sx = 0
-        if vp.height > self.height:
-            sh = vp.height - self.height
-            sy = dy / float(sh)
-        else:
-            sy = 1
+        sx, sy = (0, 0)
+
+        if self._viewport:
+            vp = self._viewport
+
+            if vp.width > self.width:
+                sw = vp.width - self.width
+                sx = dx / float(sw)
+            else:
+                sx = 0
+            if vp.height > self.height:
+                sh = vp.height - self.height
+                sy = dy / float(sh)
+            else:
+                sy = 1
+
         return sx, sy
 
     def update_from_scroll(self, *largs):
@@ -199,20 +201,12 @@ class Scroller(StencilView):
         # update from size_hint
         if vp.size_hint_x is not None:
             vp.width = vp.size_hint_x * self.width
-        if vp.size_hint_y is not None:
-            vp.height = vp.size_hint_y * self.height
-
-        if vp.width > self.width:
-            sw = vp.width - self.width
-            x = self.x - self.scroll_x * sw
-        else:
-            x = self.x
         if vp.height > self.height:
             sh = vp.height - self.height
             y = self.y - self.scroll_y * sh
         else:
             y = self.top - vp.height
-        vp.pos = x, y
+        vp.y = y
 
         # new in 1.2.0, show bar when scrolling happen
         # and slowly remove them when no scroll is happening.
