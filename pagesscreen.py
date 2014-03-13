@@ -117,7 +117,7 @@ class PagesScreen(Screen_):
         cursor = self.root_directory.cursor()
         cursor.execute("""
                        DELETE FROM notebook
-                       WHERE page_number=? AND page=?
+                       WHERE page_number=? AND page=?;
                        """,
                        (instance.index, instance.text))
         self.dispatch('on_root_directory')
