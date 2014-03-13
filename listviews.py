@@ -230,11 +230,7 @@ class ActionListView(AccordionListView):
         for child in children:
             if child.collide_point(*widget.center):
                 child.title.state = 'down'
-                d[child.text] = widget.ix
-                
-                if not child.disabled:
-                    d[widget.text] = child.ix
-
+                d[widget.text] = child.ix
             elif child.title.state <> 'normal':
                 child.title.state = 'normal'
 
@@ -245,13 +241,13 @@ class ActionListView(AccordionListView):
 
         for child in children:
             if child.title.state == 'down':
-                child.ix = widget.ix
+                widget.ix = child.ix
                 
                 if not child.disabled:
-                    widget.ix = child.ix
+                    child.ix = widget.ix
+                    d = {widget.text: widget.ix, child.text: child.ix}
+                    _dict = dict(_dict, **d)
 
-                d = {child.text: child.ix, widget.text: widget.ix}
-                _dict = dict(_dict, **d)
                 self.get_root_window().remove_widget(widget)
 
         super(ActionListView, self).on_motion_out(widget, _dict)
