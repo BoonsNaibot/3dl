@@ -493,6 +493,10 @@ class TouchDownAndHoldable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'down', 'dragged'))
     hold_time = NumericProperty(0.0)
     droppable_zone_objects = ListProperty([])
+    
+    def __init__(self, **kwargs):
+        self.register_event_type('on_pos_change')
+        super(TouchDownAndHoldable, self).__init__(**kwargs)
 
     def on_hold_down(self, dt):
         if ((self.state == 'down') and not self.disabled):
@@ -540,7 +544,7 @@ class TouchDownAndHoldable(ButtonRoot):
 
                 if sup:
                     return sup
-                elif (self.hold_time > 0.2):
+                elif (self.hold_time > 0.4):
                     self.state = 'dragged'
                     touch.ud['indices'] = {}
                     return True
@@ -552,7 +556,7 @@ class TouchDownAndHoldable(ButtonRoot):
 
                 for viewer in dzo:
                     if viewer.collide_point(*widget.center):
-                        d = viewer.dispatch('on_pos_change', widget)
+                        d = self.dispatch('on_pos_change', viewer, widget)
 
                         if d:
                             touch.ud['indices'] = dict(touch.ud['indices'], **d)
@@ -568,16 +572,56 @@ class TouchDownAndHoldable(ButtonRoot):
 
             if self.state == 'dragged':
                 touch.ungrab(self)
-                dzo = self.droppable_zone_objects
                 widget = self.parent
+                dzo = self.droppable_zone_objects
+                _l = lambda *_: viewer.dispatch('on_motion_out', widget, touch.ud['indices'])
 
                 for viewer in dzo:
                     if viewer.collide_point(*widget.center):
-                        _l = lambda *_: viewer.dispatch('on_motion_out', widget, touch.ud['indices'])
+                        self.state = 'normal'
                         Clock.schedule_once(_l, 0.15)
                         return True
+                        
+                placeholder = widget.listview.placeholder
+                    
+                if placeholder:
+                    
+                    def _on_complete(a, w):
+                        w.state = 'normal'
+                        Clock.schedule_once(_l, 0.15)
+
+                    _anim = Animation(y=placeholder.y, d=0.3, t='out_elastic')
+                    _anim.bind(on_complete=_on_complete)
+                    self._anim = _anim.start(widget)
+                    return True
 
         return super(TouchDownAndHoldable, self).on_touch_up(touch)
+
+    def on_pos_change(self, viewer, widget):
+        placeholder = viewer.placeholder
+
+        if not placeholder:
+            viewer.dispatch('on_motion_over', widget)
+            return placeholder
+
+        children = viewer.container.children
+        p_ix = children.index(placeholder)
+        _dict = {}
+
+        for child in children:
+            if (widget.collide_widget(child) and (child is not placeholder)):
+                c_ix = children.index(child)
+
+                if ((widget.center_y <= child.top) and (widget.center_y <= placeholder.y)) or ((widget.center_y >= child.y) and (widget.center_y >= placeholder.top)):
+                    children.insert(c_ix, children.pop(p_ix))
+                    #maybe scroll here
+                    _dict = dict([(placeholder.text, child.ix)])
+
+                    if not child.disabled:
+                        _dict[child.text] = placeholder.ix
+                    child.ix, placeholder.ix = placeholder.ix, child.ix
+
+                return _dict
 
     def on_hold_in(self):
         pass
