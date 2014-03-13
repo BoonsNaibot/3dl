@@ -152,7 +152,7 @@ Builder.load_string("""
     title: title_id
     size_hint: 1, None
     text_color: app.blue
-    state_color: app.white
+    state_color: app.no_color if title_id.state=='dragged' else app.white
 
     NoteItemTitle:
         id: title_id
@@ -220,7 +220,7 @@ Builder.load_string("""
                 on_text_validate: root.dispatch('on_comments', args[0], self.text)
 
 <ActionListItem>:
-    state_color: app.blue if root.collapse_alpha==0.0 else (app.light_blue if self.title.state=='down' else app.gray)
+    state_color: app.no_color if self.title.state=='dragged' else (app.blue if root.collapse_alpha==0.0 else (app.light_blue if self.title.state=='down' else app.gray))
     text_color: app.white if root.collapse_alpha==0.0 else app.dark_gray
     shadow_color: app.smoke_white
 
