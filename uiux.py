@@ -599,8 +599,7 @@ class TouchDownAndHoldable(ButtonRoot):
         placeholder = viewer.placeholder
 
         if not placeholder:
-            viewer.dispatch('on_motion_over', widget)
-            return placeholder
+            return viewer.dispatch('on_motion_over', widget)
 
         children = viewer.container.children
         p_ix = children.index(placeholder)
