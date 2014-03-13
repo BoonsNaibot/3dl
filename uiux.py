@@ -494,6 +494,8 @@ class TouchDownAndHoldable(ButtonRoot):
     
     def __init__(self, **kwargs):
         self.register_event_type('on_pos_change')
+        self.register_event_type('on_drag_start')
+        self.register_event_type('on_drag_finish')
         super(TouchDownAndHoldable, self).__init__(**kwargs)
 
     def on_hold_down(self, dt):
@@ -620,10 +622,10 @@ class TouchDownAndHoldable(ButtonRoot):
 
                 return _dict
 
-    def on_hold_in(self):
-        pass
+    def on_drag_start(self, widget):
+        self.parent.listview.deselect_all()
 
-    def on_hold_out(self):
+    def on_drag_finish(self, widget):
         pass
 
 """class DragNDroppable(_OnStateClass):
