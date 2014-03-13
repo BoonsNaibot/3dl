@@ -23,8 +23,6 @@ class DNDListView(FloatLayout, ListViewAdapter):
 
     def __init__(self, **kwargs):
         self.register_event_type("on_scroll_complete")
-        self.register_event_type("on_drag_start")
-        self.register_event_type("on_drag_finish")
         self.register_event_type("on_motion_over")
         self.register_event_type("on_motion_out")
         self._trigger_populate = Clock.create_trigger(self._do_layout, -1)
@@ -152,12 +150,6 @@ class DNDListView(FloatLayout, ListViewAdapter):
 
     def on_scroll_complete(self, *args):
         self.scrolling = False
-
-    def on_drag_start(self, widget):
-        self.deselect_all()
-
-    def on_drag_finish(self, widget):
-        pass
 
     def deparent(self, widget):
         container = self.container
