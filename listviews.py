@@ -193,7 +193,8 @@ class DNDListView(FloatLayout, ListViewAdapter):
         pass
 
     def on_motion_out(self, widget, _dict):
-        self.parent.dispatch('on_drop', _dict)
+        if _dict:
+            self.parent.dispatch('on_drop', _dict)
 
 class AccordionListView(DNDListView):
 
