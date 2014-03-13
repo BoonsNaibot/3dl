@@ -25,7 +25,6 @@ class DNDListView(FloatLayout, ListViewAdapter):
         self.register_event_type("on_scroll_complete")
         self.register_event_type("on_drag_start")
         self.register_event_type("on_drag_finish")
-        self.register_event_type("on_pos_change")
         self.register_event_type("on_motion_over")
         self.register_event_type("on_motion_out")
         self._trigger_populate = Clock.create_trigger(self._do_layout, -1)
@@ -159,33 +158,6 @@ class DNDListView(FloatLayout, ListViewAdapter):
 
     def on_drag_finish(self, widget):
         pass
-
-    def on_pos_change(self, widget):
-        placeholder = self.placeholder
-
-        if not placeholder:
-            self.dispatch('on_motion_over', widget)
-            return placeholder
-
-        children = self.container.children
-        p_ix = children.index(placeholder)
-        _dict = {}
-
-        for child in children:
-            if (widget.collide_widget(child) and (child is not placeholder)):
-                c_ix = children.index(child)
-
-                if ((widget.center_y <= child.top) and (widget.center_y <= placeholder.y)) or ((widget.center_y >= child.y) and (widget.center_y >= placeholder.top)):
-                    children.insert(c_ix, children.pop(p_ix))
-                    #maybe scroll here
-                    _dict = dict([(placeholder.text, child.ix)])
-
-                    if child.text:
-                        _dict[child.text] = placeholder.ix
-
-                    child.ix, placeholder.ix = placeholder.ix, child.ix
-
-                return _dict
 
     def deparent(self, widget):
         container = self.container
