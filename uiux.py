@@ -9,8 +9,6 @@ from kivy.uix.widget import Widget
 from kivy.vector import Vector
 from kivy.lang import Builder
 from kivy.clock import Clock
-
-from functools import partial
 import math
 
 class StatusBar(Widget):
