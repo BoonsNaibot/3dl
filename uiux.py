@@ -620,7 +620,7 @@ class TouchDownAndHoldable(ButtonRoot):
 
                     if not child.disabled:
                         _dict[child.text] = placeholder.ix
-                    child.ix, placeholder.ix = placeholder.ix, child.ix
+                    placeholder.ix = _dict[placeholder.text]
 
                 return _dict
 
