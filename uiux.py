@@ -511,15 +511,18 @@ class TouchDownAndHoldable(ButtonRoot):
 
         if ((value <> 'dragged') and listview.placeholder):
             dzo = instance.droppable_zone_objects
-            widget.opacity = 1.
 
             for viewer in dzo:
                 if viewer.collide_point(*widget.center):
-                    viewer.reparent(widget)
-                    break
+                    children = viewer.container.children
+
+                    for child in children:
+                        if child.collide_point(*widget.center):
+                            viewer.reparent(widget, child)
+                            break
 
         elif value == 'dragged':
-            listview.dispatch('on_drag_start', widget)
+            instance.dispatch('on_drag_start', widget)
             listview.deparent(widget)
 
         super(TouchDownAndHoldable, self).on_state(instance, value)
@@ -585,12 +588,11 @@ class TouchDownAndHoldable(ButtonRoot):
                 placeholder = widget.listview.placeholder
                     
                 if placeholder:
-                    
                     def _on_complete(a, w):
                         w.state = 'normal'
                         Clock.schedule_once(_l, 0.15)
 
-                    _anim = Animation(y=placeholder.y, d=0.3, t='out_elastic')
+                    _anim = Animation(y=placeholder.y, d=0.5, t='out_elastic')
                     _anim.bind(on_complete=_on_complete)
                     self._anim = _anim.start(widget)
                     return True
@@ -623,7 +625,7 @@ class TouchDownAndHoldable(ButtonRoot):
                 return _dict
 
     def on_drag_start(self, widget):
-        self.parent.listview.deselect_all()
+        widget.listview.deselect_all()
 
     def on_drag_finish(self, widget):
         pass
