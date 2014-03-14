@@ -166,20 +166,19 @@ class DNDListView(FloatLayout, ListViewAdapter):
         container.get_root_window().add_widget(widget)
         return
 
-    def reparent(self, widget):
-        placeholder = self.placeholder
+    def reparent(self, instance, widget):
+        if not widget.disabled:
+            widget.ix = instance.ix
 
-        if placeholder:
-            container = self.container
-
-            if placeholder.collide_widget(widget):
-                index = container.children.index(placeholder)
-                container.remove_widget(placeholder)
-                container.get_root_window().remove_widget(widget)
-                container.add_widget(widget, index)
-                widget.size_hint_x = 1.
-                widget.ix = placeholder.ix
-                self.placeholder = None
+        instance.ix = widget.ix
+        container = self.container
+        index = container.children.index(widget)
+        container.remove_widget(widget)
+        container.get_root_window().remove_widget(instance)
+        container.add_widget(instance, index)
+        instance.size_hint_x = 1.
+        instance.ix = widget.ix
+        self.placeholder = None
 
     def on_motion_over(self, *args):
         pass
@@ -222,13 +221,18 @@ class ActionListView(AccordionListView):
         for child in children:
             if child.collide_point(*widget.center):
                 child.title.state = 'down'
+
+                if not child.disabled:
+                    d[child.text] = widget.ix
+
                 d[widget.text] = child.ix
+
             elif child.title.state <> 'normal':
                 child.title.state = 'normal'
 
         return d
 
-    def on_motion_out(self, widget, _dict):
+    '''def on_motion_out(self, widget, _dict):
         children = self.container.children
 
         for child in children:
@@ -242,7 +246,7 @@ class ActionListView(AccordionListView):
 
                 self.get_root_window().remove_widget(widget)
 
-        super(ActionListView, self).on_motion_out(widget, _dict)
+        super(ActionListView, self).on_motion_out(widget, _dict)'''
 
 Builder.load_string("""
 #:import Scroller scroller.Scroller
