@@ -514,12 +514,16 @@ class TouchDownAndHoldable(ButtonRoot):
 
             for viewer in dzo:
                 if viewer.collide_point(*widget.center):
-                    children = viewer.container.children
+                    instance.screen.dispatch('on_pre_enter')
+                    listview.placeholder = None
+                    """children = viewer.container.children
 
                     for child in children:
                         if child.collide_point(*widget.center):
                             viewer.reparent(widget, child)
-                            break
+                            instance.screen.dispatch('on_pre_enter')
+                            viewer.placeholder = None
+                            break"""
 
         elif value == 'dragged':
             instance.dispatch('on_drag_start', widget)
@@ -558,12 +562,13 @@ class TouchDownAndHoldable(ButtonRoot):
                 dzo = self.droppable_zone_objects
 
                 for viewer in dzo:
-                    if viewer.collide_point(*widget.center):
+                    if viewer.collide_widget(widget):
                         d = self.dispatch('on_pos_change', viewer, widget)
 
                         if d:
                             touch.ud['indices'] = dict(touch.ud['indices'], **d)
-                        return True
+
+                return True
 
         return super(TouchDownAndHoldable, self).on_touch_move(touch)
 
@@ -577,20 +582,18 @@ class TouchDownAndHoldable(ButtonRoot):
                 touch.ungrab(self)
                 widget = self.parent
                 dzo = self.droppable_zone_objects
-                _l = lambda *_: viewer.dispatch('on_motion_out', widget, touch.ud['indices'])
+                widget.screen.dispatch('on_drop', touch.ud['indices'])
 
                 for viewer in dzo:
                     if viewer.collide_point(*widget.center):
                         self.state = 'normal'
-                        Clock.schedule_once(_l, 0.15)
                         return True
                         
                 placeholder = widget.listview.placeholder
-                    
+
                 if placeholder:
                     def _on_complete(a, w):
                         w.state = 'normal'
-                        Clock.schedule_once(_l, 0.15)
 
                     _anim = Animation(y=placeholder.y, d=0.5, t='out_elastic')
                     _anim.bind(on_complete=_on_complete)
@@ -606,21 +609,20 @@ class TouchDownAndHoldable(ButtonRoot):
             return viewer.dispatch('on_motion_over', widget)
 
         children = viewer.container.children
-        p_ix = children.index(placeholder)
+        p_index = children.index(placeholder)
         _dict = {}
 
         for child in children:
-            if (widget.collide_widget(child) and (child is not placeholder)):
-                c_ix = children.index(child)
+            if (widget.collide_widget(child) and (child is not placeholder) and (type(child) is not Widget)):
+                c_index = children.index(child)
 
                 if ((widget.center_y <= child.top) and (widget.center_y <= placeholder.y)) or ((widget.center_y >= child.y) and (widget.center_y >= placeholder.top)):
-                    children.insert(c_ix, children.pop(p_ix))
+                    children.insert(c_index, children.pop(p_index))
                     #maybe scroll here
-                    _dict = dict([(placeholder.text, child.ix)])
+                    _dict = {widget: child.ix}
 
                     if not child.disabled:
-                        _dict[child.text] = placeholder.ix
-                    placeholder.ix = _dict[placeholder.text]
+                        _dict[child] = placeholder.ix
 
                 return _dict
 
