@@ -67,25 +67,48 @@ class ThreeDoListApp(App):
             connection = Connection(self.user_data_dir + '/' + self.name + '/db.db')
             cursor = connection.cursor()
             cursor.execute("""
-                            CREATE TABLE [notebook](
-                            page_number INTEGER NOT NULL,
+                            CREATE TABLE [table of contents](
+                            page_number INTEGER PRIMARY KEY,
                             page TEXT NOT NULL,
+                            bookmark INTEGER DEFAULT 0);
+                            
+                            CREATE TABLE [notebook](
                             what TEXT DEFAULT '',
                             when_ TEXT DEFAULT '',
                             why INTEGER DEFAULT 0,
                             how TEXT DEFAULT '',
                             ix INTEGER,
-                            bookmark INTEGER DEFAULT 0);
+                            FOREIGN KEY(page_number) REFERENCES [table of contents](page_number) ON UPDATE CASCADE);
 
                             CREATE TABLE [archive](
-                            page TEXT,
                             what TEXT,
                             when_ TEXT,
                             why INTEGER DEFAULT 0,
-                            how TEXT);
+                            how TEXT,
+                            FOREIGN KEY(page_number) REFERENCES [table of contents](page_number) ON UPDATE CASCADE);
 
-                            INSERT INTO notebook(page_number, page)
-                            VALUES(0, 'Main List')
+                            CREATE TRIGGER [on_new_page]
+                            AFTER INSERT ON [table of contents]
+                            BEGIN
+                                INSERT INTO notebook(bookmark, page_number, ix) VALUES(0, new.page_number, 1);
+                                INSERT INTO notebook(bookmark, page_number, ix) VALUES(0, new.page_number, 2);
+                                INSERT INTO notebook(bookmark, page_number, ix) VALUES(0, new.page_number, 3);
+                            END;
+
+                            CREATE TRIGGER [on_delete_page]
+                            BEFORE DELETE ON [table of contents]
+                            BEGIN
+                                DELETE FROM notebook WHERE page_number=old.page_number;
+                                DELETE FROM archive WHERE page_number=old.page_number;
+                            END;
+
+                            CREATE TRIGGER [on_complete]
+                            AFTER INSERT ON archive
+                            BEGIN DELETE FROM notebook WHERE page=new.page AND ix=new.ix AND what=new.what;
+                            END;
+
+                            INSERT INTO [table of contents](page_number, page)
+                            VALUES(0, 'Main List');
                             """)
             #cursor.execute("commit")
             self.db = connection
