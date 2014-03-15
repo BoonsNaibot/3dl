@@ -167,17 +167,18 @@ class DNDListView(FloatLayout, ListViewAdapter):
         return
 
     def reparent(self, instance, widget):
+        widget_ix = widget.ix
+
         if not widget.disabled:
             widget.ix = instance.ix
 
-        instance.ix = widget.ix
+        instance.ix = widget_ix
         container = self.container
         index = container.children.index(widget)
         container.remove_widget(widget)
         container.get_root_window().remove_widget(instance)
         container.add_widget(instance, index)
         instance.size_hint_x = 1.
-        instance.ix = widget.ix
         self.placeholder = None
 
     def on_motion_over(self, *args):
@@ -223,9 +224,8 @@ class ActionListView(AccordionListView):
                 child.title.state = 'down'
 
                 if not child.disabled:
-                    d[child.text] = widget.ix
-
-                d[widget.text] = child.ix
+                    d[child] = widget.ix
+                d[widget] = child.ix
 
             elif child.title.state <> 'normal':
                 child.title.state = 'normal'
