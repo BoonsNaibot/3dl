@@ -1,13 +1,12 @@
 from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
-#kivy.storage.jsonstore import JsonStore
 from kivy.uix.screenmanager import NoTransition
 from kivy.properties import ObjectProperty, ListProperty
 
 from apsw import Connection, SQLITE_OPEN_READWRITE, CantOpenError
-#from kivy.modules import inspector
-#from kivy.core.window import Window
+from kivy.modules import inspector
+from kivy.core.window import Window
 
 kv = """
 #:import ListScreen listscreen.ListScreen
@@ -27,7 +26,7 @@ kv = """
             root_directory: app.db
         QuickViewScreen:
             root_directory: app.db
-        ListScreen
+        ListScreen:
             root_directory: app.db
         
 
@@ -52,10 +51,8 @@ class ThreeDoListApp(App):
     dark_gray = ListProperty((0.533, 0.533, 0.533, 1.0))
     shadow_gray = ListProperty((0.8, 0.8, 0.8, 1.0))
     
-    
-    #preferences = ObjectProperty(JsonStore('preferences.json'))
     try:
-        db = ObjectProperty(Connection('~/Documents/ThreeDoList/db.db', flags=SQLITE_OPEN_READWRITE))
+        db = ObjectProperty(Connection('db.db', flags=SQLITE_OPEN_READWRITE))
     except CantOpenError:
         db = ObjectProperty(None)
 
@@ -64,47 +61,73 @@ class ThreeDoListApp(App):
         super(ThreeDoListApp, self).__init__(**kwargs)
 
         if not self.db:
-            connection = Connection(self.user_data_dir + '/' + self.name + '/db.db')
+            connection = Connection('db.db')
             cursor = connection.cursor()
             cursor.execute("""
                             CREATE TABLE [table of contents](
-                            page_number INTEGER PRIMARY KEY,
-                            page TEXT NOT NULL,
+                            page_number INTEGER,
+                            page TEXT PRIMARY KEY,
                             bookmark INTEGER DEFAULT 0);
+
+                            CREATE TRIGGER [post_delete_page]
+                            AFTER DELETE ON [table of contents]
+                            BEGIN
+                                VACUUM;
+                                UPDATE [table of contents] SET page_number=rowid-1;
+                            END;
                             
                             CREATE TABLE [notebook](
+                            ix INTEGER,
                             what TEXT DEFAULT '',
                             when_ TEXT DEFAULT '',
+                            where_ TEXT DEFAULT '',
                             why INTEGER DEFAULT 0,
                             how TEXT DEFAULT '',
-                            ix INTEGER,
-                            FOREIGN KEY(page_number) REFERENCES [table of contents](page_number) ON UPDATE CASCADE);
+                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON UPDATE CASCADE);
+
+                            CREATE TRIGGER [pre_crossoff]
+                            BEFORE DELETE ON notebook
+                            WHEN OLD.ix<3
+                            BEGIN
+                                UPDATE notebook SET what='', when_='', where_='', why=0, how='' WHERE page=OLD.page AND ix=OLD.ix;
+                                RAISE(IGNORE)
+                            END;
+
+                            CREATE TRIGGER [post_crossoff]
+                            AFTER DELETE ON notebook
+                            BEGIN
+                                VACUUM;
+                                UPDATE notebook SET ix=rowid-1;
+                            END;
 
                             CREATE TABLE [archive](
+                            ix INTEGER,
                             what TEXT,
                             when_ TEXT,
+                            where_ TEXT DEFAULT,
                             why INTEGER DEFAULT 0,
                             how TEXT,
-                            FOREIGN KEY(page_number) REFERENCES [table of contents](page_number) ON UPDATE CASCADE);
+                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON UPDATE CASCADE);
 
                             CREATE TRIGGER [on_new_page]
                             AFTER INSERT ON [table of contents]
                             BEGIN
-                                INSERT INTO notebook(bookmark, page_number, ix) VALUES(0, new.page_number, 1);
-                                INSERT INTO notebook(bookmark, page_number, ix) VALUES(0, new.page_number, 2);
-                                INSERT INTO notebook(bookmark, page_number, ix) VALUES(0, new.page_number, 3);
+                                INSERT INTO notebook(page, ix) VALUES(0, NEW.page, 0);
+                                INSERT INTO notebook(page, ix) VALUES(0, NEW.page, 1);
+                                INSERT INTO notebook(page, ix) VALUES(0, NEW.page, 2);
                             END;
 
-                            CREATE TRIGGER [on_delete_page]
+                            CREATE TRIGGER [pre_delete_page]
                             BEFORE DELETE ON [table of contents]
                             BEGIN
-                                DELETE FROM notebook WHERE page_number=old.page_number;
-                                DELETE FROM archive WHERE page_number=old.page_number;
+                                DELETE FROM notebook WHERE page=OLD.page;
+                                DELETE FROM archive WHERE page=OLD.page;
                             END;
 
                             CREATE TRIGGER [on_complete]
                             AFTER INSERT ON archive
-                            BEGIN DELETE FROM notebook WHERE page=new.page AND ix=new.ix AND what=new.what;
+                            BEGIN
+                                DELETE FROM notebook WHERE page=NEW.page AND ix=NEW.ix AND what=MEW.what;
                             END;
 
                             INSERT INTO [table of contents](page_number, page)
@@ -112,22 +135,15 @@ class ThreeDoListApp(App):
                             """)
             #cursor.execute("commit")
             self.db = connection
-            """self.preferences['Lists'] = {'Target List': 'Main List', 
-                                         'Auto-Fetch': 'Next'}
-            self.preferences['Date'] = {'Week Start': 'Sunday',
-                                        'Date Format': 'MDY'}
-            self.preferences['Time'] = {'24-Hour Time': False}"""
 
     def on_pre_start(self):
-        global kv
         Builder.load_string(kv)
-        del kv
     
     def build(self):
         ''''''
         self.dispatch('on_pre_start')
         app = Application()
-        #inspector.create_inspector(Window, app)
+        inspector.create_inspector(Window, app)
         return app
 
     def on_start(self):
@@ -135,9 +151,10 @@ class ThreeDoListApp(App):
         app.manager.transition = NoTransition()
         cursor = self.db.cursor()
         cursor.execute("""
-                       SELECT page, page_number
-                       FROM notebook
-                       WHERE bookmark=1 and ix<3;
+                       SELECT notebook.page, contents.page_number
+                       FROM [table of contents] AS contents, notebook
+                       WHERE contents.page=notebook.page
+                       AND contents.bookmark=1 AND notebook.ix<3;
                        """)
         result = cursor.fetchall()
 
