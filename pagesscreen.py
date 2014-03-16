@@ -48,9 +48,9 @@ class PagesScreen(Screen_):
     def on_root_directory(self, *args):
         cursor = self.root_directory.cursor()
         cursor.execute("""
-                       SELECT DISTINCT page_number, page
-                       FROM notebook
-                       ORDER BY page_number
+                       SELECT page_number, page
+                       FROM [table of contents]
+                       ORDER BY page_number;
                        """)
         self.pages = cursor.fetchall()
 
@@ -61,9 +61,9 @@ class PagesScreen(Screen_):
         cursor.execute("""
                        SELECT COUNT(what)
                        FROM notebook
-                       WHERE page=? AND ix<3
+                       WHERE page_number=? AND ix<3;
                        """,
-                       (text,))
+                       (index,))
         i = cursor.fetchall()[0][0]
         cursor.close()
 
@@ -94,8 +94,8 @@ class PagesScreen(Screen_):
             cursor = self.root_directory.cursor()
             num = len(self.pages)
             cursor.execute("""
-                           INSERT INTO notebook(page_number, page)
-                           VALUES(?, ?)
+                           INSERT INTO [table of contents](page_number, page)
+                           VALUES(?, ?);
                            """,
                            (num, text))
             #cursor.execute('commit')
@@ -107,16 +107,16 @@ class PagesScreen(Screen_):
     def on_what(self, instance, value):
         cursor = self.root_directory.cursor()
         cursor.execute("""
-                       UPDATE notebook
+                       UPDATE [table of contents]
                        SET page=?
-                       WHERE page_number=?
+                       WHERE page_number=?;
                        """,
                        (instance.text, instance.index))
 
     def on_delete(self, instance):
         cursor = self.root_directory.cursor()
         cursor.execute("""
-                       DELETE FROM notebook
+                       DELETE FROM [table of contents]
                        WHERE page_number=? AND page=?;
                        """,
                        (instance.index, instance.text))
@@ -125,13 +125,13 @@ class PagesScreen(Screen_):
 
     def on_leave(self, *args):
         cursor = self.root_directory.cursor()
-        page = self.manager.current_screen.page
+        screen = self.manager.current_screen
         cursor.execute("""
-                       UPDATE notebook
+                       UPDATE [table of contents]
                        SET bookmark=1
-                       WHERE page=?
+                       WHERE page_number=? AND page=?;
                        """,
-                       (page,))
+                       (screen.page_number, screen.page))
 
 Builder.load_string("""
 #:import NavBar uiux
