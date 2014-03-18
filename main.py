@@ -72,8 +72,7 @@ class ThreeDoListApp(App):
                             CREATE TRIGGER [post_delete_page]
                             AFTER DELETE ON [table of contents]
                             BEGIN
-                                VACUUM;
-                                UPDATE [table of contents] SET page_number=rowid-1;
+                                UPDATE [table of contents] SET page_number=ROWID;
                             END;
                             
                             CREATE TABLE [notebook](
@@ -83,6 +82,7 @@ class ThreeDoListApp(App):
                             where_ TEXT DEFAULT '',
                             why INTEGER DEFAULT 0,
                             how TEXT DEFAULT '',
+                            page TEXT,
                             FOREIGN KEY(page) REFERENCES [table of contents](page) ON UPDATE CASCADE);
 
                             CREATE TRIGGER [pre_crossoff]
@@ -90,31 +90,39 @@ class ThreeDoListApp(App):
                             WHEN OLD.ix<3
                             BEGIN
                                 UPDATE notebook SET what='', when_='', where_='', why=0, how='' WHERE page=OLD.page AND ix=OLD.ix;
-                                RAISE(IGNORE)
+                                SELECT RAISE(IGNORE);
                             END;
 
                             CREATE TRIGGER [post_crossoff]
                             AFTER DELETE ON notebook
+                            WHEN OLD.what <> ''
                             BEGIN
-                                VACUUM;
-                                UPDATE notebook SET ix=rowid-1;
+                                UPDATE notebook SET ix=ROWID;
+                            END;
+
+                            CREATE TRIGGER [new_action_item]
+                            AFTER UPDATE ON notebook
+                            WHEN OLD.ix<3 AND NEW.ix>=3 AND OLD.what=''
+                            BEGIN
+                                DELETE FROM notebook WHERE ix=NEW.ix AND page=OLD.page;
                             END;
 
                             CREATE TABLE [archive](
                             ix INTEGER,
-                            what TEXT,
-                            when_ TEXT,
-                            where_ TEXT DEFAULT,
+                            what TEXT DEFAULT '',
+                            when_ TEXT DEFAULT '',
+                            where_ TEXT DEFAULT '',
                             why INTEGER DEFAULT 0,
-                            how TEXT,
+                            how TEXT DEFAULT '',
+                            page TEXT,
                             FOREIGN KEY(page) REFERENCES [table of contents](page) ON UPDATE CASCADE);
 
                             CREATE TRIGGER [on_new_page]
                             AFTER INSERT ON [table of contents]
                             BEGIN
-                                INSERT INTO notebook(page, ix) VALUES(0, NEW.page, 0);
-                                INSERT INTO notebook(page, ix) VALUES(0, NEW.page, 1);
-                                INSERT INTO notebook(page, ix) VALUES(0, NEW.page, 2);
+                                INSERT INTO notebook(page, ix) VALUES(NEW.page, 0);
+                                INSERT INTO notebook(page, ix) VALUES(NEW.page, 1);
+                                INSERT INTO notebook(page, ix) VALUES(NEW.page, 2);
                             END;
 
                             CREATE TRIGGER [pre_delete_page]
@@ -127,7 +135,7 @@ class ThreeDoListApp(App):
                             CREATE TRIGGER [on_complete]
                             AFTER INSERT ON archive
                             BEGIN
-                                DELETE FROM notebook WHERE page=NEW.page AND ix=NEW.ix AND what=MEW.what;
+                                DELETE FROM notebook WHERE page=NEW.page AND ix=NEW.ix AND what=NEW.what;
                             END;
 
                             INSERT INTO [table of contents](page_number, page)
@@ -137,7 +145,9 @@ class ThreeDoListApp(App):
             self.db = connection
 
     def on_pre_start(self):
+        global kv
         Builder.load_string(kv)
+        del kv
     
     def build(self):
         ''''''
