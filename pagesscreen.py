@@ -38,7 +38,7 @@ class PagesScreen(Screen_):
         super(PagesScreen, self).__init__(**kwargs)
 
     def _args_converter(self, row_index, an_obj):
-        dict = {'index': an_obj[0],
+        dict = {'page_number': an_obj[0],
                 'text': an_obj[1],
                 'is_selected': False,
                 'size_hint_y': None,
@@ -61,11 +61,10 @@ class PagesScreen(Screen_):
         cursor.execute("""
                        SELECT COUNT(what)
                        FROM notebook
-                       WHERE page_number=? AND ix<3;
+                       WHERE page=? AND ix<3 AND what<>'';
                        """,
-                       (index,))
+                       (text,))
         i = cursor.fetchall()[0][0]
-        cursor.close()
 
         if i < 3:
             screen_name = 'List Screen'
@@ -92,12 +91,11 @@ class PagesScreen(Screen_):
 
         if text:
             cursor = self.root_directory.cursor()
-            num = len(self.pages)
             cursor.execute("""
                            INSERT INTO [table of contents](page_number, page)
-                           VALUES(?, ?);
+                           VALUES((SELECT MAX(ROWID) FROM [table of contents])+1, ?);
                            """,
-                           (num, text))
+                           (text,))
             #cursor.execute('commit')
             self.dispatch('on_root_directory')
 
@@ -111,7 +109,7 @@ class PagesScreen(Screen_):
                        SET page=?
                        WHERE page_number=?;
                        """,
-                       (instance.text, instance.index))
+                       (instance.text, instance.page_number))
 
     def on_delete(self, instance):
         cursor = self.root_directory.cursor()
@@ -119,7 +117,7 @@ class PagesScreen(Screen_):
                        DELETE FROM [table of contents]
                        WHERE page_number=? AND page=?;
                        """,
-                       (instance.index, instance.text))
+                       (instance.page_number, instance.text))
         self.dispatch('on_root_directory')
         self.polestar = None
 
@@ -136,8 +134,8 @@ class PagesScreen(Screen_):
 Builder.load_string("""
 #:import NavBar uiux
 #:import Button_ uiux.Button_
+#:import NewItemWidget uiux.NewItemWidget
 #:import DNDListView listviews.DNDListView
-#:import BoundedTextInput uiux.BoundedTextInput
 
 <ConfigPanel>:
     size_hint: 0.75, 1
@@ -180,35 +178,11 @@ Builder.load_string("""
         args_converter: root._args_converter
         size_hint: 1, .8
         pos_hint: {'top': 0.8873}
-
-    FloatLayout:
+    NewItemWidget:
+        hint_text: 'Create New List...'
         size_hint: 1, .086
         pos_hint: {'y': 0}
-        canvas.before:
-            Color:
-                rgba: app.dark_blue
-            Rectangle:
-                size: self.size
-                pos: self.pos
-
-        BoxLayout:
-            orientation: 'horizontal'
-            spacing: 14
-            size_hint: 0.9781, 0.7561
-            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-    
-            BoundedTextInput:
-                id: textinput_id
-                size_hint: 0.774, 1
-                hint_text: 'Create New List...'
-                multiline: False
-                on_text_validate: root.dispatch('on_new_item', args[0], self.text)
-            Button_:
-                size_hint: 0.226, 1
-                text: 'Add'
-                on_press: root.dispatch('on_new_item', textinput_id, textinput_id.text)
-        
-            
+        on_text_validate: root.dispatch('on_new_item', *args[1:])
 """)
 
 
