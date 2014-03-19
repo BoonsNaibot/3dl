@@ -32,6 +32,16 @@ class BoundedTextInput(TextInput):
         super(BoundedTextInput, self).on_touch_down(touch)
         return self.collide_point(*touch.pos)
 
+class NewItemWidget(FloatLayout):
+    hint_text = StringProperty('')
+
+    def __init__(self, **kwargs):
+        self.register_event_type('on_text_validate')
+        super(NewItemWidget, self).__init__(**kwargs)
+
+    def on_text_validate(self, *args):
+        pass
+
 class Screen_(Screen):
     root_directory = ObjectProperty(None)
     polestar = ObjectProperty(None, allownone=True)
@@ -66,7 +76,7 @@ class Screen_(Screen):
 
         cursor = self.root_directory.cursor()
         cursor.execute("""
-                       UPDATE notebook
+                       UPDATE [table of contents]
                        SET bookmark=0
                        WHERE page=? AND bookmark=1;
                        """,
@@ -104,6 +114,7 @@ class Selectable(object):
         pass
 
 class ButtonRoot(Widget):
+    index = NumericProperty(-1)
     text = StringProperty('')
     aleft = BooleanProperty(False)
     text_color = ListProperty([0, 0.824, 1, 1])
@@ -487,16 +498,16 @@ class Editable(DoubleClickable):
 
         super(Editable, self).on_state(instance, value)
 
-class TouchDownAndHoldable(ButtonRoot):
+class DragNDroppable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'down', 'dragged'))
     hold_time = NumericProperty(0.0)
-    droppable_zone_objects = ListProperty([])
+    drop_zones = ListProperty([])
     
     def __init__(self, **kwargs):
-        self.register_event_type('on_pos_change')
+        self.register_event_type('on_drag')
         self.register_event_type('on_drag_start')
         self.register_event_type('on_drag_finish')
-        super(TouchDownAndHoldable, self).__init__(**kwargs)
+        super(DragNDroppable, self).__init__(**kwargs)
 
     def on_hold_down(self, dt):
         if ((self.state == 'down') and not self.disabled):
@@ -514,22 +525,20 @@ class TouchDownAndHoldable(ButtonRoot):
 
             for viewer in dzo:
                 if viewer.collide_point(*widget.center):
-                    instance.screen.dispatch('on_pre_enter')
-                    listview.placeholder = None
-                    """children = viewer.container.children
+                    children = viewer.container.children
 
                     for child in children:
                         if child.collide_point(*widget.center):
                             viewer.reparent(widget, child)
                             instance.screen.dispatch('on_pre_enter')
                             viewer.placeholder = None
-                            break"""
+                            break
 
         elif value == 'dragged':
             instance.dispatch('on_drag_start', widget)
             listview.deparent(widget)
 
-        super(TouchDownAndHoldable, self).on_state(instance, value)
+        super(DragNDroppable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
         if self.state == 'normal':
@@ -540,7 +549,7 @@ class TouchDownAndHoldable(ButtonRoot):
             else:
                 return sup
 
-        return super(TouchDownAndHoldable, self).on_touch_down(touch)
+        return super(DragNDroppable, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):  
         if touch.grab_current is self:
@@ -557,20 +566,16 @@ class TouchDownAndHoldable(ButtonRoot):
                     return True
             
             elif self.state == 'dragged':
-                widget = self.parent
-                widget.center_y = touch.y
-                dzo = self.droppable_zone_objects
+                self.dispatch('on_drag', self, touch.y)
 
-                for viewer in dzo:
-                    if viewer.collide_widget(widget):
-                        d = self.dispatch('on_pos_change', viewer, widget)
-
-                        if d:
-                            touch.ud['indices'] = dict(touch.ud['indices'], **d)
+                for zone in self.drop_zones:
+                    if self.collide_widget(zone):
+                        d = zone.dispatch('on_drag', self)
+                        touch.ud['indices'] = dict(touch.ud['indices'], **d)
 
                 return True
 
-        return super(TouchDownAndHoldable, self).on_touch_move(touch)
+        return super(DragNDroppable, self).on_touch_move(touch)
 
     def on_touch_up(self, touch):
         #super(ButtonRoot, self).on_touch_up(touch)
@@ -580,16 +585,15 @@ class TouchDownAndHoldable(ButtonRoot):
 
             if self.state == 'dragged':
                 touch.ungrab(self)
-                widget = self.parent
-                dzo = self.droppable_zone_objects
-                widget.screen.dispatch('on_drop', touch.ud['indices'])
+                indices = touch.ud['indices']
+                self.screen.dispatch('on_drop', indices)
 
-                for viewer in dzo:
+                for viewer in self.drop_zones:
                     if viewer.collide_point(*widget.center):
                         self.state = 'normal'
                         return True
-                        
-                placeholder = widget.listview.placeholder
+
+                placeholder = self.parent.listview.placeholder
 
                 if placeholder:
                     def _on_complete(a, w):
@@ -597,103 +601,19 @@ class TouchDownAndHoldable(ButtonRoot):
 
                     _anim = Animation(y=placeholder.y, d=0.5, t='out_elastic')
                     _anim.bind(on_complete=_on_complete)
-                    self._anim = _anim.start(widget)
+                    self._anim = _anim.start(self.parent)
                     return True
 
-        return super(TouchDownAndHoldable, self).on_touch_up(touch)
+        return super(DragNDroppable, self).on_touch_up(touch)
 
-    def on_pos_change(self, viewer, widget):
-        placeholder = viewer.placeholder
-
-        if not placeholder:
-            return viewer.dispatch('on_motion_over', widget)
-
-        children = viewer.container.children
-        p_index = children.index(placeholder)
-        _dict = {}
-
-        for child in children:
-            if (widget.collide_widget(child) and (child is not placeholder) and (type(child) is not Widget)):
-                c_index = children.index(child)
-
-                if ((widget.center_y <= child.top) and (widget.center_y <= placeholder.y)) or ((widget.center_y >= child.y) and (widget.center_y >= placeholder.top)):
-                    children.insert(c_index, children.pop(p_index))
-                    #maybe scroll here
-                    _dict = {widget: child.ix}
-
-                    if not child.disabled:
-                        _dict[child] = placeholder.ix
-
-                return _dict
+    def on_drag(self, instance, pos_y):
+        instance.center_y = pos_y
 
     def on_drag_start(self, widget):
         widget.listview.deselect_all()
 
     def on_drag_finish(self, widget):
         pass
-
-"""class DragNDroppable(_OnStateClass):
-    droppable_zone_objects = ListProperty([])
-    bound_zone_objects = ListProperty([])
-    drag_opacity = NumericProperty(0.75)
-    listview = ObjectProperty(None)
-
-    def on_state(self, instance, value):
-        container = instance.parent
-        placeholder = instance.listview.placeholder
-        
-        if ((value <> 'dragged') and placeholder):
-            instance.opacity = 1.
-            for viewer in instance.droppable_zone_objects:
-                if viewer.collide_point(*instance.center):
-                    viewer.reparent(instance)
-                    return
-
-        elif ((value == 'dragged') and not placeholder):
-            instance.opacity = self.drag_opacity
-            #instance.dispatch('on_drag_start', instance)
-            #instance.set_bound_axis_positions()
-            #instance._old_drag_pos = self.pos
-            #instance._old_parent = self.parent
-            #instance._old_index = self.parent.children.index(self)
-            
-            instance.listview.deparent(instance)
-
-        super(DragNDroppable, self).on_state(instance, value)
-
-    def on_touch_move(self, touch):
-        if touch.grab_current is self.title:
-            #assert(self in touch.ud)
-            print 'it worked!'
-
-            if self.state == 'dragged':
-                self.center_y = touch.y
-
-                for viewer in self.droppable_zone_objects:
-                    if viewer.collide_point(*self.center):
-                        d = viewer.dispatch('on_pos_change', self)
-
-                        if d:
-                            touch.ud['indices'] = dict(touch.ud['indices'], **d)
-                        return True
-
-        return super(DragNDroppable, self).on_touch_move(touch)
-
-    def on_touch_up(self, touch):
-        if touch.grab_current is self:
-            assert(self in touch.ud)
-            touch.ungrab(self)
-
-            if self.state == 'dragged':
-                self.listview._ix_update = touch.ud['indices']
-
-        return super(DragNDroppable, self).on_touch_up(touch)"""
-
-'''class Date(Editable):
-    pass
-
-class Notes(Editable):
-    pass'''
 
 class Button_(Clickable):
     state = OptionProperty('normal', options=('down', 'normal'))
@@ -1132,6 +1052,31 @@ Builder.load_string("""
         Rectangle:
             size: self.size
             pos: self.pos
+
+<NewItemWidget>:
+    canvas.before:
+        Color:
+            rgba: app.dark_blue
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    BoxLayout:
+        spacing: 14
+        size_hint: 0.9781, 0.7561
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+        BoundedTextInput:
+            id: textinput_id
+            size_hint: 0.774, 1
+            hint_text: root.hint_text
+            multiline: False
+            on_text_validate: root.dispatch('on_text_validate', args[0], args[0].text)
+        Button_:
+            size_hint: 0.226, 1
+            text: 'Add'
+            on_press: root.dispatch('on_text_validate', textinput_id, textinput_id.text)
+
 
 <Screen_>:
     canvas:
