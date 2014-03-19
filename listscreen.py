@@ -39,10 +39,10 @@ class ListScreen(Screen_):
             for i in cursor.execute("""
                                     SELECT ix, what, when_, why, how
                                     FROM notebook
-                                    WHERE page_number=? AND ix>=0
+                                    WHERE page=? AND ix>=0
                                     ORDER BY ix
                                     """,
-                                    (self.page_number,)):
+                                    (self.page,)):
                 ix = i[0]#; print ix, i
 
                 if ix < 3:
@@ -54,7 +54,7 @@ class ListScreen(Screen_):
             self.list_items, self.action_items = list_items, action_items
 
     def _args_converter(self, row_index, an_obj):
-        _dict = {'droppable_zone_objects': [self.action_view,],
+        _dict = {'drop_zones': [self.action_view,],
                  'screen': self}
         _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
         _dict['why'] = bool(_dict['why'])
@@ -72,7 +72,7 @@ class ListScreen(Screen_):
         else:
             _dict['title_height_hint'] = 0.088
             _dict['content_height_hint'] = (190./1136.)
-            _dict['droppable_zone_objects'].append(self.accordion_view)
+            _dict['drop_zones'].append(self.accordion_view)
             _dict['listview'] = self.accordion_view
             _dict['aleft'] = False
             _dict['font_name'] = 'Walkway Bold.ttf'
@@ -84,12 +84,11 @@ class ListScreen(Screen_):
 
         if text:
             cursor = self.root_directory.cursor()
-            num = len(self.list_items) + 3
             cursor.execute("""
-                           INSERT INTO notebook(page_number, ix, what)
-                           VALUES(?, ?, ?);
+                           INSERT INTO notebook(ix, what, page)
+                           VALUES((SELECT MAX(ROWID) FROM notebook), ?, ?);
                            """,
-                           (self.page_number, num, text))
+                           (text, self.page))
             self.dispatch('on_pre_enter')#, self, self.page)
 
         instance.text = ''
@@ -101,26 +100,26 @@ class ListScreen(Screen_):
         cursor.execute("""
                        UPDATE notebook
                        SET what=?
-                       WHERE page_number=? AND ix=?
+                       WHERE page=? AND ix=?
                        """,
-                       (value, self.page_number, instance.ix))
+                       (value, self.page, instance.ix))
 
     def on_delete(self, instance):
         cursor = self.root_directory.cursor()
         cursor.execute("""
                        DELETE FROM notebook
-                       WHERE ix=? AND what=? AND page_number=?
+                       WHERE ix=? AND what=? AND page=?
                        """,
-                       (instance.parent.ix, instance.title, self.page_number))
+                       (instance.parent.ix, instance.title, self.page))
         self.dispatch('on_pre_enter')
 
     def on_complete(self, instance):
         cursor = self.root_directory.cursor()
         cursor.execute("""
-                       INSERT INTO archive(page_number, what, when_, why, how)
-                       VALUES(?, ?, ?, ?, ?);
+                       INSERT INTO archive
+                       VALUES((SELECT * FROM notebook WHERE ix=? and page=?));
                        """,
-                       (self.page_number, instance.title, instance.when, instance.why, instance.how))
+                       (instance.ix, self.page))
         self.dispatch('on_pre_enter')
 
     def on_importance(self, instance, value):
@@ -129,9 +128,9 @@ class ListScreen(Screen_):
         cursor.execute("""
                        UPDATE notebook
                        SET why=?
-                       WHERE page_number=? AND page=? AND ix=? AND what=?
+                       WHERE page=? AND ix=? AND what=?
                        """,
-                       (int(value), self.page_number, self.page, instance.ix, instance.text))
+                       (int(value), self.page, instance.ix, instance.text))
 
     def on_comments(self, instance, value):
         instance.how = value
@@ -139,9 +138,9 @@ class ListScreen(Screen_):
         cursor.execute("""
                        UPDATE notebook
                        SET how=?
-                       WHERE page=? AND page_number=? AND ix=? AND what=?
+                       WHERE page=? AND ix=? AND what=?
                        """,
-                       (value, self.page, self.page_number, instance.ix, instance.text))
+                       (value, self.page, instance.ix, instance.text))
 
     def on_due_date(self, instance, value):
         if value:
@@ -153,20 +152,27 @@ class ListScreen(Screen_):
 
     def on_drop(self, d):
         if d:
-            items = ((v, k.text, self.page, self.page_number) for (k, v) in d.iteritems())
+            items = ((v, k.text, self.page) for (k, v) in d.iteritems())
             cursor = self.root_directory.cursor()
             cursor.executemany("""
                                UPDATE notebook
                                SET ix=?
-                               WHERE what=? AND page=? AND page_number=?
+                               WHERE what=? AND page=?;
                                """,
                                items)
+            cursor.execute("""
+                           DELETE FROM notebook
+                           WHERE what='' AND page=? AND ix<=3;
+                           """,
+                           (self.page,))
             """for k, v in d.iteritems():
                 k.ix = v"""
 
 Builder.load_string("""
 #:import NavBar uiux
-#:import BoundedTextInput uiux.BoundedTextInput
+#:import NewItemWidget uiux.NewItemWidget
+#:import ActionListView listviews.ActionListView
+#:import AccordionListView listviews.AccordionListView
 
 <ListScreen>:
     name: 'List Screen'
@@ -207,7 +213,6 @@ Builder.load_string("""
         list_item: root.action_view_item
         args_converter: root._args_converter
         data: root.action_items
-
     AccordionListView:
         id: accordion_view_id
         size_hint: 1, 0.4
@@ -215,33 +220,10 @@ Builder.load_string("""
         list_item: root.accordion_view_item
         selection: root.selection
         args_converter: root._args_converter
-        data: root.list_items
-
-    FloatLayout:
+        data: root.list_items    
+    NewItemWidget:
+        hint_text: 'Create New Task...'
         size_hint: 1, .086
         pos_hint: {'y': 0}
-        canvas.before:
-            Color:
-                rgba: app.dark_blue
-            Rectangle:
-                size: self.size
-                pos: self.pos
-
-        BoxLayout:
-            orientation: 'horizontal'
-            spacing: 14
-            size_hint: 0.9781, 0.7561
-            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-
-            BoundedTextInput:
-                id: textinput_id
-                size_hint: 0.774, 1
-                hint_text: 'Create New Task...'
-                multiline: False
-                on_text_validate: root.dispatch('on_new_item', args[0], self.text)
-            Button_:
-                size_hint: 0.226, 1
-                text: 'Add'
-                on_press: root.dispatch('on_new_item', textinput_id, textinput_id.text)
-
+        on_text_validate: root.dispatch('on_new_item', *args[1:])
 """)
