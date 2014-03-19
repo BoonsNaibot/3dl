@@ -64,78 +64,61 @@ class ThreeDoListApp(App):
             connection = Connection('db.db')
             cursor = connection.cursor()
             cursor.execute("""
-                            CREATE TABLE [table of contents](
-                            page_number INTEGER,
-                            page TEXT PRIMARY KEY,
-                            bookmark INTEGER DEFAULT 0);
+                            PRAGMA foreign_keys = ON;
 
-                            CREATE TRIGGER [post_delete_page]
-                            AFTER DELETE ON [table of contents]
-                            BEGIN
-                                UPDATE [table of contents] SET page_number=ROWID;
-                            END;
+                            CREATE TABLE [table of contents](
+                            page_number UNSIGNED INTEGER,
+                            page TEXT PRIMARY KEY,
+                            bookmark UNSIGNED SHORT INTEGER DEFAULT 0,
+                            UNIQUE(page_number, page));
                             
                             CREATE TABLE [notebook](
-                            ix INTEGER,
+                            ix UNSIGNED INTEGER,
                             what TEXT DEFAULT '',
                             when_ TEXT DEFAULT '',
                             where_ TEXT DEFAULT '',
-                            why INTEGER DEFAULT 0,
+                            why UNSIGNED SHORT INTEGER DEFAULT 0,
                             how TEXT DEFAULT '',
                             page TEXT,
-                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON UPDATE CASCADE);
-
-                            CREATE TRIGGER [pre_crossoff]
-                            BEFORE DELETE ON notebook
-                            WHEN OLD.ix<3
-                            BEGIN
-                                UPDATE notebook SET what='', when_='', where_='', why=0, how='' WHERE page=OLD.page AND ix=OLD.ix;
-                                SELECT RAISE(IGNORE);
-                            END;
-
-                            CREATE TRIGGER [post_crossoff]
-                            AFTER DELETE ON notebook
-                            WHEN OLD.what <> ''
-                            BEGIN
-                                UPDATE notebook SET ix=ROWID;
-                            END;
-
-                            CREATE TRIGGER [new_action_item]
-                            AFTER UPDATE ON notebook
-                            WHEN OLD.ix<3 AND NEW.ix>=3 AND OLD.what=''
-                            BEGIN
-                                DELETE FROM notebook WHERE ix=NEW.ix AND page=OLD.page;
-                            END;
+                            UNIQUE(page, ix),
+                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE CASCADE ON UPDATE CASCADE);
 
                             CREATE TABLE [archive](
-                            ix INTEGER,
+                            ix UNSIGNED INTEGER,
                             what TEXT DEFAULT '',
                             when_ TEXT DEFAULT '',
                             where_ TEXT DEFAULT '',
-                            why INTEGER DEFAULT 0,
+                            why UNSIGNED SHORT INTEGER DEFAULT 0,
                             how TEXT DEFAULT '',
                             page TEXT,
-                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON UPDATE CASCADE);
+                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE CASCADE ON UPDATE CASCADE);
 
                             CREATE TRIGGER [on_new_page]
                             AFTER INSERT ON [table of contents]
                             BEGIN
-                                INSERT INTO notebook(page, ix) VALUES(NEW.page, 0);
-                                INSERT INTO notebook(page, ix) VALUES(NEW.page, 1);
-                                INSERT INTO notebook(page, ix) VALUES(NEW.page, 2);
+                                INSERT INTO [notebook](page, ix) VALUES(NEW.page, 0);
+                                INSERT INTO [notebook](page, ix) VALUES(NEW.page, 1);
+                                INSERT INTO [notebook](page, ix) VALUES(NEW.page, 2);
                             END;
 
-                            CREATE TRIGGER [pre_delete_page]
-                            BEFORE DELETE ON [table of contents]
+                            CREATE TRIGGER [soft_delete]
+                            BEFORE DELETE ON [notebook]
+                            WHEN OLD.ix<3
                             BEGIN
-                                DELETE FROM notebook WHERE page=OLD.page;
-                                DELETE FROM archive WHERE page=OLD.page;
+                                UPDATE [notebook] SET what='', when_='', where_='', why=0, how='' WHERE page=OLD.page AND ix=OLD.ix;
+                            END;
+
+                            CREATE TRIGGER [new_action_item]
+                            AFTER UPDATE ON [notebook]
+                            WHEN OLD.ix<3 AND NEW.ix>=3 AND OLD.what=''
+                            BEGIN
+                                DELETE FROM [notebook] WHERE ix=NEW.ix AND page=OLD.page;
                             END;
 
                             CREATE TRIGGER [on_complete]
                             AFTER INSERT ON archive
                             BEGIN
-                                DELETE FROM notebook WHERE page=NEW.page AND ix=NEW.ix AND what=NEW.what;
+                                DELETE FROM [notebook] WHERE page=NEW.page AND ix=NEW.ix AND what=NEW.what;
                             END;
 
                             INSERT INTO [table of contents](page_number, page)
@@ -161,10 +144,10 @@ class ThreeDoListApp(App):
         app.manager.transition = NoTransition()
         cursor = self.db.cursor()
         cursor.execute("""
-                       SELECT notebook.page, contents.page_number
-                       FROM [table of contents] AS contents, notebook
+                       SELECT [notebook].page, contents.page_number
+                       FROM [table of contents] AS contents, [notebook]
                        WHERE contents.page=notebook.page
-                       AND contents.bookmark=1 AND notebook.ix<3;
+                       AND contents.bookmark=1 AND [notebook].ix<3 AND [notebook].what<>'';
                        """)
         result = cursor.fetchall()
 
