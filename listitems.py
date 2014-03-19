@@ -138,7 +138,7 @@ class ArchiveScreenItemTitle(Deletable, Clickable):
             return super(ArchiveScreenItemTitle, self).on_touch_down(touch)
 
 class ArchiveScreenItem(AccordionListItem):
-    pass
+    ix = NumericProperty(0)
 
 class Week(AccordionListItem):
     title_height = NumericProperty(0.0)
@@ -237,6 +237,9 @@ Builder.load_string("""
     shadow_color: app.smoke_white
 
 <ArchiveScreenItem>:
+    title: title_id
+    size_hint: 1, None
+    text_color: app.dark_gray
     state_color: app.smoke_white if self.state == 'down' else app.light_gray
     canvas.after:
         Color:
@@ -244,6 +247,17 @@ Builder.load_string("""
         Line:
             points: self.x, self.y, self.right, self.y
             width: 1.0
+
+    ArchiveScreenItemTitle:
+        id: title_id
+        text: root.text
+        size_hint: 1, None
+        pos_hint: {'x': 0, 'top': 1}
+        screen: root.screen
+        text_color: root.text_color
+        state_color: root.state_color
+        on_release: root.listview.handle_selection(root)
+        height: root.screen.height*root.title_height_hint
 
 <QuickViewScreenItemTitle>:
     label: self.label
