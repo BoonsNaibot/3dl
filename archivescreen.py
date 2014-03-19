@@ -45,10 +45,6 @@ class ArchiveScreen(Screen_):
                        """,
                        (instance.ix, instance.title, self.page))
         self.dispatch('on_pre_enter')
-        
-    def on_back(self):
-        self.manager.transition = SlideTransition(direction="right", duration=0.2)
-        self.manager.current = 'List Screen'
 
 Builder.load_string("""
 #:import NavBar uiux
