@@ -18,7 +18,7 @@ class ArchiveScreen(Screen_):
         if self.page:
             cursor = self.root_directory.cursor()
             cursor.execute("""
-                           SELECT *
+                           SELECT ix, what, when_, why, how
                            FROM archive
                            WHERE page=?
                            ORDER BY ROWID;
