@@ -64,7 +64,6 @@ class NoteItem(AccordionListItem):
     ix = NumericProperty(None)
     why = BooleanProperty(False)
     screen = ObjectProperty(None)
-    listview = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         self.register_event_type('on_comments')
