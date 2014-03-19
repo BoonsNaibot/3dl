@@ -74,6 +74,15 @@ class Screen_(Screen):
     def on_screen_change(self, direction, destination):
         self.manager.transition = SlideTransition(direction=direction, duration=0.2)
         self.manager.current = destination
+        
+        if destination == 'Pages Screen':
+            cursor = self.root_directory.cursor()
+            cursor.execute("""
+                           UPDATE [table of contents]
+                           SET bookmark=0
+                           WHERE page=? AND bookmark=1;
+                           """,
+                           (self.page,))
 
     def on_delete(self, *args):
         pass
