@@ -1,5 +1,5 @@
 from kivy.properties import ObjectProperty, ListProperty, NumericProperty, StringProperty, BooleanProperty, OptionProperty, AliasProperty
-from uiux import Selectable, Clickable, Editable, Completable, Deletable, TouchDownAndHoldable, AccordionListItem
+from uiux import Selectable, Clickable, Editable, Completable, Deletable, DragNDroppable, AccordionListItem
 from kivy.uix.boxlayout import BoxLayout
 from kivy.animation import Animation
 from kivy.utils import escape_markup
@@ -7,12 +7,12 @@ from kivy.lang import Builder
 from kivy.clock import Clock
 
 class PagesScreenItem(Clickable, Deletable, Editable):
-    index = NumericProperty(-1)
+    page_number = NumericProperty(-1)
     screen = ObjectProperty(None)
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'edit', 'normal'))
 
     def on_release(self):
-        self.screen.dispatch('on_selected_page', self.text, self.index)
+        self.screen.dispatch('on_selected_page', self.text, self.page_number)
 
     def on_text_validate(self, instance):
         if super(PagesScreenItem, self).on_text_validate(instance, instance.text):
@@ -30,7 +30,7 @@ class PagesScreenItem(Clickable, Deletable, Editable):
         else:
             return super(PagesScreenItem, self).on_touch_down(touch)
 
-class NoteItemTitle(Clickable, Completable, Deletable, TouchDownAndHoldable, Editable):
+class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'dragged', 'edit', 'normal'))
     screen = ObjectProperty(None)
 
@@ -50,6 +50,10 @@ class NoteItemTitle(Clickable, Completable, Deletable, TouchDownAndHoldable, Edi
             _l = lambda *_: self.screen.dispatch('on_what', self.parent, instance.text)
             Clock.schedule_once(_l, 0.25)
 
+    def on_drag(self, instance, *args):
+        widget = instance.parent
+        super(NoteItemTitle, self).on_drag(widget, *args)
+
 class NoteItem(AccordionListItem):
     how = StringProperty('')
     ix = NumericProperty(None)
@@ -62,7 +66,7 @@ class NoteItem(AccordionListItem):
         self.register_event_type('on_importance')
         super(NoteItem, self).__init__(**kwargs)
 
-        self.title.droppable_zone_objects = kwargs['droppable_zone_objects']
+        self.title.drop_zones = kwargs['drop_zones']
         self.title.aleft = kwargs['aleft']
         self.title.font_name = kwargs['font_name']
 
