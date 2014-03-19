@@ -168,6 +168,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
         return
 
     def reparent(self, instance, widget):
+        #Mimic `ListAdapter.create_view`
         data = self.get_data_item(instance.index)
         d = [widget.ix]
         [d.extend([_]) for _ in data[1:]]
@@ -184,7 +185,6 @@ class DNDListView(FloatLayout, ListViewAdapter):
         container.remove_widget(widget)
         container.get_root_window().remove_widget(instance)
         container.add_widget(new_item, index)
-        instance.size_hint_x = 1.
 
     def on_drag(self, widget):
         placeholder = self.placeholder
@@ -240,13 +240,17 @@ class AccordionListView(DNDListView):
             numerator = self._lcm(_min, r_h)
             instance._i_offset = int((numerator/_min) - (numerator/r_h)) + 1
 
-    def on_drag(self, widget):
-        widget = widget.parent
+    def on_drag(self, instance):
+        instance = instance.parent
         return super(AccordionListView, self).on_drag(widget)
+        
+    def deparent(self, instance):
+        instance = instance.parent
+        super(AccordionListView, self).deparent(instance)
 
-    def reparent(self, instance, widget, properties):
-        properties.update((('ix', widget.ix),))
-        super(AccordionListView, self).reparent(instance, widget, properties)
+    def reparent(self, instance, widget):
+        instance = instance.parent
+        super(AccordionListView, self).reparent(instance, widget)
 
 class ActionListView(AccordionListView):
 
