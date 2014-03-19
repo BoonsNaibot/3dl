@@ -192,7 +192,7 @@ Builder.load_string("""
                 font_size: self.height*0.5
                 size_hint: 0.2, 1
                 text: '< Lists'
-                on_press: root.on_lists()
+                on_press: root.dispatch('on_screen_change', 'right', 'Pages Screen')
             Label:
                 text: root.page
                 size_hint: 0.6, 1
