@@ -1,4 +1,4 @@
-from kivy.properties import ObjectProperty, ListProperty, NumericProperty, StringProperty, BooleanProperty, OptionProperty, AliasProperty
+from kivy.properties import AliasProperty, BooleanProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
 from uiux import Selectable, Clickable, Editable, Completable, Deletable, DragNDroppable, AccordionListItem
 from kivy.uix.boxlayout import BoxLayout
 from kivy.animation import Animation
@@ -33,6 +33,11 @@ class PagesScreenItem(Clickable, Deletable, Editable):
 class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'dragged', 'edit', 'normal'))
     screen = ObjectProperty(None)
+    
+    def _get_listview(self):
+        return self.parent.listview
+        
+    listview = AliasProperty(_get_listview, None, bind=('parent',))
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -51,15 +56,15 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
             Clock.schedule_once(_l, 0.25)
 
     def on_drag(self, instance, *args):
-        widget = instance.parent
-        super(NoteItemTitle, self).on_drag(widget, *args)
+        instance = instance.parent
+        super(NoteItemTitle, self).on_drag(instance, *args)
 
 class NoteItem(AccordionListItem):
     how = StringProperty('')
     ix = NumericProperty(None)
     why = BooleanProperty(False)
     screen = ObjectProperty(None)
-    drag_opacity = NumericProperty(0.75)
+    listview = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         self.register_event_type('on_comments')
