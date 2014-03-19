@@ -76,14 +76,17 @@ class Screen_(Screen):
         transition = SlideTransition(direction=direction, duration=0.2)
         
         if destination == 'Pages Screen':
+            cursor = self.root_directory.cursor()
+            page = self.page
+
             def _on_complete(*_):
-                cursor = self.root_directory.cursor()
                 cursor.execute("""
                                UPDATE [table of contents]
                                SET bookmark=0
                                WHERE page=? AND bookmark=1;
                                """,
-                               (self.page,))
+                               (page,))
+
             transition.bind(on_complete=_on_complete)
 
         manager.transition = transition
