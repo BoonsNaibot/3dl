@@ -237,9 +237,6 @@ Builder.load_string("""
     shadow_color: app.smoke_white
 
 <ArchiveScreenItem>:
-    aleft: True
-    shorten: True
-    height: self.screen.height*0.088
     state_color: app.smoke_white if self.state == 'down' else app.light_gray
     canvas.after:
         Color:
