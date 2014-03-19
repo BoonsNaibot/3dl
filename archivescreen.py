@@ -5,20 +5,23 @@ Created on Jul 23, 2013
 '''
 from uiux import Screen_
 from kivy.lang import Builder
+from listitems import ArchiveScreenItem
 from kivy.uix.screenmanager import SlideTransition
 from kivy.properties import ObjectProperty, ListProperty
 
 class ArchiveScreen(Screen_):
     list_items = ListProperty([])
     list_view = ObjectProperty(None)
+    _item = ObjectProperty(ArchiveScreenItem)
 
     def on_pre_enter(self):
         if self.page:
             cursor = self.root_directory.cursor()
             cursor.execute("""
-                           SELECT what, when_, why, how
+                           SELECT *
                            FROM archive
                            WHERE page=?
+                           ORDER BY ROWID;
                            """,
                            (self.page,)):
             self.list_items = cursor.fetchall()
@@ -29,7 +32,6 @@ class ArchiveScreen(Screen_):
                 'aleft': False,
                 'font_name': 'Walkway Bold.ttf',
                 'size_hint_y': None,
-                'listview': self.list_view,
                 'screen': self}
         dict['ix'], dict['text'], dict['when'], dict['why'], dict['how'] = an_obj
         dict['why'] = bool(dict['why'])
@@ -39,16 +41,14 @@ class ArchiveScreen(Screen_):
         cursor = self.root_directory.cursor()
         cursor.execute("""
                        DELETE FROM archive
-                       WHERE ix=? AND what=?
+                       WHERE ix=? AND what=? AND page=?;
                        """,
-                       (instance.ix, instance.title))
+                       (instance.ix, instance.title, self.page))
         self.dispatch('on_pre_enter')
 
 Builder.load_string("""
 #:import NavBar uiux
 #:import Button_ uiux.Button_
-#:import BoundedTextInput uiux.BoundedTextInput
-#:import ArchiveScreenItem listitems.ArchiveScreenItem
 #:import AccordionListView listviews.AccordionListView
 
 <ArchiveScreen>:
@@ -75,13 +75,11 @@ Builder.load_string("""
             
     AccordionListView:
         id: list_view_id
-        data: root.list_items
-        list_item: ArchiveScreenItem
+        list_item: root._item
         args_converter: root._args_converter
+        data: root.list_items
         size_hint: 1, 0.886
         top: navbar_id.y
-        
-            
 """)
 
 
