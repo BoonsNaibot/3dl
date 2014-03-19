@@ -1,10 +1,10 @@
+import math
 from kivy.clock import Clock
+from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from adapters import ListViewAdapter
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty, BooleanProperty, DictProperty, ListProperty, AliasProperty, ReferenceListProperty, OptionProperty
-from kivy.lang import Builder
-import math
 
 class Placeholder(Widget):
     ix = NumericProperty(-1)
