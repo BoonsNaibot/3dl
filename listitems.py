@@ -58,10 +58,10 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
     def on_drag(self, instance, *args):
         instance = instance.parent
         super(NoteItemTitle, self).on_drag(instance, *args)
-
-    def on_drop(self, instance):
+        
+    def on_drop(self, instance, *args):
         instance = instance.parent
-        super(NoteItemTitle, self).on_drop(instance)
+        super(NoteItemTitle, self).on_drop(instance, *args)
 
 class NoteItem(AccordionListItem):
     how = StringProperty('')
