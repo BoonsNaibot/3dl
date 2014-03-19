@@ -691,9 +691,7 @@ class AccordionListItem(Selectable, FloatLayout):
         def _do_progress(anim, instance, progression):
             instance.listview._sizes[instance.index] = instance.height
 
-        _anim = Animation(collapse_alpha=0.0,
-                          t='out_expo',
-                          d=0.25)
+        _anim = Animation(collapse_alpha=0.0, t='out_expo', d=0.25)
         _anim.bind(on_progress=_do_progress)
         self._anim_collapse = _anim.start(self)
 
@@ -705,9 +703,7 @@ class AccordionListItem(Selectable, FloatLayout):
         def _do_progress(anim, instance, progression):
             instance.listview._sizes[instance.index] = instance.height
 
-        _anim = Animation(collapse_alpha=1.0,
-                          t='out_expo',
-                          d=0.25)
+        _anim = Animation(collapse_alpha=1.0, t='out_expo', d=0.25)
         _anim.bind(on_progress=_do_progress)
         self._anim_collapse = _anim.start(self)
 
