@@ -51,6 +51,7 @@ class Screen_(Screen):
         self.register_event_type('on_delete')
         self.register_event_type('on_complete')
         self.register_event_type('on_status_bar')
+        self.register_event_type('on_screen_change')
         super(Screen_, self).__init__(**kwargs)
 
     def on_touch_down(self, touch):
@@ -70,17 +71,9 @@ class Screen_(Screen):
         else:
             return super(Screen_, self).on_touch_down(touch)
 
-    def on_lists(self):
-        self.manager.transition = SlideTransition(direction="right", duration=0.2)
-        self.manager.current = 'Pages Screen'
-
-        cursor = self.root_directory.cursor()
-        cursor.execute("""
-                       UPDATE [table of contents]
-                       SET bookmark=0
-                       WHERE page=? AND bookmark=1;
-                       """,
-                       (self.page,))
+    def on_screen_change(self, direction, destination):
+        self.manager.transition = SlideTransition(direction=direction, duration=0.2)
+        self.manager.current = destination
 
     def on_delete(self, *args):
         pass
