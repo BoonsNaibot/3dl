@@ -518,10 +518,10 @@ class DragNDroppable(ButtonRoot):
 
     def on_state(self, instance, value):
         widget = instance.parent
-        listview = widget.listview
+        listview = instance.listview
 
         if ((value <> 'dragged') and listview.placeholder):
-            dzo = instance.droppable_zone_objects
+            dzo = instance.drop_zones
 
             for viewer in dzo:
                 if viewer.collide_point(*widget.center):
@@ -535,8 +535,8 @@ class DragNDroppable(ButtonRoot):
                             break
 
         elif value == 'dragged':
-            instance.dispatch('on_drag_start', widget)
-            listview.deparent(widget)
+            instance.dispatch('on_drag_start', instance)
+            listview.deparent(instance)
 
         super(DragNDroppable, self).on_state(instance, value)
 
