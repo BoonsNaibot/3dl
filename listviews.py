@@ -209,7 +209,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
                 return _dict
 
     def on_motion_over(self, *args):
-        pass
+        return {}
 
     def on_motion_out(self, widget, _dict):
         if _dict:
