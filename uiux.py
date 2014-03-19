@@ -78,15 +78,7 @@ class Screen_(Screen):
         if destination == 'Pages Screen':
             cursor = self.root_directory.cursor()
             page = self.page
-
-            def _on_complete(*_):
-                cursor.execute("""
-                               UPDATE [table of contents]
-                               SET bookmark=0
-                               WHERE page=? AND bookmark=1;
-                               """,
-                               (page,))
-
+            _on_complete = lambda *_: cursor.execute("UPDATE [table of contents] SET bookmark=0 WHERE page=?", (page,))
             transition.bind(on_complete=_on_complete)
 
         manager.transition = transition
