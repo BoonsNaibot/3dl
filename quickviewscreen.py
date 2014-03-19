@@ -5,7 +5,6 @@ Created on Jul 27, 2013
 '''
 
 from kivy.properties import ListProperty, NumericProperty, StringProperty
-from kivy.uix.screenmanager import SlideTransition
 from kivy.utils import escape_markup
 from kivy.lang import Builder
 from uiux import Screen_
@@ -80,7 +79,7 @@ Builder.load_string("""
                 font_size: 12
                 size_hint: 0.1, 1
                 text: '< Lists'
-                on_press: root.dispatch('on_full_list')
+                on_press: root.dispatch('on_screen_change', 'right', 'Pages Screen')
             Label:
                 text: root.page
                 size_hint: 0.8, 1
@@ -92,7 +91,7 @@ Builder.load_string("""
                 font_size: 12
                 size_hint: .1, 1
                 text: 'Full List >'
-                on_press: root.on_full_list()
+                on_press: root.dispatch('on_full_list')
 
     QuickListView:
         data: root.action_items
