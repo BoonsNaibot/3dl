@@ -15,6 +15,10 @@ class QuickViewScreen(Screen_):
     page = StringProperty('')
     page_number = NumericProperty(None)
     watchwords = ListProperty(['Go', 'Pickup', 'Start', 'Begin', 'Finish', 'Pay'])
+    
+    def __init__(self, **kwargs):
+    	self.register_event_type('on_full_list')
+    	super(QuickViewScreen, self).__init__(**kwargs)
 
     def on_pre_enter(self):
         if self.page:
@@ -29,12 +33,10 @@ class QuickViewScreen(Screen_):
             self.action_items = cursor.fetchall()
 
     def on_full_list(self, *args):
-        manager = self.manager
-        manager.transition = SlideTransition(direction="left", duration=0.2)
-        list_screen = manager.get_screen('List Screen')
+        list_screen = self.manager.get_screen('List Screen')
         list_screen.page = self.page
         list_screen.page_number = self.page_number
-        manager.current = 'List Screen'
+        self.dispatch('on_screen_change', 'left', 'List Screen')
 
     def _args_converter(self, row_index, an_obj):
         dict = {'size_hint_y': .3,
@@ -78,7 +80,7 @@ Builder.load_string("""
                 font_size: 12
                 size_hint: 0.1, 1
                 text: '< Lists'
-                on_press: root.dispatch('on_screen_change', 'right', 'List Screen')
+                on_press: root.dispatch('on_full_list')
             Label:
                 text: root.page
                 size_hint: 0.8, 1
