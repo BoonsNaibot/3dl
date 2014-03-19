@@ -505,6 +505,7 @@ class DragNDroppable(ButtonRoot):
     
     def __init__(self, **kwargs):
         self.register_event_type('on_drag')
+        self.register_event_type('on_drop')
         self.register_event_type('on_drag_start')
         self.register_event_type('on_drag_finish')
         super(DragNDroppable, self).__init__(**kwargs)
@@ -517,22 +518,10 @@ class DragNDroppable(ButtonRoot):
             return False
 
     def on_state(self, instance, value):
-        widget = instance.parent
         listview = instance.listview
 
         if ((value <> 'dragged') and listview.placeholder):
-            dzo = instance.drop_zones
-
-            for viewer in dzo:
-                if viewer.collide_point(*widget.center):
-                    children = viewer.container.children
-
-                    for child in children:
-                        if child.collide_point(*widget.center):
-                            viewer.reparent(widget, child)
-                            instance.screen.dispatch('on_pre_enter')
-                            viewer.placeholder = None
-                            break
+            instance.dispatch('on_drop', instance, instance.drop_zones)
 
         elif value == 'dragged':
             instance.dispatch('on_drag_start', instance)
@@ -586,21 +575,21 @@ class DragNDroppable(ButtonRoot):
             if self.state == 'dragged':
                 touch.ungrab(self)
                 indices = touch.ud['indices']
-                self.screen.dispatch('on_drop', indices)
+                
+                _on_start = lambda a, w: w.screen.dispatch('on_drop', indices)
+                def _on_complete(a, w):
+                    w.state = 'normal'
 
                 for viewer in self.drop_zones:
-                    if viewer.collide_point(*widget.center):
-                        self.state = 'normal'
+                    if viewer.collide_point(*self.center):
+                        _on_complete(_on_start(None, self), self) #Cuz i'm cool like that
                         return True
 
-                placeholder = self.parent.listview.placeholder
+                placeholder = self.listview.placeholder
 
                 if placeholder:
-                    def _on_complete(a, w):
-                        w.state = 'normal'
-
                     _anim = Animation(y=placeholder.y, d=0.5, t='out_elastic')
-                    _anim.bind(on_complete=_on_complete)
+                    _anim.bind(on_start=_on_start, on_complete=_on_complete)
                     self._anim = _anim.start(self.parent)
                     return True
 
@@ -608,6 +597,20 @@ class DragNDroppable(ButtonRoot):
 
     def on_drag(self, instance, pos_y):
         instance.center_y = pos_y
+        
+    def on_drop(self, instance, dzo):
+        point = instance.center
+
+        for viewer in dzo:
+            if viewer.collide_point(*point):
+                children = viewer.container.children
+
+                for child in children:
+                    if (child.collide_point(*point) and (child is not Widget)):
+                        viewer.reparent(instance, child)
+                        instance.screen.dispatch('on_pre_enter')
+                        viewer.placeholder = None
+                        return
 
     def on_drag_start(self, widget):
         widget.listview.deselect_all()
