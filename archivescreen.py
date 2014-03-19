@@ -45,6 +45,10 @@ class ArchiveScreen(Screen_):
                        """,
                        (instance.ix, instance.title, self.page))
         self.dispatch('on_pre_enter')
+        
+    def on_back(self):
+        self.manager.transition = SlideTransition(direction="right", duration=0.2)
+        self.manager.current = 'List Screen'
 
 Builder.load_string("""
 #:import NavBar uiux
@@ -71,7 +75,7 @@ Builder.load_string("""
             size_hint: 0.09375, .682
             pos_hint: {'center_x': 0.08, 'center_y': 0.5}
             text: '< Back'
-            #on_press: root.dispatch('on_back')
+            on_press: root.dispatch('on_screen_change', 'right', 'List Screen')
             
     AccordionListView:
         id: list_view_id
