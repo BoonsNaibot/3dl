@@ -81,7 +81,7 @@ class ThreeDoListApp(App):
                             how TEXT DEFAULT '',
                             page TEXT,
                             UNIQUE(page, ix),
-                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE CASCADE ON UPDATE CASCADE);
+                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE SET NULL ON UPDATE CASCADE);
 
                             CREATE TABLE [archive](
                             ix UNSIGNED INTEGER,
@@ -100,12 +100,19 @@ class ThreeDoListApp(App):
                                 INSERT INTO [notebook](page, ix) VALUES(NEW.page, 1);
                                 INSERT INTO [notebook](page, ix) VALUES(NEW.page, 2);
                             END;
+                            
+                            CREATE TRIGGER [remove_list]
+                            AFTER DELETE ON [table of contents]
+                            BEGIN
+                                DELETE FROM notebook WHERE page=NULL;
+                            END;
 
                             CREATE TRIGGER [soft_delete]
                             BEFORE DELETE ON [notebook]
-                            WHEN OLD.ix<3
+                            WHEN OLD.ix<3 AND OLD.page <> NULL
                             BEGIN
                                 UPDATE [notebook] SET what='', when_='', where_='', why=0, how='' WHERE page=OLD.page AND ix=OLD.ix;
+                                SELECT RAISE(IGNORE);
                             END;
 
                             CREATE TRIGGER [new_action_item]
