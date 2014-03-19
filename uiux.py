@@ -72,17 +72,22 @@ class Screen_(Screen):
             return super(Screen_, self).on_touch_down(touch)
 
     def on_screen_change(self, direction, destination):
-        self.manager.transition = SlideTransition(direction=direction, duration=0.2)
-        self.manager.current = destination
+        manager =  self.manager
+        transition = SlideTransition(direction=direction, duration=0.2)
         
         if destination == 'Pages Screen':
-            cursor = self.root_directory.cursor()
-            cursor.execute("""
-                           UPDATE [table of contents]
-                           SET bookmark=0
-                           WHERE page=? AND bookmark=1;
-                           """,
-                           (self.page,))
+            def _on_complete(*_):
+                cursor = self.root_directory.cursor()
+                cursor.execute("""
+                               UPDATE [table of contents]
+                               SET bookmark=0
+                               WHERE page=? AND bookmark=1;
+                               """,
+                               (self.page,))
+            transition.bind(on_complete=_on_complete)
+
+        manager.transition = transition
+        manager.current = destination
 
     def on_delete(self, *args):
         pass
