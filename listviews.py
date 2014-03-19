@@ -25,6 +25,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
         self.register_event_type("on_scroll_complete")
         self.register_event_type("on_motion_over")
         self.register_event_type("on_motion_out")
+        self.register_event_type("on_drag")
         self._trigger_populate = Clock.create_trigger(self._do_layout, -1)
         super(DNDListView, self).__init__(**kwargs)
 
@@ -167,19 +168,45 @@ class DNDListView(FloatLayout, ListViewAdapter):
         return
 
     def reparent(self, instance, widget):
-        widget_ix = widget.ix
+        data = self.get_data_item(instance.index)
+        d = [widget.ix]
+        [d.extend([_]) for _ in data[1:]]
+        data = tuple(d)
+        item_args = self.args_converter(instance.index, data)
+        item_args['index'] = widget.index
+        new_item = self.list_item(**item_args)
 
-        if not widget.disabled:
-            widget.ix = instance.ix
+        if selection_mode <> 'None':
+            new_item.bind(on_release=self.handle_selection)
 
-        instance.ix = widget_ix
         container = self.container
         index = container.children.index(widget)
         container.remove_widget(widget)
         container.get_root_window().remove_widget(instance)
-        container.add_widget(instance, index)
+        container.add_widget(new_item, index)
         instance.size_hint_x = 1.
-        self.placeholder = None
+
+    def on_drag(self, widget):
+        placeholder = self.placeholder
+
+        if not placeholder:
+            return self.dispatch('on_motion_over', widget)
+
+        children = self.container.children
+        p_index = children.index(placeholder)
+        _dict = {}
+
+        for child in children:
+            if (widget.collide_widget(child) and (child is not placeholder) and (type(child) is not Widget) and not child.disabled):
+                c_index = children.index(child)
+
+                if ((widget.center_y <= child.top) and (widget.center_y <= placeholder.y)) or ((widget.center_y >= child.y) and (widget.center_y >= placeholder.top)):
+                    children.insert(c_index, children.pop(p_index))
+                    #maybe scroll here
+                    _dict = {widget: child.ix, child: placeholder.ix}
+                    placeholder.ix, child.ix = child.ix, placeholder.ix
+                    placeholder.index = child.index
+                return _dict
 
     def on_motion_over(self, *args):
         pass
@@ -213,6 +240,14 @@ class AccordionListView(DNDListView):
             numerator = self._lcm(_min, r_h)
             instance._i_offset = int((numerator/_min) - (numerator/r_h)) + 1
 
+    def on_drag(self, widget):
+        widget = widget.parent
+        return super(AccordionListView, self).on_drag(widget)
+
+    def reparent(self, instance, widget, properties):
+        properties.update((('ix', widget.ix),))
+        super(AccordionListView, self).reparent(instance, widget, properties)
+
 class ActionListView(AccordionListView):
 
     def on_motion_over(self, widget):
@@ -220,15 +255,14 @@ class ActionListView(AccordionListView):
         children = self.container.children
 
         for child in children:
-            if child.collide_point(*widget.center):
+            collision = child.collide_point(*widget.center)
+
+            if collision:
                 child.title.state = 'down'
-
-                if not child.disabled:
-                    d[child] = widget.ix
-                d[widget] = child.ix
-
+                d = {widget: child.ix, child: widget.ix}
             elif child.title.state <> 'normal':
                 child.title.state = 'normal'
+                d[child] = child.ix
 
         return d
 
