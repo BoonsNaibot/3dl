@@ -564,7 +564,8 @@ class DragNDroppable(ButtonRoot):
                         d = zone.dispatch('on_drag', self)
 
                         if d:
-                            touch.ud['indices'] = dict(touch.ud['indices'], **d)
+                            indices = touch.ud['indices']
+                            touch.ud['indices'] = dict(indices, **d)
 
                 return True
 
