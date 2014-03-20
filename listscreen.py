@@ -110,7 +110,7 @@ class ListScreen(Screen_):
                        DELETE FROM notebook
                        WHERE ix=? AND what=? AND page=?
                        """,
-                       (instance.parent.ix, instance.title, self.page))
+                       (instance.parent.ix, instance.text, self.page))
         self.dispatch('on_pre_enter')
 
     def on_complete(self, instance):
