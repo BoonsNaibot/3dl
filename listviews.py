@@ -260,9 +260,11 @@ class ActionListView(AccordionListView):
             if collision:
                 child.title.state = 'down'
                 d = {widget: child.ix, child: widget.ix}
-            elif child.title.state <> 'normal':
-                child.title.state = 'normal'
+            else:
                 d[child] = child.ix
+                
+                if child.title.state <> 'normal':
+                    child.title.state = 'normal'
 
         return d
 
