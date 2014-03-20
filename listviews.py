@@ -177,7 +177,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
         item_args['index'] = widget.index
         new_item = self.list_item(**item_args)
 
-        if selection_mode <> 'None':
+        if self.selection_mode <> 'None':
             new_item.bind(on_release=self.handle_selection)
 
         container = self.container
@@ -242,15 +242,11 @@ class AccordionListView(DNDListView):
 
     def on_drag(self, instance):
         instance = instance.parent
-        return super(AccordionListView, self).on_drag(widget)
+        return super(AccordionListView, self).on_drag(instance)
         
     def deparent(self, instance):
         instance = instance.parent
         super(AccordionListView, self).deparent(instance)
-
-    def reparent(self, instance, widget):
-        instance = instance.parent
-        super(AccordionListView, self).reparent(instance, widget)
 
 class ActionListView(AccordionListView):
 
