@@ -160,11 +160,6 @@ class ListScreen(Screen_):
                                WHERE what=? AND page=?;
                                """,
                                items)
-            cursor.execute("""
-                           DELETE FROM notebook
-                           WHERE what='' AND page=? AND ix<=3;
-                           """,
-                           (self.page,))
             """for k, v in d.iteritems():
                 k.ix = v"""
 
