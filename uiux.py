@@ -78,8 +78,8 @@ class Screen_(Screen):
         if destination == 'Pages Screen':
             cursor = self.root_directory.cursor()
             page = self.page
-            _on_complete = lambda *_: cursor.execute("UPDATE [table of contents] SET bookmark=0 WHERE page=?", (page,))
-            transition.bind(on_complete=_on_complete)
+            _callback = lambda *_: cursor.execute("UPDATE [table of contents] SET bookmark=0 WHERE page=?", (page,))
+            transition.bind(on_complete=_callback)
 
         manager.transition = transition
         manager.current = destination
@@ -562,7 +562,9 @@ class DragNDroppable(ButtonRoot):
                 for zone in self.drop_zones:
                     if self.collide_widget(zone):
                         d = zone.dispatch('on_drag', self)
-                        touch.ud['indices'] = dict(touch.ud['indices'], **d)
+
+                        if d:
+                            touch.ud['indices'] = dict(touch.ud['indices'], **d)
 
                 return True
 
