@@ -8,7 +8,7 @@ from kivy.clock import Clock
 #from kivy.uix.widget import Widget
 #from uiux import FreeRotateLayout
 from kivy.lang import Builder
-import datetime, math, itertools
+import math
 
 class Day(Selectable, Button_):
     week = ObjectProperty(None)
@@ -40,99 +40,6 @@ class DayDropDown(DelayedClickable):
             return False
         else:
             return super(DayDropDown, self).on_touch_down(touch)
-
-class DatePicker(BoxLayout):
-    year = NumericProperty(1)
-    month = NumericProperty(1)
-    day = NumericProperty(0)
-    month_names = ListProperty(('January ', 'February ', 'March ', 'April ', 'May ', 'June ', 'July ', 'August ', 'September ', 'October ', 'November ', 'December '))
-
-    def _get_date(self):
-        if self.day:
-            day = self.day
-        else:
-            day = 1
-
-        return datetime.date(self.year, self.month, day)
-    
-    def _set_date(self, value, timedelta=datetime.timedelta, izip=itertools.izip, repeat=itertools.repeat, ravel=itertools.chain.from_iterable, today=datetime.date.today()):
-
-        def _args_converter(date_cursor, delta):
-            date_label = Day(text=str(date_cursor.day))
-
-            if date_cursor < today:
-                date_label.disabled = True
-            elif ((delta < 0) or (value.month <> date_cursor.month)):
-                date_label.in_month = False
-
-            return date_label
-
-        if len(self.body.cached_views) < 6:
-            self.body.populate(0,6)
-            l = lambda *_: self._set_date(value)
-            Clock.schedule_once(l, 0)
-            return False
-
-        #self.title.text = self.month_names[value.month-1] + str(value.year)
-        self.year, self.month = value.year, value.month
-        date = datetime.date(value.year, value.month, 1)
-        dt = date.isoweekday()# - instance.type_of_calendar
-        cached_views = self.body.cached_views
-
-        for child in cached_views.itervalues():
-            child.title.clear_widgets()
-
-        these = ravel(repeat(i, 7) for i in sorted(cached_views.itervalues(), key=cached_views.get))
-        those = (_args_converter((date+timedelta(days=delta)), delta) for delta in xrange(-dt, ((7*6)-dt)))
-        _on_release = lambda *_: self.body.handle_selection
-
-        for this, that in izip(these, those):
-            that.bind(on_release=_on_release(that))
-            that.week = this
-            this.title.add_widget(that)
-
-    date = AliasProperty(_get_date, _set_date)#, bind=('size', 'pos'))
-
-    def _args_converter(self, i, _):
-        return {'index': i,
-                'size_hint_y': None,
-                'title_height': self.height/6.0,
-                'content_height': self.height/6.0,
-                'listview': self}
-
-    def __init__(self, **kwargs):
-        self.register_event_type('on_deselect')
-        super(DatePicker, self).__init__(**kwargs)
-
-    def on_deselect(self, *args):
-        self.body.deselect_all()
-    
-    def next_month(self, maxyear=datetime.MAXYEAR):
-        self.dispatch('on_deselect')
-
-        if self.date.month == 12:
-            new_year = self.date.year + 1
-
-            if new_year <= maxyear:
-                self.date = datetime.date(new_year, 1, self.date.day)
-
-        else:
-            self.date = datetime.date(self.date.year, self.date.month + 1, self.date.day)
-
-    def previous_month(self, today=datetime.date.today()):
-        self.dispatch('on_deselect')
-
-        if self.date.month == 1:
-            new_date = datetime.date(self.date.year - 1, 12, self.date.day)
-        else:
-            new_date = datetime.date(self.date.year, self.date.month - 1, self.date.day)
-
-        if ((new_date.month >= today.month) and (new_date.year >= today.year)):
-            self.date = new_date
-
-    def to_today(self):
-        self.dispatch('on_deselect')
-        self.date = daetime.date.today()
 """
 class HourHand(FreeRotateLayout):
     color = ListProperty([])
@@ -208,7 +115,7 @@ class MinuteHand(HourHand):
 class ClockWidget(Widget):
     hour = NumericProperty(0)
     minute = NumericProperty(0)
-"""
+
 class Modal(FloatLayout):
     _window = ObjectProperty(Window)
     _anim_alpha = NumericProperty(0.0)
@@ -260,7 +167,7 @@ class Modal(FloatLayout):
 
     def on_dismiss(self):
         pass
-
+"""
 Builder.load_string("""
 #:import Week listitems.Week
 
@@ -334,63 +241,4 @@ Builder.load_string("""
                 text: 'PM'
                 font_size: self.width
                 font_name: 'Oswald-Bold.otf'
-
-<DatePicker>:
-    title: title_id
-    body: body_id
-    orientation: 'vertical'
-    day: int(body_id.selection[0].text) if body_id.selection else 0
-
-    BoxLayout:
-        size_hint: 1, 0.1
-
-        Button_:
-            text: '<'
-            size_hint: None, 1
-            width: self.height
-            font_size: self.height*0.7
-            on_press: root.previous_month()
-        Label:
-            id: title_id
-            color: app.white
-            text: root.month_names[root.month-1] + str(root.year)
-            font_name: 'Walkway Bold.ttf'
-            font_size: self.height*0.421875
-            canvas.before:
-                Color:
-                    rgba: app.blue
-                Rectangle:
-                    size: self.size
-                    pos: self.pos
-        Button_:
-            text: '>'
-            size_hint: None, 1
-            width: self.height
-            font_size: self.height*0.7
-            on_press: root.next_month()
-
-    BoxLayout:
-        size_hint: 1, 0.05
-
-        DayofTheWeek:
-            text: 'SUN'
-        DayofTheWeek:
-            text: 'MON'
-        DayofTheWeek:
-            text: 'TUE'
-        DayofTheWeek:
-            text: 'WED'
-        DayofTheWeek:
-            text: 'THU'
-        DayofTheWeek:
-            text: 'FRI'
-        DayofTheWeek:
-            text: 'SAT'
-
-    AccordionListView:
-        id: body_id
-        spacing: 0, 0
-        list_item: Week
-        args_converter: root._args_converter
-        data: range(6)
 """)
