@@ -152,14 +152,16 @@ class ListScreen(Screen_):
 
     def on_drop(self, d):
         if d:
-            items = ((v, k.text, self.page) for (k, v) in d.iteritems())
+            items = ((v, k.ix, self.page) for (k, v) in d.iteritems())
             cursor = self.root_directory.cursor()
             cursor.executemany("""
                                UPDATE notebook
                                SET ix=?
-                               WHERE what=? AND page=?;
+                               WHERE ix=? AND page=?;
                                """,
                                items)
+            cursor.execute("select * from notebook;")
+            print cursor.fetchall()
             """for k, v in d.iteritems():
                 k.ix = v"""
 
