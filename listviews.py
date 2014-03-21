@@ -302,14 +302,14 @@ class DatePickerListView(AccordionListView):
         super(DatePickerListView, self).__init__(**kwargs)
     
     def on_populated(self, root):
-        value = root.date
-        
-        if value:
-            year, month = value.year, value.month
+        cached_views = self.cached_views
+            
+        if len(cached_views) == 6:
+            year, month = root.date.year, root.date.month
             
             if (year, month) <> (root.year, root.month):
                 root.year, root.month = year, month
-                timedelta=datetime.timedelta
+                timedelta = datetime.timedelta
                 today = datetime.date.today()
                 ravel = itertools.chain.from_iterable
         
@@ -325,7 +325,6 @@ class DatePickerListView(AccordionListView):
     
                 date = datetime.date(year, month, 1)
                 dt = date.isoweekday()# - instance.type_of_calendar
-                cached_views = self.cached_views
         
                 for child in cached_views.itervalues():
                     child.title.clear_widgets()
