@@ -80,8 +80,7 @@ class ThreeDoListApp(App):
                             why UNSIGNED SHORT INTEGER DEFAULT 0,
                             how TEXT DEFAULT '',
                             page TEXT,
-                            UNIQUE(page, ix),
-                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE SET NULL ON UPDATE CASCADE);
+                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE CASCADE ON UPDATE CASCADE);
 
                             CREATE TABLE [archive](
                             ix UNSIGNED INTEGER,
@@ -100,16 +99,10 @@ class ThreeDoListApp(App):
                                 INSERT INTO [notebook](page, ix) VALUES(NEW.page, 1);
                                 INSERT INTO [notebook](page, ix) VALUES(NEW.page, 2);
                             END;
-                            
-                            CREATE TRIGGER [remove_list]
-                            AFTER DELETE ON [table of contents]
-                            BEGIN
-                                DELETE FROM notebook WHERE page=NULL;
-                            END;
 
                             CREATE TRIGGER [soft_delete]
                             BEFORE DELETE ON [notebook]
-                            WHEN OLD.ix<3 AND OLD.page <> NULL
+                            WHEN OLD.ix<3
                             BEGIN
                                 UPDATE [notebook] SET what='', when_='', where_='', why=0, how='' WHERE page=OLD.page AND ix=OLD.ix;
                                 SELECT RAISE(IGNORE);
@@ -117,9 +110,9 @@ class ThreeDoListApp(App):
 
                             CREATE TRIGGER [new_action_item]
                             AFTER UPDATE ON [notebook]
-                            WHEN OLD.ix<3 AND NEW.ix>=3 AND OLD.what=''
+                            WHEN OLD.ix<3 AND NEW.ix>=3
                             BEGIN
-                                DELETE FROM [notebook] WHERE ix=NEW.ix AND page=OLD.page;
+                                DELETE FROM [notebook] WHERE ix=NEW.ix AND WHAT='' AND page=(SELECT page FROM [table of contents] WHERE bookmark=1);
                             END;
 
                             CREATE TRIGGER [on_complete]
@@ -137,7 +130,7 @@ class ThreeDoListApp(App):
     def on_pre_start(self):
         global kv
         Builder.load_string(kv)
-        del kv
+        #del kv
     
     def build(self):
         ''''''
