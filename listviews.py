@@ -7,8 +7,9 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import ObjectProperty, StringProperty, NumericProperty, BooleanProperty, DictProperty, ListProperty, AliasProperty, ReferenceListProperty, OptionProperty
 
 class Placeholder(Widget):
-    ix = NumericProperty(-1)
+    ix = NumericProperty(None)
     text = StringProperty('')
+    index = NumericProperty(None)
 
 class DNDListView(FloatLayout, ListViewAdapter):
     container = ObjectProperty(None)
@@ -186,11 +187,11 @@ class DNDListView(FloatLayout, ListViewAdapter):
         container.get_root_window().remove_widget(instance)
         container.add_widget(new_item, index)
 
-    def on_drag(self, widget):
+    def on_drag(self, widget, d):
         placeholder = self.placeholder
 
         if not placeholder:
-            return self.dispatch('on_motion_over', widget)
+            return self.dispatch('on_motion_over', widget, d)
 
         children = self.container.children
         p_index = children.index(placeholder)
@@ -203,9 +204,17 @@ class DNDListView(FloatLayout, ListViewAdapter):
                 if ((widget.center_y <= child.top) and (widget.center_y <= placeholder.y)) or ((widget.center_y >= child.y) and (widget.center_y >= placeholder.top)):
                     children.insert(c_index, children.pop(p_index))
                     #maybe scroll here
-                    _dict = {widget: child.ix, child: placeholder.ix}
-                    placeholder.ix, child.ix = child.ix, placeholder.ix
+                    child_ix = child.ix
+
+                    if d is not None and child.proxy_ref in d:
+                        child_ix = d.pop(child.proxy_ref)
+                    else:
+                        _dict[child.proxy_ref] = placeholder.ix
+
+                    _dict[widget.proxy_ref] = placeholder.ix = child_ix#, child: placeholder.ix}
+                    #placeholder.ix, child.ix = child.ix, placeholder.ix
                     placeholder.index = child.index
+
                 return _dict
 
     def on_motion_over(self, *args):
@@ -240,9 +249,9 @@ class AccordionListView(DNDListView):
             numerator = self._lcm(_min, r_h)
             instance._i_offset = int((numerator/_min) - (numerator/r_h)) + 1
 
-    def on_drag(self, instance):
+    def on_drag(self, instance, d):
         instance = instance.parent
-        return super(AccordionListView, self).on_drag(instance)
+        return super(AccordionListView, self).on_drag(instance, d)
         
     def deparent(self, instance):
         instance = instance.parent
@@ -250,7 +259,7 @@ class AccordionListView(DNDListView):
 
 class ActionListView(AccordionListView):
 
-    def on_motion_over(self, widget):
+    def on_motion_over(self, widget, _d):
         d = {}
         children = self.container.children
 
@@ -259,12 +268,12 @@ class ActionListView(AccordionListView):
 
             if collision:
                 child.title.state = 'down'
-                d = {widget: child.ix, child: widget.ix}
-            else:
-                d[child] = child.ix
-                
-                if child.title.state <> 'normal':
-                    child.title.state = 'normal'
+                d = {widget.proxy_ref: child.ix, child.proxy_ref: widget.ix}
+            elif child.title.state <> 'normal':
+                child.title.state = 'normal'
+
+                if child.proxy_ref in _d:
+                    del _d[child.proxy_ref]
 
         return d
 
