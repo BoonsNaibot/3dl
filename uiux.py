@@ -558,13 +558,13 @@ class DragNDroppable(ButtonRoot):
             
             elif self.state == 'dragged':
                 self.dispatch('on_drag', self, touch.y)
+                indices = touch.ud['indices']
 
                 for zone in self.drop_zones:
                     if self.collide_widget(zone):
-                        d = zone.dispatch('on_drag', self)
+                        d = zone.dispatch('on_drag', self, indices)
 
                         if d:
-                            indices = touch.ud['indices']
                             touch.ud['indices'] = dict(indices, **d)
 
                 return True
