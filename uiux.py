@@ -54,6 +54,10 @@ class Screen_(Screen):
         self.register_event_type('on_screen_change')
         super(Screen_, self).__init__(**kwargs)
 
+    def on_polestar(self, instance, value):
+        if value and value.state == 'edit':
+            pass
+
     def on_touch_down(self, touch):
         polestar = self.polestar
 
