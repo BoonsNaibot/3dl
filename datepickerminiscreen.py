@@ -1,8 +1,7 @@
 from kivy.properties import ObjectProperty, AliasProperty, ListProperty, NumericProperty
-import datetime, math, itertools
-from datetimewidgets import Day
 from kivy.lang import Builder
 from uiux import Screen_
+import datetime
 
 class DateTimeMiniScreen(Screen_):
     day = NumericProperty(0)
@@ -10,21 +9,9 @@ class DateTimeMiniScreen(Screen_):
     month = NumericProperty(1)
     item = ObjectProperty(None)
     body = ObjectProperty(None)
+    date = ObjectProperty(datetime.date.today())
     time = ObjectProperty(datetime.time(12, 00))
     month_names = ListProperty(('January ', 'February ', 'March ', 'April ', 'May ', 'June ', 'July ', 'August ', 'September ', 'October ', 'November ', 'December '))
-
-    def _get_date(self):
-        if self.day:
-            day = self.day
-        else:
-            day = 1
-
-        return datetime.date(self.year, self.month, day)
-    
-    def _set_date(self, date):
-        self.body.dispatch('on_populated', self)
-
-    date = AliasProperty(_get_date, _set_date)#, bind=('size', 'pos'))
 
     def _get_when(self):
         if self.day:
@@ -59,12 +46,14 @@ class DateTimeMiniScreen(Screen_):
                 #For the timing between sizing and populating days in calendar?
                 self.when = datetime.date.today().isoformat() + 'T12:00'
 
+    def on_date(self, instance, date):
+        self.body.dispatch('on_populated', instance)
+
     def _args_converter(self, i, _):
         return {'index': i,
                 'size_hint_y': None,
                 'title_height': self.height/6.0,
-                'content_height': self.height/6.0,
-                'listview': self}
+                'content_height': self.height/6.0}
 
     def on_deselect(self, *args):
         self.body.deselect_all()
@@ -100,7 +89,7 @@ Builder.load_string("""
 #:import NavBar uiux
 #:import Week listitems.Week
 #:import Button_ uiux.Button_
-#:import AccordionListView listviews.AccordionListView
+#:import DatePickerListView listviews.DatePickerListView
 
 <DayofTheWeek@Label>:
     font_name: 'Walkway Bold.ttf'
@@ -163,7 +152,7 @@ Builder.load_string("""
         DayofTheWeek:
             text: 'SAT'
 
-    AccordionListView:
+    DatePickerListView:
         id: body_id
         spacing: 0
         list_item: Week
