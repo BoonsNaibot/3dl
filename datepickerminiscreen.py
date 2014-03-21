@@ -21,37 +21,8 @@ class DateTimeMiniScreen(Screen_):
 
         return datetime.date(self.year, self.month, day)
     
-    def _set_date(self, value, timedelta=datetime.timedelta):
-        ravel = itertools.chain.from_iterable
-        today = datetime.date.today()
-
-        def _args_converter(date_cursor, delta):
-            date_label = Day(text=str(date_cursor.day))
-
-            if date_cursor < today:
-                date_label.disabled = True
-            elif ((delta < 0) or (value.month <> date_cursor.month)):
-                date_label.in_month = False
-
-            return date_label
-
-        #self.title.text = self.month_names[value.month-1] + str(value.year)
-        self.year, self.month = value.year, value.month
-        date = datetime.date(value.year, value.month, 1)
-        dt = date.isoweekday()# - instance.type_of_calendar
-        cached_views = self.body.cached_views
-
-        for child in cached_views.itervalues():
-            child.title.clear_widgets()
-
-        these = ravel(itertools.repeat(i, 7) for i in sorted(cached_views.itervalues(), key=cached_views.get))
-        those = (_args_converter((date+timedelta(days=delta)), delta) for delta in xrange(-dt, ((7*6)-dt)))
-        _on_release = lambda *_: self.body.handle_selection
-
-        for this, that in itertools.izip(these, those):
-            that.bind(on_release=_on_release(that))
-            that.week = this
-            this.title.add_widget(that)
+    def _set_date(self, date):
+        self.body.dispatch('on_populated', self)
 
     date = AliasProperty(_get_date, _set_date)#, bind=('size', 'pos'))
 
