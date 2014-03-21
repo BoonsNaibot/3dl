@@ -590,7 +590,7 @@ class DragNDroppable(ButtonRoot):
                         _on_complete(_on_start(None, self), self) #Cuz i'm cool like that
                         return True
 
-                placeholder = self.listview.placeholder
+                placeholder = self.listview.placeholder.proxy_ref
 
                 if placeholder:
                     _anim = Animation(y=placeholder.y, d=0.5, t='out_elastic')
@@ -614,8 +614,9 @@ class DragNDroppable(ButtonRoot):
                     if (child.collide_point(*point) and (child is not Widget)):
                         viewer.reparent(instance, child)
                         instance.screen.dispatch('on_pre_enter')
-                        viewer.placeholder = None
-                        return
+                        break
+
+        instance.listview.placeholder = None
 
     def on_drag_start(self, widget):
         widget.listview.deselect_all()
