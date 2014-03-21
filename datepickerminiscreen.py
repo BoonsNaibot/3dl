@@ -4,7 +4,6 @@ from uiux import Screen_
 import datetime
 
 class DateTimeMiniScreen(Screen_):
-    day = NumericProperty(0)
     year = NumericProperty(1)
     month = NumericProperty(1)
     item = ObjectProperty(None)
@@ -12,6 +11,12 @@ class DateTimeMiniScreen(Screen_):
     date = ObjectProperty(datetime.date.today())
     time = ObjectProperty(datetime.time(12, 00))
     month_names = ListProperty(('January ', 'February ', 'March ', 'April ', 'May ', 'June ', 'July ', 'August ', 'September ', 'October ', 'November ', 'December '))
+
+    def _get_day(self):
+        if self.body and self.body.selection:
+            return int(self.body.selection[0].text)
+            
+    day = AliasProperty(_get_day, None, bind=('body',))
 
     def _get_when(self):
         if self.day:
@@ -37,14 +42,8 @@ class DateTimeMiniScreen(Screen_):
         self.register_event_type('on_previous_month')
         super(DateTimeMiniScreen, self).__init__(**kwargs)
 
-    def on_item(self, instance, value):
-        if self.item:
-
-            if self.item.when:
-                self.when = self.item.when
-            else:
-                #For the timing between sizing and populating days in calendar?
-                self.when = datetime.date.today().isoformat() + 'T12:00'
+    def on_pre_enter(self, *args):
+        self.when = self.item.when
 
     def on_date(self, instance, date):
         self.body.dispatch('on_populated', instance)
