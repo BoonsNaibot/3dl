@@ -33,7 +33,7 @@ class DateTimeMiniScreen(Screen_):
         else:
             return False
 
-    when = AliasProperty(_get_when, _set_when)
+    when = AliasProperty(_get_when, _set_when, bind=('day',))
     
     def __init__(self, **kwargs):
         self.register_event_type('on_today')
