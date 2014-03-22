@@ -43,7 +43,7 @@ class DateTimeMiniScreen(Screen_):
         super(DateTimeMiniScreen, self).__init__(**kwargs)
 
     def on_pre_enter(self, *args):
-        self.when = self.item.when
+        self.when = ''#self.item.when
 
     def on_date(self, instance, date):
         self.body.dispatch('on_populated', instance)
@@ -118,19 +118,20 @@ Builder.load_string("""
                 size_hint: None, 1
                 width: self.height
                 font_size: self.height*0.7
-                on_press: root.dispatch('previous_month', *args)
+                on_press: root.dispatch('on_previous_month', root)
             Label:
                 id: title_id
                 color: app.white
                 font_name: 'Walkway Bold.ttf'
-                font_size: self.height*0.421875
+                #font_size: self.height*0.421875
+                font_size: self.height*0.7
                 text: root.month_names[root.month-1] + str(root.year)
             Button_:
                 text: '>'
                 size_hint: None, 1
                 width: self.height
                 font_size: self.height*0.7
-                on_press: root.dispatch('next_month', *args)
+                on_press: root.dispatch('on_next_month', root)
 
     BoxLayout:
         size_hint: 1, 0.05
