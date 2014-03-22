@@ -56,7 +56,6 @@ class PagesScreen(Screen_):
 
     def on_selected_page(self, text, index):
         manager = self.manager
-        manager.transition = SlideTransition(direction="left", duration=0.2)
         cursor = self.root_directory.cursor()
         cursor.execute("""
                        SELECT COUNT(what)
@@ -74,7 +73,7 @@ class PagesScreen(Screen_):
         screen = manager.get_screen(screen_name)
         screen.page = text
         screen.page_number = index
-        manager.current = screen_name
+        self.dispatch('on_screen_change', 'left', screen_name)
 
     def on_status_bar(self, *args):
         self.list_view.scroll_to()
