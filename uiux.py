@@ -33,11 +33,20 @@ class BoundedTextInput(TextInput):
         return self.collide_point(*touch.pos)
 
 class NewItemWidget(FloatLayout):
+    state = OptionProperty('normal', options=('edit', 'normal'))
     hint_text = StringProperty('')
 
     def __init__(self, **kwargs):
         self.register_event_type('on_text_validate')
         super(NewItemWidget, self).__init__(**kwargs)
+
+    def on_state(self, instance, value):
+        screen = instance.parent
+
+        if value == 'edit':
+            screen.polestar = instance
+        elif screen.polestar:
+            screen.polestar = None
 
     def on_text_validate(self, *args):
         pass
@@ -56,7 +65,16 @@ class Screen_(Screen):
 
     def on_polestar(self, instance, value):
         if value and value.state == 'edit':
-            pass
+            _pos = instance.to_window(*value.pos)
+            center_y = instance.get_root_window().height/2.0
+
+            if _pos[1] < center_y:
+                _anim = Animation(y=(center_y-_pos[1]), t='out_expo', d=0.3)
+                instance._anim = _anim.start(instance)
+
+        elif instance.y <> 0:
+            _anim = Animation(y=0, t='out_expo', d=0.3)
+            instance._anim = _anim.start(instance)
 
     def on_touch_down(self, touch):
         polestar = self.polestar
@@ -1063,6 +1081,7 @@ Builder.load_string("""
             pos: self.pos
 
 <NewItemWidget>:
+    state: 'edit' if textinput_id.focus else 'normal'
     canvas.before:
         Color:
             rgba: app.dark_blue
