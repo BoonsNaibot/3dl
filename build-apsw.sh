@@ -2,16 +2,16 @@
 
 . $(dirname $0)/environment.sh
 
-if [ ! -f $CACHEROOT/sqlite-amalgamation-3080301.zip ] ; then
-	try curl -L http://sqlite.org/2014/sqlite-amalgamation-3080301.zip > $CACHEROOT/sqlite-amalgamation-3080301.zip
+if [ ! -f $CACHEROOT/sqlite-amalgamation-3080401.zip ] ; then
+	try curl -L http://sqlite.org/2014/sqlite-amalgamation-3080401.zip > $CACHEROOT/sqlite-amalgamation-3080401.zip
 fi
 if [ ! -d $TMPROOT/apsw ]; then
 	try pushd $TMPROOT
 	try git clone -b master https://github.com/rogerbinns/apsw
 	try cd apsw
-	try unzip $CACHEROOT/sqlite-amalgamation-3080301.zip
-	try mv sqlite-amalgamation-3080301/* $TMPROOT/apsw
-	try rm -rf sqlite-amalgamation-3080301
+	try unzip $CACHEROOT/sqlite-amalgamation-3080401.zip
+	try mv sqlite-amalgamation-3080401/* $TMPROOT/apsw
+	try rm -rf sqlite-amalgamation-3080401
 	try popd 
 fi
 
