@@ -44,22 +44,20 @@ class ScrollerEffect(DampedScrollEffect):
                     instance._parent.mode = 'normal'
                 else:
                     return False
-
-            Clock.schedule_once(_mode_change, 0.05)
+            Clock.schedule_once(_mode_change, 0.055)
 
 
 class Scroller(StencilView):
-    scroll_distance = NumericProperty(7)
+    scroll_distance = NumericProperty('20dp')
     scroll_y = NumericProperty(1.)
     bar_color = ListProperty([.7, .7, .7, .9])
     bar_width = NumericProperty('2dp')
     bar_margin = NumericProperty(0)
     bar_anim = ObjectProperty(None, allownone=True)
     effect_y = ObjectProperty(None, allownone=True)
-    viewport_size = ListProperty([0, 0])
     _viewport = ObjectProperty(None, allownone=True)
     bar_alpha = NumericProperty(1.)
-    mode = OptionProperty('normal', options=['normal', 'scrolling'])
+    mode = OptionProperty('normal', options=('normal', 'scrolling'))
 
     def _get_vbar(self):
         # must return (y, height) in %
@@ -91,12 +89,9 @@ class Scroller(StencilView):
                   size=self._trigger_update_from_scroll)
                   
     def on_height(self, instance, *args):
-        instance.effect_y.value = instance.effect_y.min * instance.scroll_y
+        self.effect_y.value = self.effect_y.min * self.scroll_y
 
-    def on_touch_down(self, touch):
-        # handle mouse scrolling, only if the viewport size is bigger than the
-        # Scroller size, and if the user allowed to do it
-        
+    def on_touch_down(self, touch):        
         if self.collide_point(*touch.pos):
             touch.grab(self)
             
@@ -120,16 +115,16 @@ class Scroller(StencilView):
                 self.effect_y.cancel()
                 
                 if self.mode <> 'scrolling':
+                    touch.ungrab(self)
                     _touch.push()
                     _touch.apply_transform_2d(self.to_widget)
                     _touch.apply_transform_2d(self.to_parent)
-                    super(Scroller, self).on_touch_down(touch)
+                    super(Scroller, self).on_touch_down(_touch)
                     _touch.pop()
-                    touch.ungrab(self)
+                    touch = _touch
 
             elif self.mode <> 'scrolling':
                 self.mode = 'scrolling'
-            
             del _touch
 
         elif ((touch.grab_current is self) and (self.mode == 'scrolling')):
@@ -234,7 +229,8 @@ class Scroller(StencilView):
             raise Exception('Scroller accept only one widget')
         super(Scroller, self).add_widget(widget, index)
         self._viewport = widget
-        widget.bind(size=self._trigger_update_from_scroll)
+        widget.bind(size=self._trigger_update_from_scroll,
+                    height=self.on_height)
         self._trigger_update_from_scroll()
 
     def remove_widget(self, widget):
