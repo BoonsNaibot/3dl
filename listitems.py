@@ -201,7 +201,7 @@ Builder.load_string("""
             color: root.text_color
             font_size: self.height*0.421875
         EditButton:
-            text: '_____________________' if (not root.how and root.parent.state <> 'edit') else root.how
+            text: '_____________________' if not root.how else root.how
             size_hint: None, 1                
             font_name: 'Walkway Bold.ttf'
             width: root.width - icon_id.width
