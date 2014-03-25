@@ -40,7 +40,6 @@ class PagesScreen(Screen_):
     def _args_converter(self, row_index, an_obj):
         dict = {'page_number': an_obj[0],
                 'text': an_obj[1],
-                'is_selected': False,
                 'size_hint_y': None,
                 'screen': self}
         return dict
@@ -60,7 +59,7 @@ class PagesScreen(Screen_):
         cursor.execute("""
                        SELECT COUNT(what)
                        FROM notebook
-                       WHERE page=? AND ix<3 AND what<>'';
+                       WHERE page=? AND ix<4 AND what<>'';
                        """,
                        (text,))
         i = cursor.fetchall()[0][0]
@@ -92,7 +91,7 @@ class PagesScreen(Screen_):
             cursor = self.root_directory.cursor()
             cursor.execute("""
                            INSERT INTO [table of contents](page_number, page)
-                           VALUES((SELECT MAX(ROWID) FROM [table of contents])+1, ?);
+                           VALUES((SELECT IFNULL(MAX(ROWID), 0))+1, ?);
                            """,
                            (text,))
             #cursor.execute('commit')
