@@ -38,14 +38,14 @@ class ListScreen(Screen_):
 
             for i in cursor.execute("""
                                     SELECT ix, what, when_, why, how
-                                    FROM notebook
-                                    WHERE page=? AND ix>=0
+                                    FROM [notebook]
+                                    WHERE page=? AND ix>0
                                     ORDER BY ix
                                     """,
                                     (self.page,)):
                 ix = i[0]#; print ix, i
 
-                if ix < 3:
+                if ix < 4:
                     #action_items[ix] = i
                     action_items.append(i)
                 else:
@@ -59,7 +59,7 @@ class ListScreen(Screen_):
         _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
         _dict['why'] = bool(_dict['why'])
 
-        if _dict['ix'] < 3:
+        if _dict['ix'] < 4:
             _dict['title_height_hint'] = (153./1136.)
             _dict['content_height_hint'] = (322./1136.)
             _dict['listview'] = self.action_view
@@ -85,8 +85,8 @@ class ListScreen(Screen_):
         if text:
             cursor = self.root_directory.cursor()
             cursor.execute("""
-                           INSERT INTO notebook(ix, what, page)
-                           VALUES((SELECT MAX(ROWID) FROM notebook), ?, ?);
+                           INSERT INTO [notebook](ix, what, page)
+                           VALUES((SELECT MAX(ROWID) FROM notebook)+1, ?, ?);
                            """,
                            (text, self.page))
             self.dispatch('on_pre_enter')#, self, self.page)
@@ -98,37 +98,41 @@ class ListScreen(Screen_):
         instance.text = value
         cursor = self.root_directory.cursor()
         cursor.execute("""
-                       UPDATE notebook
+                       UPDATE [notebook]
                        SET what=?
-                       WHERE page=? AND ix=?
+                       WHERE page=? AND ix=?;
                        """,
                        (value, self.page, instance.ix))
 
     def on_delete(self, instance):
         cursor = self.root_directory.cursor()
+        ix = instance.parent.ix
+
         cursor.execute("""
-                       DELETE FROM notebook
-                       WHERE ix=? AND what=? AND page=?
+                       DELETE FROM [notebook]
+                       WHERE ix=? AND page=?;
                        """,
-                       (instance.parent.ix, instance.text, self.page))
+                       (ix, self.page))
         self.dispatch('on_pre_enter')
 
     def on_complete(self, instance):
         cursor = self.root_directory.cursor()
+        ix = instance.parent.ix
+
         cursor.execute("""
-                       INSERT INTO archive
-                       VALUES((SELECT * FROM notebook WHERE ix=? and page=?));
+                       INSERT INTO [archive]
+                       SELECT * FROM notebook WHERE ix=? and page=?;
                        """,
-                       (instance.ix, self.page))
+                       (ix, self.page))
         self.dispatch('on_pre_enter')
 
     def on_importance(self, instance, value):
         instance.why = value
         cursor = self.root_directory.cursor()
         cursor.execute("""
-                       UPDATE notebook
+                       UPDATE [notebook]
                        SET why=?
-                       WHERE page=? AND ix=? AND what=?
+                       WHERE page=? AND ix=? AND what=?;
                        """,
                        (int(value), self.page, instance.ix, instance.text))
 
@@ -136,9 +140,9 @@ class ListScreen(Screen_):
         instance.how = value
         cursor = self.root_directory.cursor()
         cursor.execute("""
-                       UPDATE notebook
+                       UPDATE [notebook]
                        SET how=?
-                       WHERE page=? AND ix=? AND what=?
+                       WHERE page=? AND ix=? AND what=?;
                        """,
                        (value, self.page, instance.ix, instance.text))
 
@@ -155,13 +159,11 @@ class ListScreen(Screen_):
             items = ((v, k.ix, self.page) for (k, v) in d.iteritems())
             cursor = self.root_directory.cursor()
             cursor.executemany("""
-                               UPDATE notebook
+                               UPDATE [notebook]
                                SET ix=?
                                WHERE ix=? AND page=?;
                                """,
                                items)
-            cursor.execute("select * from notebook;")
-            print cursor.fetchall()
             """for k, v in d.iteritems():
                 k.ix = v"""
 
