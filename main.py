@@ -64,66 +64,74 @@ class ThreeDoListApp(App):
             connection = Connection('db.db')
             cursor = connection.cursor()
             cursor.execute("""
-                            PRAGMA foreign_keys = ON;
+                           PRAGMA foreign_keys=1;
 
-                            CREATE TABLE [table of contents](
-                            page_number UNSIGNED INTEGER,
-                            page TEXT PRIMARY KEY,
-                            bookmark UNSIGNED SHORT INTEGER DEFAULT 0,
-                            UNIQUE(page_number, page));
-                            
-                            CREATE TABLE [notebook](
-                            ix UNSIGNED INTEGER,
-                            what TEXT DEFAULT '',
-                            when_ TEXT DEFAULT '',
-                            where_ TEXT DEFAULT '',
-                            why UNSIGNED SHORT INTEGER DEFAULT 0,
-                            how TEXT DEFAULT '',
-                            page TEXT,
-                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE CASCADE ON UPDATE CASCADE);
+                           CREATE TABLE [table of contents](
+                           page_number UNSIGNED INTEGER,
+                           page TEXT PRIMARY KEY,
+                           bookmark UNSIGNED SHORT INTEGER DEFAULT 0,
+                           UNIQUE(page_number, page));
 
-                            CREATE TABLE [archive](
-                            ix UNSIGNED INTEGER,
-                            what TEXT DEFAULT '',
-                            when_ TEXT DEFAULT '',
-                            where_ TEXT DEFAULT '',
-                            why UNSIGNED SHORT INTEGER DEFAULT 0,
-                            how TEXT DEFAULT '',
-                            page TEXT,
-                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE CASCADE ON UPDATE CASCADE);
+                           CREATE TABLE [notebook](
+                           ix UNSIGNED INTEGER,
+                           what TEXT DEFAULT '',
+                           when_ TEXT DEFAULT '',
+                           where_ TEXT DEFAULT '',
+                           why UNSIGNED SHORT INTEGER DEFAULT 0,
+                           how TEXT DEFAULT '',
+                           page TEXT,
+                           FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE CASCADE ON UPDATE CASCADE);
 
-                            CREATE TRIGGER [on_new_page]
-                            AFTER INSERT ON [table of contents]
-                            BEGIN
-                                INSERT INTO [notebook](page, ix) VALUES(NEW.page, 0);
-                                INSERT INTO [notebook](page, ix) VALUES(NEW.page, 1);
-                                INSERT INTO [notebook](page, ix) VALUES(NEW.page, 2);
-                            END;
+                           CREATE TABLE [archive](
+                           ix UNSIGNED INTEGER,
+                           what TEXT DEFAULT '',
+                           when_ TEXT DEFAULT '',
+                           where_ TEXT DEFAULT '',
+                           why UNSIGNED SHORT INTEGER DEFAULT 0,
+                           how TEXT DEFAULT '',
+                           page TEXT,
+                           FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE CASCADE ON UPDATE CASCADE);
 
-                            CREATE TRIGGER [soft_delete]
-                            BEFORE DELETE ON [notebook]
-                            WHEN OLD.ix<3
-                            BEGIN
-                                UPDATE [notebook] SET what='', when_='', where_='', why=0, how='' WHERE page=OLD.page AND ix=OLD.ix;
-                                SELECT RAISE(IGNORE);
-                            END;
+                           CREATE TRIGGER [on_new_page]
+                           AFTER INSERT ON [table of contents]
+                           BEGIN
+                               INSERT INTO [notebook](page, ix) VALUES(NEW.page, 1);
+                               INSERT INTO [notebook](page, ix) VALUES(NEW.page, 2);
+                               INSERT INTO [notebook](page, ix) VALUES(NEW.page, 3);
+                           END;
 
-                            CREATE TRIGGER [new_action_item]
-                            AFTER UPDATE ON [notebook]
-                            WHEN OLD.ix<3 AND NEW.ix>=3
-                            BEGIN
-                                DELETE FROM [notebook] WHERE ix=NEW.ix AND WHAT='' AND page=(SELECT page FROM [table of contents] WHERE bookmark=1);
-                            END;
+                           CREATE TRIGGER [soft_delete]
+                           BEFORE DELETE ON [notebook]
+                           WHEN OLD.ix<3 AND OLD.page=(SELECT page FROM [table of contents] WHERE bookmark=1)
+                           BEGIN
+                               UPDATE [notebook] SET what='', when_='', where_='', why=0, how='' WHERE ix=OLD.ix AND page=OLD.page;
+                               SELECT RAISE(IGNORE);
+                           END;
 
-                            CREATE TRIGGER [on_complete]
-                            AFTER INSERT ON archive
-                            BEGIN
-                                DELETE FROM [notebook] WHERE page=NEW.page AND ix=NEW.ix AND what=NEW.what;
-                            END;
+                           CREATE TRIGGER [new_action_item]
+                           AFTER UPDATE ON [notebook]
+                           WHEN OLD.ix<4 AND NEW.ix>3
+                           BEGIN
+                               DELETE FROM [notebook] WHERE ix=NEW.ix AND WHAT='' AND page=(SELECT page FROM [table of contents] WHERE bookmark=1);
+                           END;
 
-                            INSERT INTO [table of contents](page_number, page)
-                            VALUES(0, 'Main List');
-                            """)
+                           CREATE TRIGGER [on_complete]
+                           AFTER INSERT ON archive
+                           BEGIN
+                               DELETE FROM [notebook] WHERE page=NEW.page AND ix=NEW.ix AND what=NEW.what;
+                           END;
+
+                           INSERT INTO [table of contents](page_number, page)
+                           VALUES(1, 'Main List');
+
+                           INSERT INTO [table of contents](page_number, page) VALUES(2, 'Sample List');
+                           UPDATE [notebook] SET what='Click Me', when_='', where_='', why=0, how='Double-tap any one of us' WHERE page='Sample List' AND ix=1;
+                           INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 4, 'Swipe right to complete me', 'You can find me later in the "Archive Screen"');
+                           INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 5, 'Swipe left to delete me', 'You can also delete a list itself in the "List Screen" this way.');
+                           INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 6, 'Double-tap to rename me', 'You can also rename a list itself in the "List Screen" this way.');
+                           INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 7, 'Press and hold to Drag-N''-Drop', 'You can re-order your tasks this way.');
+                           INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 8, 'Drag 2 more of us to the "Action Items", at the top.', 'The "Action Items" are your top 3 tasks to focus on at a time.');
+                           """)
             #cursor.execute("commit")
             self.db = connection
 
