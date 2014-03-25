@@ -91,7 +91,7 @@ class PagesScreen(Screen_):
             cursor = self.root_directory.cursor()
             cursor.execute("""
                            INSERT INTO [table of contents](page_number, page)
-                           VALUES((SELECT IFNULL(MAX(ROWID), 0))+1, ?);
+                           VALUES((SELECT IFNULL(MAX(ROWID), 0) FROM [table of contents])+1, ?);
                            """,
                            (text,))
             #cursor.execute('commit')
