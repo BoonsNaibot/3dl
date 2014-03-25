@@ -208,12 +208,12 @@ class DNDListView(FloatLayout, ListViewAdapter):
                     #maybe scroll here
                     child_ix = child.ix
 
-                    if d is not None and child.proxy_ref in d:
-                        child_ix = d.pop(child.proxy_ref)
+                    if d is not None and child in d:
+                        child_ix = d.pop(child)
                     else:
-                        _dict[child.proxy_ref] = placeholder.ix
+                        _dict[child] = placeholder.ix
 
-                    _dict[widget.proxy_ref] = placeholder.ix = child_ix#, child: placeholder.ix}
+                    _dict[widget] = placeholder.ix = child_ix#, child: placeholder.ix}
                     #placeholder.ix, child.ix = child.ix, placeholder.ix
                     placeholder.index = child.index
 
@@ -270,12 +270,12 @@ class ActionListView(AccordionListView):
 
             if collision:
                 child.title.state = 'down'
-                d = {widget.proxy_ref: child.ix, child.proxy_ref: widget.ix}
+                d = {widget: child.ix, child: widget.ix}
             elif child.title.state <> 'normal':
                 child.title.state = 'normal'
 
-                if child.proxy_ref in _d:
-                    del _d[child.proxy_ref]
+                if child in _d:
+                    del _d[child]
 
         return d
 
