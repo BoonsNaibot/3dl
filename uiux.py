@@ -53,6 +53,7 @@ class NewItemWidget(FloatLayout):
 
 class Screen_(Screen):
     root_directory = ObjectProperty(None)
+    keyboard_height = NumericProperty(None)
     polestar = ObjectProperty(None, allownone=True)
     _anim = ObjectProperty(None, allownone=True)
 
@@ -65,11 +66,12 @@ class Screen_(Screen):
 
     def on_polestar(self, instance, value):
         if value and value.state == 'edit':
-            _pos = instance.to_window(*value.pos)
-            center_y = instance.get_root_window().height/2.0
+            y = instance.to_window(*value.pos)[1]
+            kh = instance.keyboard_height
+            #center_y = 0.38*instance.get_root_window().height
 
-            if _pos[1] < center_y:
-                _anim = Animation(y=(center_y-_pos[1]), t='out_expo', d=0.3)
+            if y < kh:
+                _anim = Animation(y=(kh-y), t='out_expo', d=0.3)
                 instance._anim = _anim.start(instance)
 
         elif instance.y <> 0:
@@ -612,7 +614,7 @@ class DragNDroppable(ButtonRoot):
                         _on_complete(_on_start(None, self), self) #Cuz i'm cool like that
                         return True
 
-                placeholder = self.listview.placeholder.proxy_ref
+                placeholder = self.listview.placeholder
 
                 if placeholder:
                     _anim = Animation(y=placeholder.y, d=0.5, t='out_elastic')
@@ -1107,6 +1109,7 @@ Builder.load_string("""
 
 
 <Screen_>:
+    keyboard_height: 432
     canvas:
         Color:
             rgb: app.smoke_white
