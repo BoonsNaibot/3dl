@@ -11,9 +11,6 @@ class PagesScreenItem(Clickable, Deletable, Editable):
     screen = ObjectProperty(None)
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'edit', 'normal'))
 
-    def on_release(self):
-        self.screen.dispatch('on_selected_page', self.text, self.page_number)
-
     def on_text_validate(self, instance):
         if super(PagesScreenItem, self).on_text_validate(instance, instance.text):
             _l = lambda *_: self.screen.dispatch('on_what', self, instance.text)
@@ -25,8 +22,8 @@ class PagesScreenItem(Clickable, Deletable, Editable):
 
             if not nruter:
                 self.state = 'normal'
-            
             return not nruter
+
         else:
             return super(PagesScreenItem, self).on_touch_down(touch)
 
@@ -78,18 +75,20 @@ class NoteItem(AccordionListItem):
         self.title.aleft = kwargs['aleft']
         self.title.font_name = kwargs['font_name']
 
-    def on_comments(self, instance, value):
-        value = value.lstrip()
+    def on_comments(self, *args):#instance, value):
+        print args
+        """value = value.lstrip()
         #instance.focus = False
 
         if self.how <> value:
             _l = lambda *_: self.screen.dispatch('on_comments', self, value)
-            Clock.schedule_once(_l, 0.25)
+            Clock.schedule_once(_l, 0.25)"""
 
-    def on_importance(self, instance, value):
-        if self.why <> value:
+    def on_importance(self, *args):#instance, value):
+        print args
+        """if self.why <> value:
             _l = lambda *_: self.screen.dispatch('on_importance', self, value)
-            Clock.schedule_once(_l, 0.25)
+            Clock.schedule_once(_l, 0.25)"""
 
 class ListScreenItem(NoteItem):
     pass
@@ -144,15 +143,79 @@ class Week(AccordionListItem):
     title_height = NumericProperty(0.0)
     content_height = NumericProperty(0.0)
 
+class Content1(BoxLayout):
+    state_color = ListProperty([])
+    text_color = ListProperty([])
+    screen = ObjectProperty(None)
+    why = BooleanProperty(False)
+    how = StringProperty('')
+
+    def __init__(self, **kwargs):
+        self.register_event_type('on_comments')
+        self.register_event_type('on_importance')
+        super(Content1, self).__init__(**kwargs)
+
+    def on_importance(self, *args):
+        pass
+
+    def on_comments(self, *args):
+        pass
+
 Builder.load_string("""
 #:import DoubleClickButton uiux.DoubleClickButton
 #:import EditButton uiux.EditButton
+
+<Content1>:
+    id: content_id
+    orientation: 'vertical'
+    canvas.before:
+        Color:
+            rgba: self.state_color
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    DoubleClickButton:
+        icon_text: '!'
+        text: 'IMPORTANT'
+        text_color: root.text_color
+        double_click_switch: root.why
+        opacity: 1.0 if self.double_click_switch else 0.5
+        on_double_click_switch: root.dispatch('on_importance', *args)
+    DoubleClickButton:
+        icon_text: 'T'
+        #text: root.when
+        opacity: 1.0
+        text_color: root.text_color
+        on_double_click_switch: root.screen.dispatch('on_due_date', root.parent, args[1])
+    BoxLayout:
+        size_hint: 0.5, 1
+        pos_hint: {'center_x': 0.5}
+
+        Label:
+            id: icon_id
+            text: 'b'
+            font_name: 'breezi_font-webfont.ttf'
+            size_hint: None, 1
+            width: self.height
+            color: root.text_color
+            font_size: self.height*0.421875
+        EditButton:
+            text: '_____________________' if (not root.how and root.parent.state <> 'edit') else root.how
+            size_hint: None, 1                
+            font_name: 'Walkway Bold.ttf'
+            width: root.width - icon_id.width
+            font_size: self.height*0.5
+            text_color: root.text_color
+            screen: root.screen
+            on_text_validate: root.dispatch('on_comments', *args)
 
 <PagesScreenItem>:
     aleft: True
     shorten: True
     height: self.screen.height*0.088
     state_color: app.gray if self.state == 'down' else app.white
+    on_release: self.screen.dispatch('on_selected_page', args[0].text, args[0].page_number)
     canvas.after:
         Color:
             rgba: app.shadow_gray
@@ -182,54 +245,19 @@ Builder.load_string("""
     text_color: app.blue
     height: self.title.height + (content_id.height*(1-self.collapse_alpha))
 
-    BoxLayout:
+    Content1:
         id: content_id
-        orientation: 'vertical'
-        size_hint: 1, None
-        pos_hint: {'x': 0}
+        why: root.why
+        how: root.how
         top: root.title.y
+        pos_hint: {'x': 0}
+        size_hint: 1, None
+        screen: root.screen
+        text_color: root.text_color
+        state_color: root.state_color
         height: root.screen.height*root.content_height_hint
-        canvas.before:
-            Color:
-                rgba: root.state_color
-            Rectangle:
-                size: self.size
-                pos: self.pos
-
-        DoubleClickButton:
-            icon_text: '!'
-            text: 'IMPORTANT'
-            text_color: root.text_color
-            double_click_switch: root.why
-            opacity: 1.0 if self.double_click_switch else 0.5
-            on_double_click_switch: root.dispatch('on_importance', *args)
-        DoubleClickButton:
-            icon_text: 'T'
-            #text: root.when
-            opacity: 1.0
-            text_color: root.text_color
-            on_double_click_switch: root.screen.dispatch('on_due_date', root, args[1])
-        BoxLayout:
-            size_hint: 0.5, 1
-            pos_hint: {'center_x': 0.5}
-
-            Label:
-                id: icon_id
-                text: 'b'
-                font_name: 'breezi_font-webfont.ttf'
-                size_hint: None, 1
-                width: self.height
-                color: root.text_color
-                font_size: self.height*0.421875
-            EditButton:
-                text: root.how
-                size_hint: None, 1                
-                font_name: 'Walkway Bold.ttf'
-                width: root.width - icon_id.width
-                font_size: self.height*0.5
-                #text_color root.text_color
-                screen: root.screen
-                on_text_validate: root.dispatch('on_comments', args[0], self.text)
+        on_comments: print args
+        on_importance: root.dispatch('on_importance', root, args[2])
 
 <ActionListItem>:
     state_color: app.no_color if self.title.state=='dragged' else (app.blue if root.collapse_alpha==0.0 else (app.light_blue if self.title.state=='down' else app.gray))
