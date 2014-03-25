@@ -182,5 +182,3 @@ Builder.load_string("""
         pos_hint: {'y': 0}
         on_text_validate: root.dispatch('on_new_item', *args[1:])
 """)
-
-
