@@ -1,4 +1,4 @@
-from kivy.properties import ObjectProperty, NumericProperty, ListProperty, OptionProperty, StringProperty, BooleanProperty, DictProperty, AliasProperty
+from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
 from kivy.uix.screenmanager import SlideTransition, Screen
 from kivy.graphics.transformation import Matrix
 from kivy.uix.floatlayout import FloatLayout
@@ -140,16 +140,17 @@ class Selectable(object):
         pass
 
 class ButtonRoot(Widget):
-    label = ObjectProperty(None)
-    index = NumericProperty(-1)
     text = StringProperty('')
-    aleft = BooleanProperty(False)
-    text_color = ListProperty([0, 0.824, 1, 1])
-    state_color = ListProperty([])
+    index = NumericProperty(-1)
+    label = ObjectProperty(None)
+    layout = ObjectProperty(None)
     font_size = NumericProperty(0)
-    font_name = StringProperty('Walkway Bold.ttf')
-    shorten = BooleanProperty(False)
+    aleft = BooleanProperty(False)
     markup = BooleanProperty(False)
+    shorten = BooleanProperty(False)
+    font_name = StringProperty('Walkway Bold.ttf')
+    state_color = ListProperty([1.0, 1.0, 1.0, 0.0])
+    text_color = ListProperty([0.0, 0.824, 1.0, 1.0])
 
     def on_state(self, *args):
         pass
@@ -933,9 +934,7 @@ Builder.load_string("""
 <ButtonRoot>:
     label: label_id
     layout: layout_id
-    state_color: app.no_color
-    text_color: app.blue
-    font_size: (self.height*0.421875)
+    font_size: self.height*0.421875
 
     FloatLayout:
         id: layout_id
