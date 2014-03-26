@@ -140,6 +140,7 @@ class Selectable(object):
         pass
 
 class ButtonRoot(Widget):
+    label = ObjectProperty(None)
     index = NumericProperty(-1)
     text = StringProperty('')
     aleft = BooleanProperty(False)
