@@ -31,7 +31,7 @@ class ListViewAdapter(object):
     def get_data_item(self, index):
         data = self.data
 
-        if (0 <= index < self.get_count()):
+        if (0 <= index <= self.get_count()):
             return data[index]
 
     def get_view(self, index):
