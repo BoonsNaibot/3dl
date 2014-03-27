@@ -210,9 +210,8 @@ class DNDListView(FloatLayout, ListViewAdapter):
 
                     if d is not None and child in d:
                         child_ix = d.pop(child)
-                    else:
-                        _dict[child] = placeholder.ix
-
+                        
+                    _dict[child] = placeholder.ix
                     _dict[widget] = placeholder.ix = child_ix#, child: placeholder.ix}
                     #placeholder.ix, child.ix = child.ix, placeholder.ix
                     placeholder.index = child.index
