@@ -587,7 +587,7 @@ class DragNDroppable(ButtonRoot):
                 elif (self.hold_time > 0.4):
                     self.state = 'dragged'
                     touch.ud['indices'] = {}
-                    grab_list = touch.grab_list
+                    """grab_list = touch.grab_list
                     l = len(grab_list)
 
                     if l > 1:
@@ -596,7 +596,7 @@ class DragNDroppable(ButtonRoot):
 
                             if (item and (touch.grab_current is not item)):
                                 touch.ungrab(item)
-                                item.cancel()
+                                item.cancel()"""
                     return True
             
             elif self.state == 'dragged':
