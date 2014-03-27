@@ -240,6 +240,10 @@ class Clickable(ButtonRoot):
 
     def on_release(self):
         pass
+    
+    def cancel(self):
+        Clock.unschedule(self.trigger_press)
+        super(Clickable, self).cancel()
 
 class DelayedClickable(Clickable):
 
@@ -652,6 +656,10 @@ class DragNDroppable(ButtonRoot):
 
     def on_drag_finish(self, widget):
         pass
+    
+    def cancel(self):
+        Clock.unschedule(self.on_hold_down)
+        super(DragNDroppable, self).cancel()
 
 class Button_(Clickable):
     state = OptionProperty('normal', options=('down', 'normal'))
@@ -750,6 +758,9 @@ class AccordionListItem(Selectable, FloatLayout):
             return False
         else:
             return super(AccordionListItem, self).on_touch_down(touch)
+            
+    def cancel(self):
+        self.title.cancel()
 
 class FreeRotateLayout(Widget):
     content = ObjectProperty(None)
