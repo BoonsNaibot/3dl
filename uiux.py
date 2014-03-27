@@ -172,6 +172,9 @@ class ButtonRoot(Widget):
             return True
         else:
             return False
+            
+    def cancel(self):
+        self.state = 'normal'
 
 class Clickable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'down'))
