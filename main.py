@@ -102,7 +102,7 @@ class ThreeDoListApp(App):
 
                            CREATE TRIGGER [soft_delete]
                            BEFORE DELETE ON [notebook]
-                           WHEN OLD.ix<3 AND OLD.page=(SELECT page FROM [table of contents] WHERE bookmark=1)
+                           WHEN OLD.ix<4 AND OLD.page=(SELECT page FROM [table of contents] WHERE bookmark=1)
                            BEGIN
                                UPDATE [notebook] SET what='', when_='', where_='', why=0, how='' WHERE ix=OLD.ix AND page=OLD.page;
                                SELECT RAISE(IGNORE);
