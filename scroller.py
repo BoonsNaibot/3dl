@@ -48,7 +48,7 @@ class ScrollerEffect(DampedScrollEffect):
 
 
 class Scroller(StencilView):
-    scroll_distance = NumericProperty('20dp')
+    scroll_distance = NumericProperty('5dp')
     scroll_y = NumericProperty(1.)
     bar_color = ListProperty([.7, .7, .7, .9])
     bar_width = NumericProperty('2dp')
@@ -94,14 +94,19 @@ class Scroller(StencilView):
     def on_touch_down(self, touch):        
         if self.collide_point(*touch.pos):
             touch.grab(self)
+            self.effect_y.start(touch.y)
             
             if self.mode == 'scrolling':
                 self.effect_y.cancel()
+                return True
             else:
-                touch.ud['touch_down'] = touch
-
-            self.effect_y.start(touch.y)
-            return True
+                touch.ud['touch_down'] = True
+                touch.push()
+                touch.apply_transform_2d(self.to_widget)
+                touch.apply_transform_2d(self.to_parent)
+                ret = super(Scroller, self).on_touch_down(touch)
+                touch.pop()
+                return ret
 
     def on_touch_move(self, touch):
         # Take advantage of the fact that, given the imprecision of 'finger-touching',
@@ -109,23 +114,34 @@ class Scroller(StencilView):
         # guarantees an `on_touch_move` event.
 
         if 'touch_down' in touch.ud:
-            _touch = touch.ud.pop('touch_down')
+            touch.ud.remove('touch_down')
+            #_touch = touch.ud.pop('touch_down')
             
             if (abs(touch.dy) < self.scroll_distance):
                 self.effect_y.cancel()
                 
                 if self.mode <> 'scrolling':
                     touch.ungrab(self)
+                    """touch.ungrab(self)
                     _touch.push()
                     _touch.apply_transform_2d(self.to_widget)
                     _touch.apply_transform_2d(self.to_parent)
                     super(Scroller, self).on_touch_down(_touch)
                     _touch.pop()
-                    touch = _touch
+                    touch = _touch"""
 
             elif self.mode <> 'scrolling':
                 self.mode = 'scrolling'
-            del _touch
+                grab_list = touch.grab_list
+                l = len(grab_list)
+
+                if l > 1:
+                    for x in xrange(l):
+                        item = grab_list[x]
+
+                        if type(item) is not Scroller:
+                            touch.ungrab(item)
+                            item.state = 'normal'
 
         elif ((touch.grab_current is self) and (self.mode == 'scrolling')):
             min_height = self._viewport.height
