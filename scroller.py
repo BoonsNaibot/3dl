@@ -110,7 +110,7 @@ class Scroller(StencilView):
 
     def on_touch_move(self, touch):
         if 'touch_down' in touch.ud:
-            touch.ud.remove('touch_down')
+            del touch.ud['touch_down']
             #_touch = touch.ud.pop('touch_down')
             
             if (abs(touch.oy-touch.y) < self.scroll_distance):
