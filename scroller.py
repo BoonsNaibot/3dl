@@ -130,7 +130,7 @@ class Scroller(StencilView):
 
                         if (item and (touch.grab_current is not item)):
                             touch.ungrab(item)
-                            item.state = 'normal'
+                            item.cancel()
 
         elif ((touch.grab_current is self) and (self.mode == 'scrolling')):
             min_height = self._viewport.height
