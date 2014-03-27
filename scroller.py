@@ -126,9 +126,9 @@ class Scroller(StencilView):
 
                 if l > 1:
                     for x in xrange(l):
-                        item = grab_list[x]
+                        item = grab_list[x]()
 
-                        if type(item) is not Scroller:
+                        if (item and (touch.grab_current is not item)):
                             touch.ungrab(item)
                             item.state = 'normal'
 
