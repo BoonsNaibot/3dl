@@ -109,26 +109,15 @@ class Scroller(StencilView):
                 return ret
 
     def on_touch_move(self, touch):
-        # Take advantage of the fact that, given the imprecision of 'finger-touching',
-        # the nature of mobile devices is such that an `on_touch_down` event basically 
-        # guarantees an `on_touch_move` event.
-
         if 'touch_down' in touch.ud:
             touch.ud.remove('touch_down')
             #_touch = touch.ud.pop('touch_down')
             
-            if (abs(touch.dy) < self.scroll_distance):
+            if (abs(touch.oy-touch.y) < self.scroll_distance):
                 self.effect_y.cancel()
                 
                 if self.mode <> 'scrolling':
                     touch.ungrab(self)
-                    """touch.ungrab(self)
-                    _touch.push()
-                    _touch.apply_transform_2d(self.to_widget)
-                    _touch.apply_transform_2d(self.to_parent)
-                    super(Scroller, self).on_touch_down(_touch)
-                    _touch.pop()
-                    touch = _touch"""
 
             elif self.mode <> 'scrolling':
                 self.mode = 'scrolling'
