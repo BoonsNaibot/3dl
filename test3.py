@@ -65,14 +65,14 @@ class ShaderTest(Widget):
                             // Image-space
                             vTexCoord = Pos * 0.5 + 0.5;
                             }''')
-    hfs = StringProperty('''
+    vfs = StringProperty('''
                          #ifdef GL_ES
                          precision highp float;
                          #endif
                          
                          uniform sampler2D RTScene;
                          varying vec2 vTexCoord;
-                         const float blurSize = 1.0/512.0;
+                         const float blurSize = 1.0/510.0;
                          
                          void main(void){
                             vec4 sum = vec4(0.0);
@@ -91,7 +91,7 @@ class ShaderTest(Widget):
                             
                             gl_FragColor = sum;
                             }''')
-    vfs = StringProperty('''
+    hfs = StringProperty('''
                          #ifdef GL_ES
                          precision highp float;
                          #endif
