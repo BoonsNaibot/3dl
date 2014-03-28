@@ -1,187 +1,140 @@
-from kivy.app import App
-from kivy.lang import Builder
+kv = '''
+<ShaderTest>:
+    canvas:
+        Color:
+            rgb: 0.1, 0.2, 0.3
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    Button:
+        text: 'foobar'
+        size_hint: 0.5, 0.5
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+
+'''
+from kivy.uix.floatlayout import FloatLayout
+from kivy.properties import ObjectProperty
+from kivy.graphics import RenderContext
 from kivy.uix.widget import Widget
-from kivy.uix.screenmanager import NoTransition
-from kivy.properties import ObjectProperty, ListProperty
+from kivy.lang import Builder
+from kivy.app import App
+from kivy.graphics import Fbo, Color, Rectangle
 
-from apsw import Connection, SQLITE_OPEN_READWRITE, CantOpenError
-from kivy.modules import inspector
-from kivy.core.window import Window
+class FboTest(Widget):
+    def __init__(self, **kwargs):
+        super(FboTest, self).__init__(**kwargs)
 
-kv = """
-#:import ListScreen listscreen.ListScreen
-#:import PagesScreen pagesscreen.PagesScreen
-#:import QuickViewScreen quickviewscreen.QuickViewScreen
-#:import ScreenManager kivy.uix.screenmanager.ScreenManager
+        # first step is to create the fbo and use the fbo texture on other
+        # rectangle
 
-<Application>:
-    manager: manager_id
+        with self.canvas:
+            # create the fbo
+            self.fbo = Fbo(size=self.size)
 
-    ScreenManager:
-        id: manager_id
-        size: root.size
-        pos: root.pos
+            # show our fbo on the widget in different size
+            Color(1, 1, 1)
+            Rectangle(size=(32, 32), texture=self.fbo.texture)
+            Rectangle(pos=(32, 0), size=(64, 64), texture=self.fbo.texture)
+            Rectangle(pos=(96, 0), size=(128, 128), texture=self.fbo.texture)
 
-        PagesScreen:
-            root_directory: app.db
-        QuickViewScreen:
-            root_directory: app.db
-        ListScreen:
-            root_directory: app.db
-        
+        # in the second step, you can draw whatever you want on the fbo
+        with self.fbo:
+            Color(1, 0, 0, .8)
+            Rectangle(size=(256, 64))
+            Color(0, 1, 0, .8)
+            Rectangle(size=(64, 256))
 
-"""
-
-class Application(Widget):
-    manager = ObjectProperty(None)
-
-class ThreeDoListApp(App):
-    """Special Thanks to Joe Jimenez of Breezi[dot]com for breezi_font-webfont.ttf""" 
-    ### Colors ###
-    no_color = ListProperty((1.0, 1.0, 1.0, 0.))
-    light_blue = ListProperty((0.498, 0.941, 1.0, 1.0))
-    blue = ListProperty((0.0, 0.824, 1.0, 1.0))
-    dark_blue = ListProperty((0.004, 0.612, 0.7412, 1.0))
-    red = ListProperty((1.0, 0.549, 0.5294, 1.0))
-    purple = ListProperty((0.451, 0.4627, 0.561, 1.0))
-    white = ListProperty((1.0, 1.0, 1.0, 1.0))
-    light_gray = ListProperty((1.0, 0.98, 0.941, 1.0))
-    smoke_white = ListProperty((0.95, 0.97, 0.973, 1.0))
-    gray = ListProperty((0.9137, 0.933, 0.9451, 1.0))
-    dark_gray = ListProperty((0.533, 0.533, 0.533, 1.0))
-    shadow_gray = ListProperty((0.8, 0.8, 0.8, 1.0))
-    
-    try:
-        db = ObjectProperty(Connection('db.db', flags=SQLITE_OPEN_READWRITE))
-    except CantOpenError:
-        db = ObjectProperty(None)
+class ShaderTest(Widget):
+    _vs = StringProperty('''
+                         #ifdef GL_ES
+                         precision highp float;
+                         #endif
+                         
+                         varying vec2 vTexCoord;
+                         
+                         void main(void){
+                            gl_Position = ftransform();;
+                            
+                            // Clean up inaccuracies
+                            vec2 Pos;
+                            Pos = sign(gl_Vertex.xy);
+                            
+                            gl_Position = vec4(Pos, 0.0, 1.0);
+                            
+                            // Image-space
+                            vTexCoord = Pos * 0.5 + 0.5;
+                            }''')
+    hfs = StringProperty('''
+                         #ifdef GL_ES
+                         precision highp float;
+                         #endif
+                         
+                         uniform sampler2D RTScene;
+                         varying vec2 vTexCoord;
+                         const float blurSize = 1.0/512.0;
+                         
+                         void main(void){
+                            vec4 sum = vec4(0.0);
+                            
+                            // blur in y (vertical)
+                            // take nine samples, with the distance blurSize between them
+                            sum += texture2D(RTScene, vec2(vTexCoord.x - 4.0*blurSize, vTexCoord.y)) * 0.05;
+                            sum += texture2D(RTScene, vec2(vTexCoord.x - 3.0*blurSize, vTexCoord.y)) * 0.09;
+                            sum += texture2D(RTScene, vec2(vTexCoord.x - 2.0*blurSize, vTexCoord.y)) * 0.12;
+                            sum += texture2D(RTScene, vec2(vTexCoord.x - blurSize, vTexCoord.y)) * 0.15;
+                            sum += texture2D(RTScene, vec2(vTexCoord.x, vTexCoord.y)) * 0.16;
+                            sum += texture2D(RTScene, vec2(vTexCoord.x + blurSize, vTexCoord.y)) * 0.15;
+                            sum += texture2D(RTScene, vec2(vTexCoord.x + 2.0*blurSize, vTexCoord.y)) * 0.12;
+                            sum += texture2D(RTScene, vec2(vTexCoord.x + 3.0*blurSize, vTexCoord.y)) * 0.09;
+                            sum += texture2D(RTScene, vec2(vTexCoord.x + 4.0*blurSize, vTexCoord.y)) * 0.05;
+                            
+                            gl_FragColor = sum;
+                            }''')
+    vfs = StringProperty('''
+                         #ifdef GL_ES
+                         precision highp float;
+                         #endif
+                         
+                         uniform sampler2D RTBlurH; // this should hold the texture rendered by the horizontal blur pass
+                         varying vec2 vTexCoord;
+                         const float blurSize = 1.0/512.0;
+                         
+                         void main(void){
+                            vec4 sum = vec4(0.0);
+                            
+                            // blur in y (vertical)
+                            // take nine samples, with the distance blurSize between them
+                            sum += texture2D(RTBlurH, vec2(vTexCoord.x, vTexCoord.y - 4.0*blurSize)) * 0.05;
+                            sum += texture2D(RTBlurH, vec2(vTexCoord.x, vTexCoord.y - 3.0*blurSize)) * 0.09;
+                            sum += texture2D(RTBlurH, vec2(vTexCoord.x, vTexCoord.y - 2.0*blurSize)) * 0.12;
+                            sum += texture2D(RTBlurH, vec2(vTexCoord.x, vTexCoord.y - blurSize)) * 0.15;
+                            sum += texture2D(RTBlurH, vec2(vTexCoord.x, vTexCoord.y)) * 0.16;
+                            sum += texture2D(RTBlurH, vec2(vTexCoord.x, vTexCoord.y + blurSize)) * 0.15;
+                            sum += texture2D(RTBlurH, vec2(vTexCoord.x, vTexCoord.y + 2.0*blurSize)) * 0.12;
+                            sum += texture2D(RTBlurH, vec2(vTexCoord.x, vTexCoord.y + 3.0*blurSize)) * 0.09;
+                            sum += texture2D(RTBlurH, vec2(vTexCoord.x, vTexCoord.y + 4.0*blurSize)) * 0.05;
+                            
+                            gl_FragColor = sum;
+                            }''')
 
     def __init__(self, **kwargs):
-        self.register_event_type('on_pre_start')
-        super(ThreeDoListApp, self).__init__(**kwargs)
+        super(ShaderTest, self).__init__(**kwargs)
+        self.canvas = RenderContext()
+    #canvas = ObjectProperty(RenderContext(shader='blur.glsl'))
 
-        if not self.db:
-            connection = Connection('db.db')
-            cursor = connection.cursor()
-            cursor.execute("""
-                            PRAGMA foreign_keys = ON;
+        # We'll update our glsl variables in a clock
+        Clock.schedule_interval(self.update_glsl, 1 / 60.)
 
-                            CREATE TABLE [table of contents](
-                            page_number UNSIGNED INTEGER,
-                            page TEXT PRIMARY KEY,
-                            bookmark UNSIGNED SHORT INTEGER DEFAULT 0,
-                            UNIQUE(page_number, page));
-                            
-                            CREATE TABLE [notebook](
-                            ix UNSIGNED INTEGER,
-                            what TEXT DEFAULT '',
-                            when_ TEXT DEFAULT '',
-                            where_ TEXT DEFAULT '',
-                            why UNSIGNED SHORT INTEGER DEFAULT 0,
-                            how TEXT DEFAULT '',
-                            page TEXT,
-                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE CASCADE ON UPDATE CASCADE);
+        with self.canvas:
+            # create the fbo
+            self.fbo = Fbo(size=self.size)
 
-                            CREATE TABLE [archive](
-                            ix UNSIGNED INTEGER,
-                            what TEXT DEFAULT '',
-                            when_ TEXT DEFAULT '',
-                            where_ TEXT DEFAULT '',
-                            why UNSIGNED SHORT INTEGER DEFAULT 0,
-                            how TEXT DEFAULT '',
-                            page TEXT,
-                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE CASCADE ON UPDATE CASCADE);
+class ShaderTestApp(App):
 
-                            CREATE TRIGGER [on_new_page]
-                            AFTER INSERT ON [table of contents]
-                            BEGIN
-                                INSERT INTO [notebook](page, ix) VALUES(NEW.page, 0);
-                                INSERT INTO [notebook](page, ix) VALUES(NEW.page, 1);
-                                INSERT INTO [notebook](page, ix) VALUES(NEW.page, 2);
-                            END;
-
-                            CREATE TRIGGER [soft_delete]
-                            BEFORE DELETE ON [notebook]
-                            WHEN OLD.ix<3
-                            BEGIN
-                                UPDATE [notebook] SET what='', when_='', where_='', why=0, how='' WHERE page=OLD.page AND ix=OLD.ix;
-                                SELECT RAISE(IGNORE);
-                            END;
-
-                            CREATE TRIGGER [new_action_item]
-                            AFTER UPDATE ON [notebook]
-                            WHEN OLD.ix<3 AND NEW.ix>=3
-                            BEGIN
-                                DELETE FROM [notebook] WHERE ix=NEW.ix AND WHAT='' AND page=(SELECT page FROM [table of contents] WHERE bookmark=1);
-                            END;
-
-                            CREATE TRIGGER [on_complete]
-                            AFTER INSERT ON archive
-                            BEGIN
-                                DELETE FROM [notebook] WHERE page=NEW.page AND ix=NEW.ix AND what=NEW.what;
-                            END;
-
-                            INSERT INTO [table of contents](page_number, page)
-                            VALUES(1, 'Main List');
-                            
-                            INSERT INTO [table of contents](page_number, page) VALUES(2, 'Sample List');
-                            UPDATE [notebook] SET what='Click Me', when_='', where_='', why=0, how='Double-tap any one of us' WHERE page='Sample List' AND ix=1;
-                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 4, 'Swipe right to complete me', 'You can find me later in the "Archive Screen"'); 
-                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 5, 'Swipe left to delete me', 'You can also delete a list itself in the "List Screen" this way.');
-                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 6, 'Double-tap to rename me', 'You can also rename a list itself in the "List Screen" this way.');
-                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 7, 'Press and hold to Drag-N'-Drop', 'You can re-order your tasks this way.');
-                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 8, 'Drag 2 more of us to the "Action Items", at the top.', 'The "Action Items" are your top 3 tasks to focus on at a time.');
-                            """)
-            #cursor.execute("commit")
-            self.db = connection
-
-    def on_pre_start(self):
-        global kv
-        Builder.load_string(kv)
-        #del kv
-    
     def build(self):
-        ''''''
-        self.dispatch('on_pre_start')
-        app = Application()
-        inspector.create_inspector(Window, app)
-        return app
-
-    def on_start(self):
-        app = self.root
-        app.manager.transition = NoTransition()
-        cursor = self.db.cursor()
-        cursor.execute("""
-                       SELECT [notebook].page, contents.page_number
-                       FROM [table of contents] AS contents, [notebook]
-                       WHERE contents.page=notebook.page
-                       AND contents.bookmark=1 AND [notebook].ix<3 AND [notebook].what<>'';
-                       """)
-        result = cursor.fetchall()
-
-        if result:
-            #assert(len(set(result)) == 1)
-            page, page_number = result[0]
-
-            if len(result) < 3:
-                list_screen = app.manager.get_screen('List Screen')
-                list_screen.page = page
-                list_screen.page_number = page_number
-                app.manager.current = 'List Screen'
-            else:
-                quickview_screen = app.manager.get_screen('QuickView Screen')
-                quickview_screen.page = page
-                quickview_screen.page_number = page_number
-                app.manager.current = 'QuickView Screen'
-
-        else:
-            app.manager.current = 'Pages Screen'
-
-    def on_pause(self):
-        return True
-
-    def on_stop(self):
-        self.db.close()
+        return FboTest()
 
 if __name__ == '__main__':
-    ThreeDoListApp().run()
+    #Builder.load_string(kv)
+    ShaderTestApp().run()
