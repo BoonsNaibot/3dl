@@ -1,5 +1,6 @@
 from kivy.properties import AliasProperty, BooleanProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
 from uiux import Selectable, Clickable, Editable, Completable, Deletable, DragNDroppable, AccordionListItem
+from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.animation import Animation
 from kivy.utils import escape_markup
@@ -63,6 +64,7 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
 class NoteItem(AccordionListItem):
     how = StringProperty('')
     ix = NumericProperty(None)
+    when = StringProperty('')
     why = BooleanProperty(False)
     screen = ObjectProperty(None)
 
@@ -76,32 +78,23 @@ class NoteItem(AccordionListItem):
         self.title.font_name = kwargs['font_name']
 
     def on_comments(self, *args):#instance, value):
-        print args
-        """value = value.lstrip()
+        value = value.lstrip()
         #instance.focus = False
 
         if self.how <> value:
             _l = lambda *_: self.screen.dispatch('on_comments', self, value)
-            Clock.schedule_once(_l, 0.25)"""
+            Clock.schedule_once(_l, 0.25)
 
     def on_importance(self, *args):#instance, value):
-        print args
-        """if self.why <> value:
+        if self.why <> value:
             _l = lambda *_: self.screen.dispatch('on_importance', self, value)
-            Clock.schedule_once(_l, 0.25)"""
+            Clock.schedule_once(_l, 0.25)
 
 class ListScreenItem(NoteItem):
     pass
 
 class ActionListItem(ListScreenItem):
     pass
-    '''def on_state(self, instance, value):
-        if value in ('normal', 'down'):
-            if not instance.is_selected:
-                instance.markup = True
-                instance.label.text = "[font='heydings_icons.ttf'][color=ffffff]- [/color][/font]" + escape_markup(instance.text)
-        else:
-            instance.label.text = instance.text'''
 
 class QuickViewScreenItemTitle(Completable, Deletable):
     state = OptionProperty('normal', options=('complete', 'delete', 'dragged', 'edit', 'normal'))
@@ -140,13 +133,15 @@ class ArchiveScreenItem(AccordionListItem):
     ix = NumericProperty(0)
 
 class Week(AccordionListItem):
-    title_height = NumericProperty(0.0)
-    content_height = NumericProperty(0.0)
+    screen = ObjectProperty(None)
+    title_height_hint = NumericProperty(0.0)
+    content_height_hint = NumericProperty(0.0)
 
-class Content1(BoxLayout):
+class Content1(FloatLayout):
     state_color = ListProperty([])
     text_color = ListProperty([])
     screen = ObjectProperty(None)
+    when = StringProperty('')
     why = BooleanProperty(False)
     how = StringProperty('')
 
@@ -167,7 +162,6 @@ Builder.load_string("""
 
 <Content1>:
     id: content_id
-    orientation: 'vertical'
     canvas.before:
         Color:
             rgba: self.state_color
@@ -176,6 +170,8 @@ Builder.load_string("""
             pos: self.pos
 
     DoubleClickButton:
+        size_hint: 0.9, 0.25
+        pos_hint: {'center_x': 0.5, 'center_y': 0.8333}
         icon_text: '!'
         text: 'IMPORTANT'
         text_color: root.text_color
@@ -183,32 +179,32 @@ Builder.load_string("""
         opacity: 1.0 if self.double_click_switch else 0.5
         on_double_click_switch: root.dispatch('on_importance', *args)
     DoubleClickButton:
+        size_hint: 0.9, 0.25
+        pos_hint: {'center_x': 0.5, 'center_y': 0.6}
         icon_text: 'T'
-        #text: root.when
+        text: root.when
         opacity: 1.0
         text_color: root.text_color
         on_double_click_switch: root.screen.dispatch('on_due_date', root.parent, args[1])
-    BoxLayout:
-        size_hint: 0.5, 1
-        pos_hint: {'center_x': 0.5}
-
-        Label:
-            id: icon_id
-            text: 'b'
-            font_name: 'breezi_font-webfont.ttf'
-            size_hint: None, 1
-            width: self.height
-            color: root.text_color
-            font_size: self.height*0.421875
-        EditButton:
-            text: '_____________________' if not root.how else root.how
-            size_hint: None, 1                
-            font_name: 'Walkway Bold.ttf'
-            width: root.width - icon_id.width
-            font_size: self.height*0.5
-            text_color: root.text_color
-            screen: root.screen
-            on_text_validate: root.dispatch('on_comments', *args)
+    Label:
+        id: icon_id
+        text: 'b'
+        font_name: 'breezi_font-webfont.ttf'
+        font_size: self.height*0.421875
+        color: root.text_color
+        size_hint: None, 0.25
+        pos_hint: {'x': 0.05, 'center_y': 0.3}
+        width: self.height
+    EditButton:
+        text: '_____________________' if not root.how else root.how
+        size_hint: 0.75, 0.3
+        top: icon_id.top
+        x: icon_id.right
+        font_name: 'Walkway Bold.ttf'
+        font_size: self.height*0.3
+        text_color: root.text_color
+        screen: root.screen
+        on_text_validate: root.dispatch('on_comments', *args)
 
 <PagesScreenItem>:
     aleft: True
@@ -249,6 +245,7 @@ Builder.load_string("""
         id: content_id
         why: root.why
         how: root.how
+        when: root.when
         top: root.title.y
         pos_hint: {'x': 0}
         size_hint: 1, None
@@ -260,7 +257,7 @@ Builder.load_string("""
         on_importance: root.dispatch('on_importance', root, args[2])
 
 <ActionListItem>:
-    state_color: app.no_color if self.title.state=='dragged' else (app.blue if root.collapse_alpha==0.0 else (app.light_blue if self.title.state=='down' else app.gray))
+    state_color: app.no_color if self.disabled else (app.no_color if self.title.state=='dragged' else (app.blue if root.collapse_alpha==0.0 else (app.light_blue if self.title.state=='down' else app.gray)))
     text_color: app.white if root.collapse_alpha==0.0 else app.dark_gray
     shadow_color: app.smoke_white
 
@@ -381,8 +378,8 @@ Builder.load_string("""
         cols: 7
         rows: 1
         size_hint: 1, None
-        #height: root.listview.height/7.0
-        height: 83 + (1.0/3.0)
+        height: root.screen.height*root.title_height_hint
+        pos_hint: {'top': 1, 'x': 0}
     DayDropDown:
         id: content_id
         size_hint: 1, None
