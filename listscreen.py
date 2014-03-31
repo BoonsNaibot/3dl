@@ -154,21 +154,19 @@ class ListScreen(Screen_):
             manager.transition = RiseInTransition(duration=0.2)
             manager.current = 'Date-Time Mini-Screen'
 
-    def on_drop(self, d):
-        if d:
-            items = ((v, k.ix, self.page) for (k, v) in d.iteritems())
+    def on_drop(self, items):
+        if items:
             cursor = self.root_directory.cursor()
             cursor.executemany("""
                                UPDATE [notebook]
-                               SET ix=?
+                               SET what=?, when_=?, why=?, how=?
                                WHERE ix=? AND page=?;
                                """,
                                items)
-            """for k, v in d.iteritems():
-                k.ix = v"""
+            self.dispatch('on_pre_enter')
 
 Builder.load_string("""
-#:import NavBar uiux
+#:import NavBar uiux.NavBar
 #:import NewItemWidget uiux.NewItemWidget
 #:import ActionListView listviews.ActionListView
 #:import AccordionListView listviews.AccordionListView
@@ -180,28 +178,24 @@ Builder.load_string("""
 
     NavBar:
         id: navbar_id
-        size_hint: 1, .0775
-        pos_hint:{'top': 0.9648}
+        text: root.page
+        size_hint: 1, 0.1127
+        font_size: root.height*0.25
+        pos_hint:{'top': 1, 'x': 0}
 
-        BoxLayout:
-            size_hint: .9, .9
-            pos_hint: {'center_x': .5, 'center_y': .5}
-
-            Button_:
-                font_size: self.height*0.5
-                size_hint: 0.2, 1
-                text: '< Lists'
-                on_press: root.dispatch('on_screen_change', 'right', 'Pages Screen')
-            Label:
-                text: root.page
-                size_hint: 0.6, 1
-                font_size: self.height*0.8
-                font_name: 'Walkway Bold.ttf'
-                color: app.white
-            Button_:
-                font_size: self.height*0.5
-                size_hint: 0.2, 1
-                text: 'Archive >'
+        Button_:
+            text: '< Lists'
+            state_color: app.no_color
+            font_size: self.height*0.5
+            size_hint: 0.18, 1
+            pos_hint: {'center_x': 0.08, 'center_y': 0.5}
+            on_press: root.dispatch('on_screen_change', 'right', 'Pages Screen')
+        Button_:
+            text: 'Archive >'
+            state_color: app.no_color
+            font_size: self.height*0.5
+            size_hint: 0.18, 1
+            pos_hint: {'center_x': 0.9, 'center_y': 0.5}
 
     ActionListView:
         id: action_view_id
