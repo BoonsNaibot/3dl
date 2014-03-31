@@ -21,6 +21,12 @@ kv = """
         id: manager_id
         size: root.size
         pos: root.pos
+        canvas.before:
+            Color:
+                rgba: app.smoke_white
+            Rectangle:
+                size: self.size
+                pos: self.pos
 
         PagesScreen:
             root_directory: app.db
@@ -38,7 +44,7 @@ class Application(Widget):
 class ThreeDoListApp(App):
     """Special Thanks to Joe Jimenez of Breezi[dot]com for breezi_font-webfont.ttf""" 
     ### Colors ###
-    no_color = ListProperty((1.0, 1.0, 1.0, 0.))
+    no_color = ListProperty((1.0, 1.0, 1.0, 0.0))
     light_blue = ListProperty((0.498, 0.941, 1.0, 1.0))
     blue = ListProperty((0.0, 0.824, 1.0, 1.0))
     dark_blue = ListProperty((0.004, 0.612, 0.7412, 1.0))
@@ -80,6 +86,7 @@ class ThreeDoListApp(App):
                            why UNSIGNED SHORT INTEGER DEFAULT 0,
                            how TEXT DEFAULT '',
                            page TEXT,
+                           UNIQUE(page, ix),
                            FOREIGN KEY(page) REFERENCES [table of contents](page) ON DELETE CASCADE ON UPDATE CASCADE);
 
                            CREATE TABLE [archive](
@@ -110,9 +117,9 @@ class ThreeDoListApp(App):
 
                            CREATE TRIGGER [new_action_item]
                            AFTER UPDATE ON [notebook]
-                           WHEN OLD.ix<4 AND NEW.ix>3
+                           WHEN NEW.what=''
                            BEGIN
-                               DELETE FROM [notebook] WHERE ix=NEW.ix AND WHAT='' AND page=(SELECT page FROM [table of contents] WHERE bookmark=1);
+                               DELETE FROM [notebook] WHERE ix>3 AND WHAT='' AND page=(SELECT page FROM [table of contents] WHERE bookmark=1);
                            END;
 
                            CREATE TRIGGER [on_complete]
@@ -138,7 +145,7 @@ class ThreeDoListApp(App):
     def on_pre_start(self):
         global kv
         Builder.load_string(kv)
-        #del kv
+        del kv
     
     def build(self):
         ''''''
@@ -155,7 +162,7 @@ class ThreeDoListApp(App):
                        SELECT [notebook].page, contents.page_number
                        FROM [table of contents] AS contents, [notebook]
                        WHERE contents.page=notebook.page
-                       AND contents.bookmark=1 AND [notebook].ix<3 AND [notebook].what<>'';
+                       AND contents.bookmark=1 AND [notebook].ix<4 AND [notebook].what<>'';
                        """)
         result = cursor.fetchall()
 
