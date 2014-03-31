@@ -111,7 +111,7 @@ class Scroller(StencilView):
                 return True
 
     def on_touch_move(self, touch):
-        if ((touch.grab_current is not self) and (self.collide_point(*touch.pos)) and (self.mode == 'down')):
+        if ((touch.grab_current is not self) and (self.mode == 'down')):
             #touch.push()
             #touch.apply_transform_2d(self.to_local)
             ret = super(Scroller, self).on_touch_move(touch)
