@@ -67,31 +67,19 @@ Builder.load_string("""
         
     NavBar:
         id: navbar_id
-        size_hint: 1, .0775
-        pos_hint:{'top': 0.9648}
+        text: root.page
+        font_size: self.height*.8
 
-        BoxLayout:
-            orientation: 'horizontal'
-            size_hint: .9, .9
-            pos_hint: {'center_x': .5, 'center_y': .5}
-
-            Button_:
-                font_size: 12
-                size_hint: 0.1, 1
-                text: '< Lists'
-                on_press: root.dispatch('on_screen_change', 'right', 'Pages Screen')
-            Label:
-                text: root.page
-                size_hint: 0.8, 1
-                shorten: True
-                font_size: self.height*.8
-                font_name: 'Walkway Bold.ttf'
-                color: app.white
-            Button_:
-                font_size: 12
-                size_hint: .1, 1
-                text: 'Full List >'
-                on_press: root.dispatch('on_full_list')
+        Button_:
+            font_size: 12
+            size_hint: 0.1, 1
+            text: '< Lists'
+            on_press: root.dispatch('on_screen_change', 'right', 'Pages Screen')
+        Button_:
+            font_size: 12
+            size_hint: .1, 1
+            text: 'Full List >'
+            on_press: root.dispatch('on_full_list')
 
     QuickListView:
         data: root.action_items
