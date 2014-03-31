@@ -630,11 +630,12 @@ class DragNDroppable(ButtonRoot):
                 if placeholder:
 
                     def _on_complete(a, w):
+                        w.listview.dispatch('on_motion_out', w, indices)
                         w.state = 'normal'
 
                     _anim = Animation(y=placeholder.y, d=0.5, t='out_back')
                     _anim.bind(on_complete=_on_complete)
-                    self._anim = _anim.start(self.parent)
+                    self._anim = _anim.start(self)
                     return True
 
         return super(DragNDroppable, self).on_touch_up(touch)
