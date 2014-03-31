@@ -34,7 +34,7 @@ class ScrollerEffect(DampedScrollEffect):
             if sh >= 1:
                 sy = value/float(sh)
                 parent.scroll_y = -sy
-                parent._trigger_update_from_scroll()
+                #parent._trigger_update_from_scroll()
                 
     def on_is_manual(self, instance, value):
         if not value:
