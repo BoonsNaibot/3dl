@@ -1,15 +1,20 @@
-from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
+from kivy.properties import ObjectProperty, NumericProperty, ListProperty, OptionProperty, StringProperty, BooleanProperty, DictProperty, AliasProperty
 from kivy.uix.screenmanager import SlideTransition, Screen
 from kivy.graphics.transformation import Matrix
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.textinput import TextInput
-from kivy.uix.boxlayout import BoxLayout
 from kivy.animation import Animation
 from kivy.uix.widget import Widget
 from kivy.vector import Vector
 from kivy.lang import Builder
 from kivy.clock import Clock
 import math
+
+class NavBar(FloatLayout):
+    text = StringProperty('')
+    shorten = BooleanProperty(False)
+    font_size = NumericProperty(0)
+    font_name = StringProperty('Walkway Bold.ttf')
 
 class StatusBar(Widget):
 
@@ -140,17 +145,15 @@ class Selectable(object):
         pass
 
 class ButtonRoot(Widget):
-    text = StringProperty('')
     index = NumericProperty(-1)
-    label = ObjectProperty(None)
-    layout = ObjectProperty(None)
-    font_size = NumericProperty(0)
+    text = StringProperty('')
     aleft = BooleanProperty(False)
-    markup = BooleanProperty(False)
-    shorten = BooleanProperty(False)
+    text_color = ListProperty([0, 0.824, 1, 1])
+    state_color = ListProperty([])
+    font_size = NumericProperty(0)
     font_name = StringProperty('Walkway Bold.ttf')
-    state_color = ListProperty([1.0, 1.0, 1.0, 0.0])
-    text_color = ListProperty([0.0, 0.824, 1.0, 1.0])
+    shorten = BooleanProperty(False)
+    markup = BooleanProperty(False)
 
     def on_state(self, *args):
         pass
@@ -304,6 +307,9 @@ class Deletable(ButtonRoot):
             return super(Deletable, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):
+        if ((touch.grab_current is not self) and (self.state == 'delete') and (self.collide_point(*touch.pos))):
+            return True
+
         if touch.grab_current is self:
             assert(self in touch.ud)
 
@@ -391,6 +397,9 @@ class Completable(ButtonRoot):
             return super(Completable, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):
+        if ((touch.grab_current is not self) and (self.state == 'complete') and (self.collide_point(*touch.pos))):
+            return True
+
         if touch.grab_current is self:
             assert(self in touch.ud)
 
@@ -548,6 +557,10 @@ class DragNDroppable(ButtonRoot):
     def on_hold_down(self, dt):
         if ((self.state == 'down') and not self.disabled):
             self.hold_time += dt
+
+            if self.hold_time > 0.4:
+                self.state = 'dragged'
+
         else:
             self.hold_time = 0.0
             return False
@@ -570,45 +583,27 @@ class DragNDroppable(ButtonRoot):
 
             if not sup:
                 Clock.schedule_interval(self.on_hold_down, 0.1)
+                touch.ud['indices'] = {}
             else:
                 return sup
 
         return super(DragNDroppable, self).on_touch_down(touch)
 
-    def on_touch_move(self, touch):  
+    def on_touch_move(self, touch):
         if touch.grab_current is self:
             assert(self in touch.ud)
 
-            if self.state == 'down':
-                sup = super(ButtonRoot, self).on_touch_move(touch)
-
-                if sup:
-                    return sup
-                elif (self.hold_time > 0.4):
-                    self.state = 'dragged'
-                    touch.ud['indices'] = {}
-                    """grab_list = touch.grab_list
-                    l = len(grab_list)
-
-                    if l > 1:
-                        for x in xrange(l):
-                            item = grab_list[x]()
-
-                            if (item and (touch.grab_current is not item)):
-                                touch.ungrab(item)
-                                item.cancel()"""
-                    return True
-            
-            elif self.state == 'dragged':
+            if self.state == 'dragged':
                 self.dispatch('on_drag', self, touch.y)
                 indices = touch.ud['indices']
 
                 for zone in self.drop_zones:
                     if self.collide_widget(zone):
-                        d = zone.dispatch('on_drag', self, indices)
+                        touch.ud['indices'] = zone.dispatch('on_drag', self, indices)
+                        """d = zone.dispatch('on_drag', self)
 
                         if d:
-                            touch.ud['indices'] = dict(indices, **d)
+                            touch.ud['indices'] = dict(indices, **d)"""
 
                 return True
 
@@ -623,21 +618,22 @@ class DragNDroppable(ButtonRoot):
             if self.state == 'dragged':
                 touch.ungrab(self)
                 indices = touch.ud['indices']
-                
-                _on_start = lambda a, w: w.screen.dispatch('on_drop', indices)
-                def _on_complete(a, w):
-                    w.state = 'normal'
 
                 for viewer in self.drop_zones:
                     if viewer.collide_point(*self.center):
-                        _on_complete(_on_start(None, self), self) #Cuz i'm cool like that
+                        viewer.dispatch('on_motion_out', self, indices)
+                        self.state = 'normal'
                         return True
 
                 placeholder = self.listview.placeholder
 
                 if placeholder:
-                    _anim = Animation(y=placeholder.y, d=0.5, t='out_elastic')
-                    _anim.bind(on_start=_on_start, on_complete=_on_complete)
+
+                    def _on_complete(a, w):
+                        w.state = 'normal'
+
+                    _anim = Animation(y=placeholder.y, d=0.5, t='out_back')
+                    _anim.bind(on_complete=_on_complete)
                     self._anim = _anim.start(self.parent)
                     return True
 
@@ -648,6 +644,7 @@ class DragNDroppable(ButtonRoot):
         
     def on_drop(self, instance, dzo):
         point = instance.center
+        placeholder = instance.listview.placeholder
 
         for viewer in dzo:
             if viewer.collide_point(*point):
@@ -656,8 +653,13 @@ class DragNDroppable(ButtonRoot):
                 for child in children:
                     if (child.collide_point(*point) and (child is not Widget)):
                         viewer.reparent(instance, child)
-                        instance.screen.dispatch('on_pre_enter')
+                        #instance.screen.dispatch('on_pre_enter')
                         break
+
+        p = placeholder.parent
+
+        if p:
+            p.remove_widget(placeholder)
 
         instance.listview.placeholder = None
 
@@ -666,7 +668,7 @@ class DragNDroppable(ButtonRoot):
 
     def on_drag_finish(self, widget):
         pass
-    
+
     def cancel(self):
         Clock.unschedule(self.on_hold_down)
         super(DragNDroppable, self).cancel()
@@ -734,6 +736,18 @@ class AccordionListItem(Selectable, FloatLayout):
     title_height_hint = NumericProperty(0.0)
     content_height_hint = NumericProperty(0.0)
 
+    def _get_state(self):
+        if self.title:
+            return self.title.state
+
+    def _set_state(self, state):
+        if self.title:
+            self.title.state = state
+        else:
+            return False
+
+    state = AliasProperty(_get_state, _set_state)
+
     def __init__(self, **kwargs):
         self._anim_collapse = None
         #self.register_event_type('on_release')
@@ -768,9 +782,6 @@ class AccordionListItem(Selectable, FloatLayout):
             return False
         else:
             return super(AccordionListItem, self).on_touch_down(touch)
-            
-    def cancel(self):
-        self.title.cancel()
 
 class FreeRotateLayout(Widget):
     content = ObjectProperty(None)
@@ -947,7 +958,7 @@ class FreeRotateLayout(Widget):
 
 
 Builder.load_string("""
-<NavBar@FloatLayout>:
+<StatusBar>:
     canvas.before:
         Color:
             rgba: app.blue
@@ -955,10 +966,34 @@ Builder.load_string("""
             size: self.size
             pos: self.pos
 
+<NavBar>:
+    size_hint: 1, 0.1127
+    pos_hint:{'top': 1, 'x': 0}
+    canvas.before:
+        Color:
+            rgba: app.blue
+        Rectangle:
+            size: self.size
+            pos: self.pos
+
+    Label:
+        text: root.text
+        opacity: 0.5
+        shorten: root.shorten
+        font_size: root.font_size
+        font_name: 'Walkway Bold.ttf'
+        color: app.white
+        pos_hint: {'center_x': 0.5, 'center_y': 0.5}
+    StatusBar:
+        size_hint: 1, 0.3125
+        pos_hint: {'x': 0, 'top': 1}
+
 <ButtonRoot>:
     label: label_id
     layout: layout_id
-    font_size: self.height*0.421875
+    state_color: app.no_color
+    text_color: app.blue
+    font_size: (self.height*0.421875)
 
     FloatLayout:
         id: layout_id
@@ -980,11 +1015,10 @@ Builder.load_string("""
             shorten: root.shorten
             color: root.text_color
             markup: root.markup
+            disabled_color: self.color
             text_size: (self.size[0]-(0.1*self.size[0]), None) if root.aleft else (None, None)
 
 <-DoubleClickButton>:
-    size_hint: 0.9, 1
-    pos_hint: {'center_x': 0.5}
     font_size: self.height*0.421875
     text_color: app.white
 
@@ -1002,8 +1036,7 @@ Builder.load_string("""
             font_size: root.font_size
         Label:
             text: root.text
-            size_hint: None, 1
-            width: root.width - icon_id.width
+            size_hint: 1, 1
             color: root.text_color
             font_name: 'Walkway Bold.ttf'
             font_size: root.font_size
@@ -1040,14 +1073,15 @@ Builder.load_string("""
     Label:
         id: label_id
         pos: root.pos
-        size: root.size
         text: root.text
+        size: root.size
         font_size: root.font_size
         font_name: root.font_name
         shorten: root.shorten
         color: root.text_color
         markup: root.markup
-        text_size: (self.size[0]-(0.1*self.size[0]), None)
+        text_size: self.size
+        valign: 'top'
 
 <AccordionListItem>:
     cols: 1
@@ -1098,14 +1132,6 @@ Builder.load_string("""
         id: content_id
         size: root.size
 
-<StatusBar>:
-    canvas.before:
-        Color:
-            rgba: app.blue
-        Rectangle:
-            size: self.size
-            pos: self.pos
-
 <NewItemWidget>:
     state: 'edit' if textinput_id.focus else 'normal'
     canvas.before:
@@ -1134,13 +1160,5 @@ Builder.load_string("""
 
 <Screen_>:
     keyboard_height: 432
-    canvas:
-        Color:
-            rgb: app.smoke_white
-        Rectangle:
-            size: self.size
 
-    StatusBar:
-        size_hint: 1, 0.0352
-        pos_hint: {'x': 0, 'top': 1}
 """)
