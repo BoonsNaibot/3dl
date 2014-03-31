@@ -95,8 +95,8 @@ class Scroller(StencilView):
         if self.collide_point(*touch.pos):
             touch.grab(self)
 
-            if self.mode == 'scrolling':
-                self.effect_y.cancel()
+            """if self.mode == 'scrolling':
+                self.effect_y.cancel()"""
 
             self.effect_y.start(touch.y)
 
