@@ -50,9 +50,11 @@ class DateTimeMiniScreen(Screen_):
 
     def _args_converter(self, i, _):
         return {'index': i,
+                'screen': self,
                 'size_hint_y': None,
-                'title_height': self.height/6.0,
-                'content_height': self.height/6.0}
+                'listview': self.body,
+                'title_height_hint': 1.0/15.0,
+                'content_height_hint': self.height/6.0}
 
     def on_deselect(self, *args):
         self.body.deselect_all()
@@ -73,16 +75,16 @@ class DateTimeMiniScreen(Screen_):
         self.dispatch('on_deselect')
 
         if self.date.month == 1:
-            new_date = datetime.date(self.date.year - 1, 12, self.date.day)
+            new_date = datetime.date(self.date.year - 1, 12, 1)
         else:
-            new_date = datetime.date(self.date.year, self.date.month - 1, self.date.day)
+            new_date = datetime.date(self.date.year, self.date.month - 1, 1)
 
         if ((new_date.month >= today.month) and (new_date.year >= today.year)):
             self.date = new_date
 
     def on_today(self, *args):
         self.dispatch('on_deselect')
-        self.date = daetime.date.today()
+        self.date = datetime.date.today()
 
 Builder.load_string("""
 #:import NavBar uiux
@@ -117,7 +119,7 @@ Builder.load_string("""
                 text: '<'
                 size_hint: None, 1
                 width: self.height
-                font_size: self.height*0.7
+                font_size: self.height*0.9
                 on_press: root.dispatch('on_previous_month', root)
             Label:
                 id: title_id
@@ -130,7 +132,7 @@ Builder.load_string("""
                 text: '>'
                 size_hint: None, 1
                 width: self.height
-                font_size: self.height*0.7
+                font_size: self.height*0.9
                 on_press: root.dispatch('on_next_month', root)
 
     BoxLayout:
@@ -156,7 +158,7 @@ Builder.load_string("""
         id: body_id
         spacing: 0
         list_item: Week
-        size_hint: 1, 0.4
+        size_hint: 1, 0.8
         pos_hint: {'x': 0, 'top': 0.8373}
         args_converter: root._args_converter
         data: range(6)
