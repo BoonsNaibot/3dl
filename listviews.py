@@ -13,6 +13,9 @@ class Placeholder(Widget):
     text = StringProperty('')
     index = NumericProperty(None)
 
+    def on_touch_down(self, touch):
+        return True
+
 class DNDListView(FloatLayout, ListViewAdapter):
     container = ObjectProperty(None)
     row_height = NumericProperty(None)
@@ -172,11 +175,11 @@ class DNDListView(FloatLayout, ListViewAdapter):
 
     def reparent(self, instance, widget):
         #Mimic `ListAdapter.create_view`
-        data = self.get_data_item(instance.index)
+        data = instance.listview.get_data_item(instance.index)
         d = [widget.ix]
         [d.extend([_]) for _ in data[1:]]
         data = tuple(d)
-        item_args = self.args_converter(instance.index, data)
+        item_args = self.args_converter(widget.index, data)
         item_args['index'] = widget.index
         new_item = self.list_item(**item_args)
 
@@ -189,15 +192,15 @@ class DNDListView(FloatLayout, ListViewAdapter):
         container.get_root_window().remove_widget(instance)
         container.add_widget(new_item, index)
 
-    def on_drag(self, widget, d):
+    def on_drag(self, widget, indices):
         placeholder = self.placeholder
 
         if not placeholder:
-            return self.dispatch('on_motion_over', widget, d)
+            return self.dispatch('on_motion_over', widget, indices)
 
         children = self.container.children
         p_index = children.index(placeholder)
-        _dict = {}
+        d = {}
 
         for child in children:
             if (widget.collide_widget(child) and (child is not placeholder) and (type(child) is not Widget) and not child.disabled):
@@ -208,15 +211,19 @@ class DNDListView(FloatLayout, ListViewAdapter):
                     #maybe scroll here
                     child_ix = child.ix
 
-                    if d is not None and child in d:
-                        child_ix = d.pop(child)
-                        
-                    _dict[child] = placeholder.ix
-                    _dict[widget] = placeholder.ix = child_ix#, child: placeholder.ix}
+                    if child in indices:
+                        child_ix = indices.pop(child)
+                    else:
+                        d[child] = placeholder.ix
+
+                    d[widget] = placeholder.ix = child_ix
+                    #_dict = {widget.text: child.ix, child.text: placeholder.ix}
                     #placeholder.ix, child.ix = child.ix, placeholder.ix
                     placeholder.index = child.index
+                    break
 
-                return _dict
+        _dict = dict(indices, **d)
+        return _dict
 
     def on_motion_over(self, *args):
         return {}
@@ -241,26 +248,44 @@ class AccordionListView(DNDListView):
 
     def on__sizes(self, instance, value):
         if value:
-            #print self, '.on__sizes'
-            #lcm = lambda a, b: ((a * b)/gcd(floor(a),floor(b)))
             sizes = set(value.itervalues()); _min = min(sizes); _max = max(sizes)
             count = instance.get_count() - 1
             instance.container.height = real_height = _max + (_min * count)
             instance.row_height = r_h = real_height / (count + 1)
-            numerator = self._lcm(_min, r_h)
+            numerator = instance._lcm(_min, r_h)
             instance._i_offset = int((numerator/_min) - (numerator/r_h)) + 1
 
-    def on_drag(self, instance, d):
+    def on_drag(self, instance, *args):
         instance = instance.parent
-        return super(AccordionListView, self).on_drag(instance, d)
+        return super(AccordionListView, self).on_drag(instance, *args)
         
     def deparent(self, instance):
         instance = instance.parent
         super(AccordionListView, self).deparent(instance)
 
+    def on_motion_out(self, widget, indices):
+        if indices:
+            widget = widget.parent
+            point = widget.center
+            page = widget.screen.page
+            deleting = widget.listview.__self__ is not self
+            args = []
+
+            for k in indices.keys():
+
+                if (deleting and (not k.collide_point(*point))):
+                    del indices[k]
+                elif k.disabled:
+                    args.append((u"", u"", 0, u"", indices[k], page))
+                else:
+                    args.append((k.text, k.when, int(k.why), k.how, indices[k], page))
+
+            _on_complete = lambda *_: self.parent.dispatch('on_drop', tuple(args)) 
+            Clock.schedule_once(_on_complete, 0.1)
+
 class ActionListView(AccordionListView):
 
-    def on_motion_over(self, widget, _d):
+    def on_motion_over(self, widget, indices):
         d = {}
         children = self.container.children
 
@@ -269,30 +294,17 @@ class ActionListView(AccordionListView):
 
             if collision:
                 child.title.state = 'down'
-                d = {widget: child.ix, child: widget.ix}
+                d[widget] = child.ix
+
+                if not child.disabled:
+                    d[child] = widget.ix
+
             elif child.title.state <> 'normal':
                 child.title.state = 'normal'
+                del indices[child]
 
-                if child in _d:
-                    del _d[child]
-
-        return d
-
-    '''def on_motion_out(self, widget, _dict):
-        children = self.container.children
-
-        for child in children:
-            if child.title.state == 'down':
-                widget.ix = child.ix
-                
-                if not child.disabled:
-                    child.ix = widget.ix
-                    d = {widget.text: widget.ix, child.text: child.ix}
-                    _dict = dict(_dict, **d)
-
-                self.get_root_window().remove_widget(widget)
-
-        super(ActionListView, self).on_motion_out(widget, _dict)'''
+        _dict = dict(indices, **d)
+        return _dict
 
 class DatePickerListView(AccordionListView):
     
@@ -352,7 +364,6 @@ Builder.load_string("""
         pos_hint: {'x': 0, 'y': 0}
         scroll_timeout: 0.2
         on_scroll_y: root._scroll(args[1])
-        do_scroll_x: False
 
         GridLayout:
             id: container_id
