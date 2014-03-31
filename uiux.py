@@ -959,13 +959,6 @@ class FreeRotateLayout(Widget):
 
 
 Builder.load_string("""
-<StatusBar>:
-    canvas.before:
-        Color:
-            rgba: app.blue
-        Rectangle:
-            size: self.size
-            pos: self.pos
 
 <NavBar>:
     size_hint: 1, 0.1127
