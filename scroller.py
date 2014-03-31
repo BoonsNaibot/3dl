@@ -48,7 +48,7 @@ class ScrollerEffect(DampedScrollEffect):
 
 
 class Scroller(StencilView):
-    scroll_distance = NumericProperty('5dp')
+    scroll_distance = NumericProperty('1dp')
     scroll_y = NumericProperty(1.)
     bar_color = ListProperty([.7, .7, .7, .9])
     bar_width = NumericProperty('2dp')
@@ -57,7 +57,7 @@ class Scroller(StencilView):
     effect_y = ObjectProperty(None, allownone=True)
     _viewport = ObjectProperty(None, allownone=True)
     bar_alpha = NumericProperty(1.)
-    mode = OptionProperty('normal', options=('normal', 'scrolling'))
+    mode = OptionProperty('normal', options=('down', 'normal', 'scrolling'))
 
     def _get_vbar(self):
         # must return (y, height) in %
@@ -94,32 +94,33 @@ class Scroller(StencilView):
     def on_touch_down(self, touch):        
         if self.collide_point(*touch.pos):
             touch.grab(self)
-            self.effect_y.start(touch.y)
-            
+
             if self.mode == 'scrolling':
                 self.effect_y.cancel()
-                return True
-            else:
-                touch.ud['touch_down'] = True
+
+            self.effect_y.start(touch.y)
+
+            if self.mode == 'normal':
+                self.mode = 'down'
                 touch.push()
                 touch.apply_transform_2d(self.to_widget)
                 touch.apply_transform_2d(self.to_parent)
                 ret = super(Scroller, self).on_touch_down(touch)
                 touch.pop()
                 return ret
+            else:
+                return True
 
     def on_touch_move(self, touch):
-        if 'touch_down' in touch.ud:
-            del touch.ud['touch_down']
-            #_touch = touch.ud.pop('touch_down')
+        if ((touch.grab_current is not self) and (self.collide_point(*touch.pos)) and (self.mode == 'down')):
+            ret = super(Scroller, self).on_touch_move(touch)
             
-            if (abs(touch.oy-touch.y) < self.scroll_distance):
+            if ret:
+                touch.ungrab(self)
                 self.effect_y.cancel()
-                
-                if self.mode <> 'scrolling':
-                    touch.ungrab(self)
-
-            elif self.mode <> 'scrolling':
+                self.mode = 'normal'
+                return ret
+            elif ((abs(touch.oy-touch.y) > self.scroll_distance) and (self._viewport.height > self.height)):
                 self.mode = 'scrolling'
                 grab_list = touch.grab_list
                 l = len(grab_list)
@@ -128,9 +129,11 @@ class Scroller(StencilView):
                     for x in xrange(l):
                         item = grab_list[x]()
 
-                        if (item and (touch.grab_current is not item)):
+                        if type(item) is not Scroller:
                             touch.ungrab(item)
                             item.cancel()
+
+                return True
 
         elif ((touch.grab_current is self) and (self.mode == 'scrolling')):
             min_height = self._viewport.height
@@ -139,52 +142,16 @@ class Scroller(StencilView):
                 self.effect_y.update(touch.y)
                 return True
 
-        return super(Scroller, self).on_touch_move(touch)
-
     def on_touch_up(self, touch):
-
         if touch.grab_current is self:
             touch.ungrab(self)
-            self.effect_y.stop(touch.y)
+
+            if self.mode == 'down':
+                self.effect_y.cancel()
+            elif self.mode == 'scrolling':
+                self.effect_y.stop(touch.y)
 
         return super(Scroller, self).on_touch_up(touch)
-
-    """def _do_touch_up(self, touch, *largs):
-        super(Scroller, self).on_touch_up(touch)
-        # don't forget about grab event!
-        for x in xrange(len(touch.grab_list)):
-            x = touch.grab_list.pop()
-            x = x()
-
-            if x:
-                touch.grab_current = x
-                super(Scroller, self).on_touch_up(touch)
-        touch.grab_current = None"""
-
-    def convert_distance_to_scroll(self, dx, dy):
-        '''Convert a distance in pixels to a scroll distance, depending on the
-        content size and the Scroller size.
-
-        The result will be a tuple of scroll distance that can be added to
-        :data:`scroll_x` and :data:`scroll_y`
-        '''
-        sx, sy = (0, 0)
-
-        if self._viewport:
-            vp = self._viewport
-
-            if vp.width > self.width:
-                sw = vp.width - self.width
-                sx = dx / float(sw)
-            else:
-                sx = 0
-            if vp.height > self.height:
-                sh = vp.height - self.height
-                sy = dy / float(sh)
-            else:
-                sy = 1
-
-        return sx, sy
 
     def update_from_scroll(self, *largs):
         '''Force the reposition of the content, according to current value of
@@ -226,9 +193,6 @@ class Scroller(StencilView):
         self.bar_alpha = 1.
         Animation(bar_alpha=0., d=.5, t='out_quart').start(self)
 
-    #
-    # Private
-    #
     def add_widget(self, widget, index=0):
         if self._viewport:
             raise Exception('Scroller accept only one widget')
