@@ -130,7 +130,7 @@ class PagesScreen(Screen_):
                        (screen.page_number, screen.page))
 
 Builder.load_string("""
-#:import NavBar uiux
+#:import NavBar uiux.NavBar
 #:import Button_ uiux.Button_
 #:import NewItemWidget uiux.NewItemWidget
 #:import DNDListView listviews.DNDListView
@@ -151,15 +151,9 @@ Builder.load_string("""
 
     NavBar:
         id: navbar_id
-        size_hint: 1, .0775
-        pos_hint:{'top': 0.9648}
+        text: 'Lists'
+        font_size: self.height*0.8
 
-        Label:
-            text: "Lists"
-            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-            font_size: self.height*0.8
-            font_name: 'Walkway Bold.ttf'
-            color: app.white
         Button_:
             font_size: self.height*0.8
             font_name: 'breezi_font-webfont.ttf'
@@ -182,3 +176,5 @@ Builder.load_string("""
         pos_hint: {'y': 0}
         on_text_validate: root.dispatch('on_new_item', *args[1:])
 """)
+
+
