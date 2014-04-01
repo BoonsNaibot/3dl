@@ -238,7 +238,8 @@ Builder.load_string("""
     
 <ListScreenItem>:
     content: content_id
-    text_color: app.blue
+    text_color: app.blue if self.state=='dragged' else (app.blue if self.collide_point==0.0 else app.dark_gray)
+    state_color: app.no_color
     height: self.title.height + (content_id.height*(1-self.collapse_alpha))
 
     Content1:
@@ -257,8 +258,8 @@ Builder.load_string("""
         on_importance: root.dispatch('on_importance', root, args[2])
 
 <ActionListItem>:
-    state_color: app.no_color if self.disabled else (app.no_color if self.title.state=='dragged' else (app.blue if root.collapse_alpha==0.0 else (app.light_blue if self.title.state=='down' else app.gray)))
-    text_color: app.white if root.collapse_alpha==0.0 else app.dark_gray
+    state_color: app.no_color if self.disabled else (app.no_color if self.state=='dragged' else app.white)
+    text_color: app.blue
     shadow_color: app.smoke_white
 
 <ArchiveScreenItem>:
