@@ -34,7 +34,6 @@ class ScrollerEffect(DampedScrollEffect):
             if sh >= 1:
                 sy = value/float(sh)
                 parent.scroll_y = -sy
-                #parent._trigger_update_from_scroll()
                 
     def on_is_manual(self, instance, value):
         if not value:
@@ -54,8 +53,8 @@ class Scroller(StencilView):
     bar_width = NumericProperty('2dp')
     bar_margin = NumericProperty(0)
     bar_anim = ObjectProperty(None, allownone=True)
-    effect_y = ObjectProperty(None, allownone=True)
-    _viewport = ObjectProperty(None, allownone=True)
+    effect_y = ObjectProperty(None)
+    _viewport = ObjectProperty(None)
     bar_alpha = NumericProperty(1.)
     mode = OptionProperty('normal', options=('down', 'normal', 'scrolling'))
 
@@ -78,7 +77,6 @@ class Scroller(StencilView):
 
     vbar = AliasProperty(_get_vbar, None, bind=('scroll_y', '_viewport'))
 
-
     def __init__(self, **kwargs):
         self._trigger_update_from_scroll = Clock.create_trigger(self.update_from_scroll, -1)
         super(Scroller, self).__init__(**kwargs)
@@ -94,10 +92,6 @@ class Scroller(StencilView):
     def on_touch_down(self, touch):        
         if self.collide_point(*touch.pos):
             touch.grab(self)
-
-            """if self.mode == 'scrolling':
-                self.effect_y.cancel()"""
-
             self.effect_y.start(touch.y)
 
             if self.mode == 'normal':
@@ -112,10 +106,10 @@ class Scroller(StencilView):
 
     def on_touch_move(self, touch):
         if ((touch.grab_current is not self) and (self.mode == 'down')):
-            #touch.push()
-            #touch.apply_transform_2d(self.to_local)
+            touch.push()
+            touch.apply_transform_2d(self.to_local)
             ret = super(Scroller, self).on_touch_move(touch)
-            #touch.pop()
+            touch.pop()
             
             if ret:
                 touch.ungrab(self)
@@ -147,12 +141,11 @@ class Scroller(StencilView):
     def on_touch_up(self, touch):
         if touch.grab_current is self:
             touch.ungrab(self)
-            self.effect_y.stop(touch.y)
 
-            """if self.mode == 'down':
+            if self.mode == 'down':
                 self.effect_y.cancel()
             elif self.mode == 'scrolling':
-                self.effect_y.stop(touch.y)"""
+                self.effect_y.stop(touch.y)
 
         return super(Scroller, self).on_touch_up(touch)
 
