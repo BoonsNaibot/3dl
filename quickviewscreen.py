@@ -35,7 +35,8 @@ class QuickViewScreen(Screen_):
         list_screen = self.manager.get_screen('List Screen')
         list_screen.page = self.page
         list_screen.page_number = self.page_number
-        self.dispatch('on_screen_change', 'left', 'List Screen')
+        kwargs = {'direction': 'left', 'duration': 0.2}
+        self.dispatch('on_screen_change', 'List Screen', **kwargs)
 
     def _args_converter(self, row_index, an_obj):
         dict = {'size_hint_y': .3,
@@ -74,7 +75,7 @@ Builder.load_string("""
             font_size: 12
             size_hint: 0.1, 1
             text: '< Lists'
-            on_press: root.dispatch('on_screen_change', 'right', 'Pages Screen')
+            on_press: root.dispatch('on_screen_change', 'Pages Screen', **{'direction': 'right', 'duration': 0.2})
         Button_:
             font_size: 12
             size_hint: .1, 1
