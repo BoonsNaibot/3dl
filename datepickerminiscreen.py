@@ -104,7 +104,6 @@ Builder.load_string("""
 <DateTimeMiniScreen>:
     body: body_id
     name: 'Date-Time Mini-Screen'
-    root_directory: app.db
 
     NavBar:
         id: navbar_id
