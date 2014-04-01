@@ -81,7 +81,8 @@ class PagesScreen(Screen_):
         screen = manager.get_screen(screen_name)
         screen.page = text
         screen.page_number = index
-        self.dispatch('on_screen_change', 'left', screen_name)
+        kwargs = {'direction': 'left', 'duration': 0.2}
+        self.dispatch('on_screen_change', screen_name, **kwargs)
 
     def on_status_bar(self, *args):
         self.list_view.scroll_to()
