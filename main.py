@@ -7,6 +7,7 @@ from kivy.properties import ObjectProperty, ListProperty
 from apsw import Connection, SQLITE_OPEN_READWRITE, CantOpenError
 from kivy.modules import inspector
 from kivy.core.window import Window
+import cProfile
 
 kv = """
 #:import ListScreen listscreen.ListScreen
@@ -56,6 +57,7 @@ class ThreeDoListApp(App):
     gray = ListProperty((0.9137, 0.933, 0.9451, 1.0))
     dark_gray = ListProperty((0.533, 0.533, 0.533, 1.0))
     shadow_gray = ListProperty((0.8, 0.8, 0.8, 1.0))
+    black = ListProperty((0.0, 0.0, 0.0, 1.0))
     
     try:
         db = ObjectProperty(Connection('db.db', flags=SQLITE_OPEN_READWRITE))
@@ -155,14 +157,15 @@ class ThreeDoListApp(App):
         return app
 
     def on_start(self):
+        self.profile = cProfile.Profile()
         app = self.root
         app.manager.transition = NoTransition()
         cursor = self.db.cursor()
         cursor.execute("""
-                       SELECT [notebook].page, contents.page_number
-                       FROM [table of contents] AS contents, [notebook]
-                       WHERE contents.page=notebook.page
-                       AND contents.bookmark=1 AND [notebook].ix<4 AND [notebook].what<>'';
+                       SELECT note.page, contents.page_number
+                       FROM [table of contents] AS contents, [notebook] AS note
+                       WHERE contents.page=note.page
+                       AND contents.bookmark=1 AND note.ix<4 AND note.what<>'';
                        """)
         result = cursor.fetchall()
 
@@ -189,6 +192,8 @@ class ThreeDoListApp(App):
 
     def on_stop(self):
         self.db.close()
+        self.profile.disable()
+        self.profile.dump_stats('myapp.profile')
 
 if __name__ == '__main__':
     ThreeDoListApp().run()
