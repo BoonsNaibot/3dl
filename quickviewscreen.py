@@ -58,8 +58,8 @@ class QuickViewScreen(Screen_):
     			return '[b]' + word + '[/b]' + escape_markup(str[(len(word)-1):])
 
 Builder.load_string("""
-#:import NavBar uiux
-#:import QuickListView listviews
+#:import NavBar uiux.NavBar
+#:import QuickListView listviews.QuickListView
 #:import QuickViewScreenItem listitems.QuickViewScreenItem
 
 <QuickViewScreen>:
