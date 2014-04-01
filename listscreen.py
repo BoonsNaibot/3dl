@@ -4,7 +4,6 @@ Created on Jul 27, 2013
 @author: Divine
 '''
 from kivy.properties import ObjectProperty, ListProperty, StringProperty, NumericProperty
-from datepickerminiscreen import DateTimeMiniScreen
 from listitems import ActionListItem, ListScreenItem
 from kivy.uix.screenmanager import RiseInTransition
 from kivy.lang import Builder
@@ -148,11 +147,10 @@ class ListScreen(Screen_):
 
     def on_due_date(self, instance, value):
         if value:
-            manager = self.manager
-            dpms = DateTimeMiniScreen(item=instance)
-            manager.add_widget(dpms)
-            manager.transition = RiseInTransition(duration=0.2)
-            manager.current = 'Date-Time Mini-Screen'
+            dtms = self.manager.get_screen('Date-Time Mini-Screen')
+            dtms.item = instance
+            kwargs = {'duration': 0.2, 'destination': 'Date-Time Mini-Screen'}
+            self.dispatch('on_screen_change', RiseInTransition, kwargs)
 
     def on_drop(self, items):
         if items:
