@@ -12,6 +12,7 @@ from kivy.uix.screenmanager import SlideTransition
 from kivy.properties import ObjectProperty, ListProperty
 
 class ConfigPanel(Widget):
+    state = None
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
@@ -36,6 +37,14 @@ class PagesScreen(Screen_):
         self.register_event_type('on_selected_page')
         self.register_event_type('on_root_directory')
         super(PagesScreen, self).__init__(**kwargs)
+
+    def on_enter(self):
+        if self.root_directory:
+            cursor = self.root_directory.cursor()
+            cursor.execute("""
+                           UPDATE [table of contents]
+                           SET bookmark=0
+                           """)
 
     def _args_converter(self, row_index, an_obj):
         dict = {'page_number': an_obj[0],
