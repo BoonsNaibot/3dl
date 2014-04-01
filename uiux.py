@@ -551,7 +551,7 @@ class DragNDroppable(ButtonRoot):
         if ((self.state == 'down') and not self.disabled):
             self.hold_time += dt
 
-            if self.hold_time > 0.4:
+            if self.hold_time > 1.0:
                 self.state = 'dragged'
 
         else:
