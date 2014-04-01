@@ -149,8 +149,8 @@ class ListScreen(Screen_):
         if value:
             dtms = self.manager.get_screen('Date-Time Mini-Screen')
             dtms.item = instance
-            kwargs = {'duration': 0.2, 'destination': 'Date-Time Mini-Screen'}
-            self.dispatch('on_screen_change', RiseInTransition, kwargs)
+            kwargs = {'duration': 0.2}
+            self.dispatch('on_screen_change', 'Date-Time Mini-Screen', RiseInTransition, **kwargs)
 
     def on_drop(self, items):
         if items:
@@ -188,7 +188,7 @@ Builder.load_string("""
             font_size: self.height*0.5
             size_hint: 0.18, 1
             pos_hint: {'center_x': 0.08, 'center_y': 0.5}
-            on_press: root.dispatch('on_screen_change', 'right', 'Pages Screen')
+            on_press: root.dispatch('on_screen_change', 'Pages Screen', **{'direction': 'left', 'duration': 0.2})
         Button_:
             text: 'Archive >'
             state_color: app.no_color
