@@ -13,7 +13,7 @@ class Placeholder(Widget):
     text = StringProperty('')
     index = NumericProperty(None)
 
-    def on_touch_down(self, touch):
+    def on_touch_move(self, touch):
         return True
 
 class DNDListView(FloatLayout, ListViewAdapter):
@@ -203,7 +203,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
         d = {}
 
         for child in children:
-            if (widget.collide_widget(child) and (child is not placeholder) and (type(child) is not Widget) and not child.disabled):
+            if (widget.collide_widget(child) and (child is not placeholder) and (type(child) is not Widget)):
                 c_index = children.index(child)
 
                 if ((widget.center_y <= child.top) and (widget.center_y <= placeholder.y)) or ((widget.center_y >= child.y) and (widget.center_y >= placeholder.top)):
@@ -294,14 +294,13 @@ class ActionListView(AccordionListView):
 
             if collision:
                 child.title.state = 'down'
-                d[widget] = child.ix
-
-                if not child.disabled:
-                    d[child] = widget.ix
+                d = {widget: child.ix, child: widget.ix}
 
             elif child.title.state <> 'normal':
                 child.title.state = 'normal'
-                del indices[child]
+
+                if child in indices:
+                    del indices[child]
 
         _dict = dict(indices, **d)
         return _dict
