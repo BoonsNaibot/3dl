@@ -103,13 +103,6 @@ class Screen_(Screen):
     def on_screen_change(self, direction, destination):
         manager =  self.manager
         transition = SlideTransition(direction=direction, duration=0.2)
-        
-        if destination == 'Pages Screen':
-            cursor = self.root_directory.cursor()
-            page = self.page
-            _callback = lambda *_: cursor.execute("UPDATE [table of contents] SET bookmark=0 WHERE page=?", (page,))
-            transition.bind(on_complete=_callback)
-
         manager.transition = transition
         manager.current = destination
 
@@ -630,12 +623,12 @@ class DragNDroppable(ButtonRoot):
                 if placeholder:
 
                     def _on_complete(a, w):
-                        w.listview.dispatch('on_motion_out', w.title, indices)
+                        w.listview.dispatch('on_motion_out', w, indices)
                         w.state = 'normal'
 
                     _anim = Animation(y=placeholder.y, d=0.5, t='out_back')
                     _anim.bind(on_complete=_on_complete)
-                    self._anim = _anim.start(self.parent)
+                    self._anim = _anim.start(self)
                     return True
 
         return super(DragNDroppable, self).on_touch_up(touch)
@@ -959,7 +952,6 @@ class FreeRotateLayout(Widget):
 
 
 Builder.load_string("""
-
 <NavBar>:
     size_hint: 1, 0.1127
     pos_hint:{'top': 1, 'x': 0}
