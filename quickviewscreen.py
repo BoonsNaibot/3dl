@@ -24,8 +24,8 @@ class QuickViewScreen(Screen_):
             cursor = self.root_directory.cursor()
             cursor.execute("""
                            SELECT ix, what, when_, why, how
-                           FROM notebook
-                           WHERE page=? AND ix<3
+                           FROM [notebook]
+                           WHERE page=? AND ix<4
                            ORDER BY ix
                            """,
                            (self.page,))
@@ -39,24 +39,23 @@ class QuickViewScreen(Screen_):
         self.dispatch('on_screen_change', 'List Screen', **kwargs)
 
     def _args_converter(self, row_index, an_obj):
-        dict = {'size_hint_y': .3,
+        _dict = {'size_hint_y': 0.3,
                 'screen': self}
-        dict['ix'], dict['text'], dict['when'], dict['why'], dict['how'] = an_obj
-        what = self.format_title(dict['text'])
-        dict['how'] = ''
+        _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
+        what = self.format_title(_dict['text'])
         
         if what:
-	    dict['text'] = what
-	    dict['markup'] = True
+        	_dict['text'] = what
+        	_dict['markup'] = True
 
-        return dict
+        return _dict
 
     def format_title(self, str):
-	watchwords = self.watchwords
-	
-	for word in watchwords:
-	    if str.startswith(word + ' '):
-		return '[b]' + word + '[/b]' + escape_markup(str[(len(word)-1):])
+    	watchwords = self.watchwords
+    	
+    	for word in watchwords:
+    		if str.startswith(word + ' '):
+    			return '[b]' + word + '[/b]' + escape_markup(str[(len(word)-1):])
 
 Builder.load_string("""
 #:import NavBar uiux
