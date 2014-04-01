@@ -137,7 +137,7 @@ class Week(AccordionListItem):
     title_height_hint = NumericProperty(0.0)
     content_height_hint = NumericProperty(0.0)
 
-class Content1(FloatLayout):
+class ContentMajor(FloatLayout):
     state_color = ListProperty([])
     text_color = ListProperty([])
     screen = ObjectProperty(None)
@@ -148,7 +148,7 @@ class Content1(FloatLayout):
     def __init__(self, **kwargs):
         self.register_event_type('on_comments')
         self.register_event_type('on_importance')
-        super(Content1, self).__init__(**kwargs)
+        super(ContentMajor, self).__init__(**kwargs)
 
     def on_importance(self, *args):
         pass
@@ -160,7 +160,7 @@ Builder.load_string("""
 #:import DoubleClickButton uiux.DoubleClickButton
 #:import EditButton uiux.EditButton
 
-<Content1>:
+<ContentMajor>:
     id: content_id
     canvas.before:
         Color:
@@ -242,7 +242,7 @@ Builder.load_string("""
     state_color: app.no_color
     height: self.title.height + (content_id.height*(1-self.collapse_alpha))
 
-    Content1:
+    ContentMajor:
         id: content_id
         why: root.why
         how: root.how
