@@ -64,7 +64,7 @@ class ListScreen(Screen_):
             _dict['content_height_hint'] = (322./1136.)
             _dict['listview'] = self.action_view
             _dict['aleft'] = True
-            _dict['font_name'] = 'Oswald-Bold.otf'
+            _dict['font_name'] = 'PermianSerifTypeface-webfont.ttf'
 
             if not _dict['text']:
                 _dict['text'] = 'Drag an Important Item here.'
@@ -186,6 +186,7 @@ Builder.load_string("""
         Button_:
             text: '< Lists'
             state_color: app.no_color
+            text_color: app.black
             font_size: self.height*0.5
             size_hint: 0.18, 1
             pos_hint: {'center_x': 0.08, 'center_y': 0.5}
@@ -193,6 +194,7 @@ Builder.load_string("""
         Button_:
             text: 'Archive >'
             state_color: app.no_color
+            text_color: app.black
             font_size: self.height*0.5
             size_hint: 0.18, 1
             pos_hint: {'center_x': 0.9, 'center_y': 0.5}
