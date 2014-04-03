@@ -484,20 +484,6 @@ class Editable(ButtonRoot):
             self._double_tap_time = 0.0
             return False
 
-    def on_text_validate(self, instance, value):
-        if not value: #if instance.text == ""
-            instance.focus = False
-            return False
-        else:
-            self.text = value.lstrip()
-            instance.focus = False
-            return True
-
-    def on_text_focus(self, instance, focus):
-        if focus is False:
-            self.screen.polestar = None
-            self.state = 'normal'
-
     def on_touch_down(self, touch):
         if self.state == 'edit':
             sup = super(ButtonRoot, self).on_touch_down(touch)
@@ -544,6 +530,23 @@ class Editable(ButtonRoot):
             instance.screen.polestar = instance
 
         super(Editable, self).on_state(instance, value)
+
+    def on_text_validate(self, instance, value):
+        if not value: #if instance.text == ""
+            instance.focus = False
+            return False
+        else:
+            self.text = value.lstrip()
+            instance.focus = False
+            return True
+
+    def on_text_focus(self, instance, focus):
+        if focus is False:
+            self.state = 'normal'
+        
+    def cancel(self):
+        Clock.unschedule(self._double_tap_interval)
+        super(Clickable, self).cancel()
 
 class DragNDroppable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'down', 'dragged'))
