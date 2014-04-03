@@ -100,7 +100,7 @@ class Screen_(Screen):
         else:
             return super(Screen_, self).on_touch_down(touch)
 
-    def on_screen_change(self, destination, transition=SlideTransition, **kwargs):
+    def on_screen_change(self, destination, kwargs, transition=SlideTransition):
         manager =  self.manager
         transition = transition(**kwargs)
         manager.transition = transition
@@ -628,7 +628,7 @@ class DragNDroppable(ButtonRoot):
 
                     _anim = Animation(y=placeholder.y, d=0.5, t='out_back')
                     _anim.bind(on_complete=_on_complete)
-                    self._anim = _anim.start(self)
+                    self._anim = _anim.start(self.parent)
                     return True
 
         return super(DragNDroppable, self).on_touch_up(touch)
@@ -723,6 +723,7 @@ class AccordionListItem(Selectable, FloatLayout):
     title = ObjectProperty(None)
     content = ObjectProperty(None)
     listview = ObjectProperty(None)
+    state_color = ListProperty([])
     text_color = ListProperty([])
     shadow_color = ListProperty([])
     text = StringProperty('')
@@ -1022,7 +1023,8 @@ Builder.load_string("""
             font_size: root.font_size
         Label:
             text: root.text
-            size_hint: 1, 1
+            size_hint: None, 1
+            width: root.width - icon_id.width
             color: root.text_color
             font_name: 'Walkway Bold.ttf'
             font_size: root.font_size
@@ -1071,6 +1073,7 @@ Builder.load_string("""
 
 <AccordionListItem>:
     cols: 1
+    size_hint: 1, None
     shadow_color: app.shadow_gray
     canvas.before:
         StencilPush
