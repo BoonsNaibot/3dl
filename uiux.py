@@ -546,6 +546,8 @@ class Editable(ButtonRoot):
         
     def cancel(self):
         Clock.unschedule(self._double_tap_interval)
+        self._double_tap_time = 0.0
+        self._switch = False
         super(Clickable, self).cancel()
 
 class DragNDroppable(ButtonRoot):
@@ -676,6 +678,7 @@ class DragNDroppable(ButtonRoot):
 
     def cancel(self):
         Clock.unschedule(self.on_hold_down)
+        self.hold_time = 0.0
         super(DragNDroppable, self).cancel()
 
 class Button_(Clickable):
