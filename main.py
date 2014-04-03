@@ -38,8 +38,8 @@ kv = """
             root_directory: app.db
         #ArchiveScreen:
         #    root_directory: app.db
-        DateTimeMiniScreen:
-            root_directory: app.db
+        #DateTimeMiniScreen:
+        #    root_directory: app.db
 """
 
 class Application(Widget):
@@ -48,7 +48,7 @@ class Application(Widget):
 class ThreeDoListApp(App):
     """Special Thanks to Joe Jimenez of Breezi[dot]com for breezi_font-webfont.ttf""" 
     ### Colors ###
-    no_color = ListProperty((1.0, 1.0, 1.0, 0.0))
+    no_color = ListProperty((0.0, 0.0, 0.0, 0.0))
     light_blue = ListProperty((0.498, 0.941, 1.0, 1.0))
     blue = ListProperty((0.0, 0.824, 1.0, 1.0))
     dark_blue = ListProperty((0.004, 0.612, 0.7412, 1.0))
