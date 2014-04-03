@@ -543,6 +543,7 @@ class DragNDroppable(ButtonRoot):
     def __init__(self, **kwargs):
         self.register_event_type('on_drag')
         self.register_event_type('on_drop')
+        self.register_event_type('on_return')
         self.register_event_type('on_drag_start')
         self.register_event_type('on_drag_finish')
         super(DragNDroppable, self).__init__(**kwargs)
@@ -614,18 +615,8 @@ class DragNDroppable(ButtonRoot):
                         self.state = 'normal'
                         return True
 
-                placeholder = self.listview.placeholder
-
-                if placeholder:
-
-                    def _on_complete(a, w):
-                        w.listview.dispatch('on_motion_out', w, indices)
-                        w.state = 'normal'
-
-                    _anim = Animation(y=placeholder.y, d=0.5, t='out_back')
-                    _anim.bind(on_complete=_on_complete)
-                    self._anim = _anim.start(self.parent)
-                    return True
+                self.dispatch('on_return', self, indices)
+                return True
 
         return super(DragNDroppable, self).on_touch_up(touch)
 
@@ -652,6 +643,17 @@ class DragNDroppable(ButtonRoot):
             p.remove_widget(placeholder)
 
         instance.listview.placeholder = None
+        
+    def on_return(self, instance, indices):
+        placeholder = instance.listview.placeholder
+
+        def _on_complete(a, w):
+            w.listview.dispatch('on_motion_out', w, indices)
+            w.state = 'normal'
+
+        _anim = Animation(y=placeholder.y, d=0.5, t='out_back')
+        _anim.bind(on_complete=_on_complete)
+        instance._anim = _anim.start(instance)
 
     def on_drag_start(self, widget):
         widget.listview.deselect_all()
