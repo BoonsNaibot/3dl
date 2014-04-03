@@ -36,7 +36,7 @@ class QuickViewScreen(Screen_):
         list_screen.page = self.page
         list_screen.page_number = self.page_number
         kwargs = {'direction': 'left', 'duration': 0.2}
-        self.dispatch('on_screen_change', 'List Screen', **kwargs)
+        self.dispatch('on_screen_change', 'List Screen', kwargs)
 
     def _args_converter(self, row_index, an_obj):
         _dict = {'size_hint_y': 0.3,
@@ -59,7 +59,7 @@ class QuickViewScreen(Screen_):
 
 Builder.load_string("""
 #:import NavBar uiux.NavBar
-#:import QuickListView listviews.QuickListView
+#:import QuickListView listviews
 #:import QuickViewScreenItem listitems.QuickViewScreenItem
 
 <QuickViewScreen>:
@@ -71,14 +71,21 @@ Builder.load_string("""
         font_size: self.height*.8
 
         Button_:
-            font_size: 12
-            size_hint: 0.1, 1
-            text: '< Lists'
-            on_press: root.dispatch('on_screen_change', 'Pages Screen', **{'direction': 'right', 'duration': 0.2})
+            text: '<D'
+            state_color: app.no_color
+            text_color: app.black
+            font_size: self.height*0.6
+            font_name: 'breezi_font-webfont.ttf'
+            size_hint: 0.18, 1
+            pos_hint: {'center_x': 0.08, 'center_y': 0.5}
+            on_press: root.dispatch('on_screen_change', 'Pages Screen', {'direction': 'right', 'duration': 0.2})
         Button_:
-            font_size: 12
-            size_hint: .1, 1
-            text: 'Full List >'
+            text: 'D'
+            state_color: app.no_color
+            text_color: app.black
+            font_size: self.height*0.8
+            font_name: 'heydings_icons.ttf'
+            size_hint: 0.18, 1
             on_press: root.dispatch('on_full_list')
 
     QuickListView:
