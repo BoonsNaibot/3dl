@@ -652,10 +652,8 @@ class DragNDroppable(ButtonRoot):
                         #instance.screen.dispatch('on_pre_enter')
                         break
 
-        p = placeholder.parent
-
-        if p:
-            p.remove_widget(placeholder)
+        if placeholder.parent:
+            placeholder.parent.remove_widget(placeholder)
 
         instance.listview.placeholder = None
         
