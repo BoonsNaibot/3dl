@@ -63,7 +63,8 @@ class ListScreen(Screen_):
             _dict['content_height_hint'] = (322./1136.)
             _dict['listview'] = self.action_view
             _dict['aleft'] = True
-            _dict['font_name'] = 'PermianSerifTypeface-webfont.ttf'
+            #_dict['font_name'] = 'PermianSerifTypeface-webfont.ttf'
+            _dict['font_name'] = 'Walkway Bold.ttf'
 
             if not _dict['text']:
                 _dict['text'] = 'Drag an Important Item here.'
@@ -182,18 +183,20 @@ Builder.load_string("""
         pos_hint:{'top': 1, 'x': 0}
 
         Button_:
-            text: '< Lists'
+            text: '<D'
             state_color: app.no_color
             text_color: app.black
-            font_size: self.height*0.5
+            font_size: self.height*0.7
+            font_name: 'breezi_font-webfont.ttf'
             size_hint: 0.18, 1
             pos_hint: {'center_x': 0.08, 'center_y': 0.5}
-            on_press: root.dispatch('on_screen_change', 'Pages Screen', **{'direction': 'left', 'duration': 0.2})
+            on_press: root.dispatch('on_screen_change', 'Pages Screen', {'direction': 'right', 'duration': 0.2})
         Button_:
-            text: 'Archive >'
+            text: '5'
             state_color: app.no_color
             text_color: app.black
-            font_size: self.height*0.5
+            font_size: self.height*0.8
+            font_name: 'heydings_icons.ttf'
             size_hint: 0.18, 1
             pos_hint: {'center_x': 0.9, 'center_y': 0.5}
 
