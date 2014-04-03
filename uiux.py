@@ -459,13 +459,30 @@ class DoubleClickable(ButtonRoot):
                 
         return super(DoubleClickable, self).on_touch_up(touch)
 
-class Editable(DoubleClickable):
+class Editable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'edit'))
     textinput = ObjectProperty(None, allownone=True)
+    _double_tap_time = NumericProperty(0.0)
+    _switch = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         self.register_event_type('on_text_validate')
         super(Editable, self).__init__(**kwargs)
+            
+    def on__switch(self, instance, value):
+        if value:
+            Clock.schedule_interval(instance._double_tap_interval, 0.1)
+        
+    def _double_tap_interval(self, dt):
+        if (self._switch and not self.disabled):
+            self._double_tap_time += dt
+
+            if self._double_tap_time >= 0.250:
+                self._switch = False
+
+        else:
+            self._double_tap_time = 0.0
+            return False
 
     def on_text_validate(self, instance, value):
         if not value: #if instance.text == ""
@@ -489,37 +506,29 @@ class Editable(DoubleClickable):
                 self.state = 'normal'
             return True
 
-        else:
-            return super(Editable, self).on_touch_down(touch)
+        elif self.state == 'normal':
+            if not self._switch:
+                self._switch = True
+            else:
+                self.state = 'edit'
+                touch.ungrab(self)
+                return True
 
-    def on_touch_up(self, touch):
-        if touch.grab_current is self:
-            assert(self in touch.ud)
+        return super(Editable, self).on_touch_down(touch)
 
-            if self.state == 'edit':
-                touched_children = super(ButtonRoot, self).on_touch_up(touch)
-
-                if touched_children:
-                    touch.ungrab(self)
-                    return touched_children
-                    
-            elif self.state == 'normal':
-                return super(Editable, self).on_touch_up(touch)
-
-        return super(Editable, self).on_touch_up(touch)
-        #return super(DoubleClickable, self).on_touch_up(touch)
-
-    def on_double_click_switch(self, instance, value):
-        if value:
-            instance.state = 'edit'
+    def on_touch_move(self, touch):
+        if ((self.state == 'edit') and self.collide_point(*touch.pos)):
+            return True
+        return super(Editable, self).on_touch_move(touch)
 
     def on_state(self, instance, value):
+        instance._switch = False
+
         if ((value <> 'edit') and instance.textinput):
+            instance.unbind(pos=instance.textinput.pos, size=instance.textinput.size)
             instance.remove_widget(instance.textinput)
             instance.textinput = None
             instance.screen.polestar = None
-            instance.double_click_switch = False
-
         elif value == 'edit':
             instance.textinput = t = BoundedTextInput(text=instance.text,
                                                       size_hint=(None, None),
@@ -529,6 +538,7 @@ class Editable(DoubleClickable):
                                                       size=instance.size,
                                                       multiline=False)
             instance.add_widget(instance.textinput)
+            instance.bind(pos=t.pos, size=t.size)
             t.bind(on_text_validate=instance.on_text_validate, focus=instance.on_text_focus)
             t.focus = True
             instance.screen.polestar = instance
