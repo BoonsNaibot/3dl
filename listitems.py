@@ -35,7 +35,7 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
     def _get_listview(self):
         return self.parent.listview
         
-    listview = AliasProperty(_get_listview, None, bind=('parent',))
+    listview = AliasProperty(_get_listview, None)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -93,7 +93,7 @@ class NoteItem(AccordionListItem):
 class ListScreenItem(NoteItem):
     pass
 
-class ActionListItem(ListScreenItem):
+class ActionListItem(NoteItem):
     pass
 
 class QuickViewScreenItemTitle(Completable, Deletable):
@@ -188,7 +188,7 @@ Builder.load_string("""
         on_double_click_switch: root.screen.dispatch('on_due_date', root.parent, args[1])
     Label:
         id: icon_id
-        text: 'b'
+        text: 'd'
         font_name: 'breezi_font-webfont.ttf'
         font_size: self.height*0.421875
         color: root.text_color
@@ -219,11 +219,51 @@ Builder.load_string("""
             points: self.x, self.y, self.right, self.y
             width: 1.0
 
-<NoteItem>:
-    title: title_id
-    size_hint: 1, None
+<-ActionListItemTitle@NoteItemTitle>:
+    label: label_id
+    layout: layout_id
+    state_color: app.no_color
     text_color: app.blue
-    state_color: app.no_color if title_id.state=='dragged' else app.white
+    font_size: (self.height*0.421875)
+
+    FloatLayout:
+        id: layout_id
+        size: root.size
+        pos: root.pos
+        canvas.before:
+            Color:
+                rgba: root.state_color
+            Rectangle:
+                size: self.size
+                pos: self.pos
+
+        Label:
+            text: 'L' if self.disabled else ('-' if root.parent.collapse_alpha==0.0 else '+')
+            size_hint: 0.1, 1
+            pos_hint: {'x': 0, 'y': 0}
+            font_size: self.width*0.6
+            font_name: 'heydings_icons.ttf'
+            color: root.text_color
+            disabled_color: self.color
+        Label:
+            id: label_id
+            text: root.text
+            size_hint: 0.9, 1
+            pos_hint: {'x': 0.1, 'y': 0}
+            font_size: root.font_size
+            font_name: root.font_name
+            shorten: True
+            color: root.text_color
+            markup: root.markup
+            disabled_color: self.color
+            text_size: (self.size[0]-(0.1*self.size[0]), None) if root.aleft else (None, None)
+    
+<ListScreenItem>:
+    title: title_id
+    content: content_id
+    state_color: app.no_color
+    text_color: app.blue if self.collapse_alpha==0.0 else app.dark_gray
+    height: title_id.height + (content_id.height*(1-self.collapse_alpha))
 
     NoteItemTitle:
         id: title_id
@@ -231,23 +271,17 @@ Builder.load_string("""
         size_hint: 1, None
         pos_hint: {'x': 0, 'top': 1}
         screen: root.screen
+        font_size: (self.height*0.3)
         text_color: root.text_color
         state_color: root.state_color
         on_release: root.listview.handle_selection(root)
         height: root.screen.height*root.title_height_hint
-    
-<ListScreenItem>:
-    content: content_id
-    text_color: app.blue if self.state=='dragged' else (app.blue if self.collide_point==0.0 else app.dark_gray)
-    state_color: app.no_color
-    height: self.title.height + (content_id.height*(1-self.collapse_alpha))
-
     ContentMajor:
         id: content_id
         why: root.why
         how: root.how
         when: root.when
-        top: root.title.y
+        top: title_id.y
         pos_hint: {'x': 0}
         size_hint: 1, None
         screen: root.screen
@@ -258,9 +292,37 @@ Builder.load_string("""
         on_importance: root.dispatch('on_importance', root, args[2])
 
 <ActionListItem>:
-    state_color: app.no_color if self.disabled else (app.no_color if self.state=='dragged' else app.white)
-    text_color: app.blue
-    shadow_color: app.smoke_white
+    title: title_id
+    content: content_id
+    state_color: app.white
+    height: title_id.height + (content_id.height*(1-self.collapse_alpha))
+    text_color: app.dark_gray if self.disabled else app.blue
+
+    ActionListItemTitle:
+        id: title_id
+        text: root.text
+        size_hint: 1, None
+        pos_hint: {'x': 0, 'top': 1}
+        screen: root.screen
+        font_size: (self.height*0.3)
+        text_color: root.text_color
+        state_color: root.state_color
+        on_release: root.listview.handle_selection(root)
+        height: root.screen.height*root.title_height_hint
+    ContentMajor:
+        id: content_id
+        why: root.why
+        how: root.how
+        when: root.when
+        top: title_id.y
+        pos_hint: {'x': 0}
+        size_hint: 1, None
+        screen: root.screen
+        text_color: root.text_color
+        state_color: root.state_color
+        height: root.screen.height*root.content_height_hint
+        on_comments: print args
+        on_importance: root.dispatch('on_importance', root, args[2])
 
 <ArchiveScreenItem>:
     title: title_id
