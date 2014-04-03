@@ -82,7 +82,7 @@ class PagesScreen(Screen_):
         screen.page = text
         screen.page_number = index
         kwargs = {'direction': 'left', 'duration': 0.2}
-        self.dispatch('on_screen_change', screen_name, **kwargs)
+        self.dispatch('on_screen_change', screen_name, kwargs)
 
     def on_status_bar(self, *args):
         self.list_view.scroll_to()
