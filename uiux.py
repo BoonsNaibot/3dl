@@ -445,20 +445,6 @@ class Completable(ButtonRoot):
         _anim.bind(on_complete=_do_release)
         self._anim = _anim.start(layout)
 
-class DoubleClickable(ButtonRoot):
-    double_click_switch = BooleanProperty(False)
-
-    def on_touch_up(self, touch):
-        if touch.grab_current is self:
-            assert(self in touch.ud)
-
-            if (touch.is_double_tap and (touch.double_tap_time < 0.250)):
-                touch.ungrab(self)
-                self.double_click_switch = not self.double_click_switch
-                return True
-                
-        return super(DoubleClickable, self).on_touch_up(touch)
-
 class Editable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'edit'))
     textinput = ObjectProperty(None, allownone=True)
@@ -508,14 +494,14 @@ class Editable(ButtonRoot):
         return super(Editable, self).on_touch_move(touch)
 
     def on_state(self, instance, value):
-        instance._switch = False
-
         if ((value <> 'edit') and instance.textinput):
+            instance._switch = False
             instance.unbind(pos=instance.textinput.pos, size=instance.textinput.size)
             instance.remove_widget(instance.textinput)
             instance.textinput = None
             instance.screen.polestar = None
         elif value == 'edit':
+            instance._switch = False
             instance.textinput = t = BoundedTextInput(text=instance.text,
                                                       size_hint=(None, None),
                                                       font_size=instance.label.font_size,
@@ -548,7 +534,17 @@ class Editable(ButtonRoot):
         Clock.unschedule(self._double_tap_interval)
         self._double_tap_time = 0.0
         self._switch = False
-        super(Clickable, self).cancel()
+        super(Editable, self).cancel()
+
+class DoubleClickable(Editable):
+    double_click_switch = BooleanProperty(False)
+
+    def on_state(self, instance, value):
+        instance._switch = False
+
+        if value == 'edit':
+            self.double_click_switch = not self.double_click_switch
+            instance.state = 'normal'
 
 class DragNDroppable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'down', 'dragged'))
