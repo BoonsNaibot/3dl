@@ -693,6 +693,10 @@ class CompleteButton(DeleteButton):
         self.button.screen.dispatch('on_complete', self.button)
 
 class EditButton(Editable):
+    
+    def on_touch_down(self, touch):
+        if ((self.collide_point(*touch.pos)) or (self.state == 'edit')):
+            return super(EditButton, self).on_touch_down(touch)
 
     def on_text_validate(self, instance, *args):
         self.text = instance.text.lstrip()
@@ -704,9 +708,7 @@ class DoubleClickButton(DoubleClickable):
     text = StringProperty('')
 
     def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            return False
-        else:
+        if ((self.collide_point(*touch.pos)) and (self.state == 'normal')):
             return super(DoubleClickButton, self).on_touch_down(touch)
 
 class AccordionListItem(Selectable, FloatLayout):
