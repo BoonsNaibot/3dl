@@ -558,9 +558,8 @@ class DragNDroppable(ButtonRoot):
     def __init__(self, **kwargs):
         self.register_event_type('on_drag')
         self.register_event_type('on_drop')
-        self.register_event_type('on_return')
-        self.register_event_type('on_drag_start')
-        self.register_event_type('on_drag_finish')
+        #self.register_event_type('on_drag_start')
+        #self.register_event_type('on_drag_finish')
         super(DragNDroppable, self).__init__(**kwargs)
 
     def on_hold_down(self, dt):
@@ -578,10 +577,13 @@ class DragNDroppable(ButtonRoot):
         listview = instance.listview
 
         if ((value <> 'dragged') and listview.placeholder):
-            instance.dispatch('on_drop', instance, instance.drop_zones)
+            #instance.dispatch('on_drop', instance, instance.drop_zones)
+            if listview.placeholder.parent:
+                listview.placeholder.parent.remove_widget(listview.placeholder)
+            listview.placeholder = None
 
         elif value == 'dragged':
-            instance.dispatch('on_drag_start', instance)
+            #instance.dispatch('on_drag_start', instance)
             listview.deparent(instance)
 
         super(DragNDroppable, self).on_state(instance, value)
@@ -626,11 +628,12 @@ class DragNDroppable(ButtonRoot):
 
                 for viewer in self.drop_zones:
                     if viewer.collide_point(*self.center):
-                        viewer.dispatch('on_motion_out', self, indices)
-                        self.state = 'normal'
-                        return True
+                        break
+                else:
+                    viewer = self.listview
 
-                self.dispatch('on_return', self, indices)
+                viewer.dispatch('on_motion_out', self, indices)
+                self.dispatch('on_drop', self, viewer)
                 return True
 
         return super(DragNDroppable, self).on_touch_up(touch)
@@ -638,41 +641,29 @@ class DragNDroppable(ButtonRoot):
     def on_drag(self, instance, pos_y):
         instance.center_y = pos_y
         
-    def on_drop(self, instance, dzo):
+    def on_drop(self, instance, viewer):
         point = instance.center
-        placeholder = instance.listview.placeholder
 
-        for viewer in dzo:
-            if viewer.collide_point(*point):
-                children = viewer.container.children
-
-                for child in children:
-                    if (child.collide_point(*point) and (child is not Widget)):
-                        viewer.reparent(instance, child)
-                        #instance.screen.dispatch('on_pre_enter')
-                        break
-
-        if placeholder.parent:
-            placeholder.parent.remove_widget(placeholder)
-
-        instance.listview.placeholder = None
-        
-    def on_return(self, instance, indices):
-        placeholder = instance.listview.placeholder
+        for child in viewer.container.children:
+            if (child.collide_point(*point) and (child is not Widget)):
+                _anim = Animation(y=child.y, d=0.5, t='out_back')
+                break
+        else:
+            child = instance.listview.placeholder
+            _anim = Animation(y=child.y, d=0.5, t='out_back')
 
         def _on_complete(a, w):
-            w.listview.dispatch('on_motion_out', w, indices)
+            viewer.reparent(w, child)
             w.state = 'normal'
 
-        _anim = Animation(y=placeholder.y, d=0.5, t='out_back')
         _anim.bind(on_complete=_on_complete)
         instance._anim = _anim.start(instance)
 
-    def on_drag_start(self, widget):
+    """def on_drag_start(self, widget):
         widget.listview.deselect_all()
 
     def on_drag_finish(self, widget):
-        pass
+        pass"""
 
     def cancel(self):
         Clock.unschedule(self.on_hold_down)
@@ -753,7 +744,7 @@ class AccordionListItem(Selectable, FloatLayout):
         else:
             return False
 
-    state = AliasProperty(_get_state, _set_state, bind=('title',))
+    state = AliasProperty(_get_state, _set_state)
 
     def __init__(self, **kwargs):
         self._anim_collapse = None
