@@ -748,12 +748,12 @@ class AccordionListItem(Selectable, FloatLayout):
             return self.title.state
 
     def _set_state(self, state):
-        if self.title:
+        if (self.title and (self.title.state <> state)):
             self.title.state = state
         else:
             return False
 
-    state = AliasProperty(_get_state, _set_state)
+    state = AliasProperty(_get_state, _set_state, bind=('title',))
 
     def __init__(self, **kwargs):
         self._anim_collapse = None
