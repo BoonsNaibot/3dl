@@ -178,16 +178,14 @@ Builder.load_string("""
         pos_hint: {'center_x': 0.5, 'center_y': 0.8333}
         icon_text: '!'
         text: 'IMPORTANT'
-        text_color: root.text_color
+        text_color: app.blue if self.double_click_switch else app.dark_gray
         double_click_switch: root.why
-        opacity: 1.0 if self.double_click_switch else 0.5
         on_double_click_switch: root.dispatch('on_importance', *args)
     DoubleClickButton:
         size_hint: 0.9, 0.25
         pos_hint: {'center_x': 0.5, 'center_y': 0.6}
         icon_text: 'T'
         text: root.when
-        opacity: 1.0
         text_color: root.text_color
         on_double_click_switch: root.screen.dispatch('on_due_date', root.parent, args[1])
     Label:
@@ -200,7 +198,7 @@ Builder.load_string("""
         pos_hint: {'x': 0.05, 'center_y': 0.3}
         width: self.height
     EditButton:
-        text: '_____________________' if not root.how else root.how
+        text: root.how
         size_hint: 0.75, 0.3
         top: icon_id.top
         x: icon_id.right
@@ -266,7 +264,7 @@ Builder.load_string("""
     title: title_id
     content: content_id
     state_color: app.no_color
-    text_color: app.blue if self.collapse_alpha==0.0 else app.dark_gray
+    text_color: app.blue if (self.collapse_alpha==0.0 or title_id.state=='dragged') else app.dark_gray
     height: title_id.height + (content_id.height*(1-self.collapse_alpha))
 
     NoteItemTitle:
@@ -298,7 +296,7 @@ Builder.load_string("""
 <ActionListItem>:
     title: title_id
     content: content_id
-    state_color: app.white
+    state_color: app.no_color if title_id.state in ('down', 'dragged') else app.white
     height: title_id.height + (content_id.height*(1-self.collapse_alpha))
     text_color: app.dark_gray if self.disabled else app.blue
 
