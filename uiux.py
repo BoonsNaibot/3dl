@@ -698,15 +698,6 @@ class CompleteButton(DeleteButton):
 
 class EditButton(Editable):
 
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            if self.state == 'edit':
-                self.state = 'normal'
-                return False
-                
-        else:
-            return super(EditButton, self).on_touch_down(touch)
-            
     def on_text_validate(self, instance, *args):
         self.text = instance.text.lstrip()
         instance.focus = False
