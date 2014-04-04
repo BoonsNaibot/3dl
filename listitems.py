@@ -36,6 +36,13 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
         return self.parent.listview
         
     listview = AliasProperty(_get_listview, None)
+    
+    def on_hold_down(self, *args):
+        if self.parent.is_selected:
+            self.hold_time = 0.0
+            return False
+        else:
+            return super(NoteItemTitle, self).on_hold_down(*args)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
