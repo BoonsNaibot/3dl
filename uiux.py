@@ -116,7 +116,7 @@ class Screen_(Screen):
         pass
 
 class Selectable(object):
-    index = NumericProperty(-1)
+    index = NumericProperty(None)
     is_selected = BooleanProperty(False)
 
     def __init__(self, **kwargs):
@@ -138,15 +138,15 @@ class Selectable(object):
         pass
 
 class ButtonRoot(Widget):
-    index = NumericProperty(-1)
     text = StringProperty('')
+    index = NumericProperty(None)
     aleft = BooleanProperty(False)
-    text_color = ListProperty([0, 0.824, 1, 1])
-    state_color = ListProperty([])
     font_size = NumericProperty(0)
-    font_name = StringProperty('Walkway Bold.ttf')
-    shorten = BooleanProperty(False)
     markup = BooleanProperty(False)
+    shorten = BooleanProperty(False)
+    font_name = StringProperty('Walkway Bold.ttf')
+    state_color = ListProperty([1.0, 1.0, 1.0, 0.0])
+    text_color = ListProperty([0.0, 0.824, 1.0, 1.0])
 
     def on_state(self, *args):
         pass
@@ -155,12 +155,11 @@ class ButtonRoot(Widget):
         if not self.disabled:
             touch.grab(self)
             touch.ud[self] = True
-
         return True
 
     def on_touch_move(self, touch):
-        if touch.grab_current is not self:
-            return False
+        if touch.grab_current is self:
+            return True
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
@@ -275,16 +274,16 @@ class Deletable(ButtonRoot):
 
     def on_state(self, instance, value):
         if ((value <> 'delete') and instance.delete_button):
+            instance.unbind(right=instance.delete_button.right, y=instance.delete_button.y)
             instance.dispatch('on_delete_out', instance.layout)
             instance.screen.polestar = None
-
         elif value == 'delete':
             instance.delete_button = deletebutton = DeleteButton(size=(instance.size[1], instance.size[1]),
                                                                  pos=((instance.right-instance.size[1]), instance.pos[1]),
                                                                  button=instance)
             instance.add_widget(deletebutton, 1)
+            instance.bind(right=deletebutton.right, y=deletebutton.y)
             instance.screen.polestar = instance
-
         super(Deletable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
@@ -293,7 +292,6 @@ class Deletable(ButtonRoot):
 
             if not sup:
                 self.state = 'normal'
-
             return True
 
         else:
@@ -306,7 +304,7 @@ class Deletable(ButtonRoot):
         if touch.grab_current is self:
             assert(self in touch.ud)
 
-            if self.state == 'down':#in ('down', 'normal'):
+            if self.state in ('down', 'normal'):
                 sup = super(ButtonRoot, self).on_touch_move(touch)
 
                 if sup:
@@ -365,16 +363,14 @@ class Completable(ButtonRoot):
 
     def on_state(self, instance, value):
         if ((value <> 'complete') and instance.complete_button):
-            if instance.layout.x <> instance.x:
-                instance.dispatch('on_complete_out', instance.layout)
-
+            instance.unbind(pos=instance.complete_button.pos)
+            instance.dispatch('on_complete_out', instance.layout)
             instance.screen.polestar = None
-
         elif value == 'complete':
             instance.complete_button = completebutton = CompleteButton(size=(instance.size[1], instance.size[1]), pos=instance.pos, button=self)
             instance.add_widget(completebutton, 1)
+            instance.bind(pos=completebutton.pos)
             instance.screen.polestar = instance
-
         super(Completable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
@@ -396,7 +392,7 @@ class Completable(ButtonRoot):
         if touch.grab_current is self:
             assert(self in touch.ud)
 
-            if self.state == 'down':#in ('down', 'normal'):
+            if self.state in ('down', 'normal'):
                 sup = super(ButtonRoot, self).on_touch_move(touch)
 
                 if sup:
@@ -478,7 +474,7 @@ class Editable(ButtonRoot):
                 self.state = 'normal'
             return True
 
-        elif self.state == 'normal':
+        elif self.state in ('down', 'normal'):
             if not self._switch:
                 self._switch = True
             else:
@@ -494,14 +490,14 @@ class Editable(ButtonRoot):
         return super(Editable, self).on_touch_move(touch)
 
     def on_state(self, instance, value):
-        if ((value <> 'edit') and instance.textinput):
+        if value not in ('normal', 'down'):
             instance._switch = False
+        if ((value <> 'edit') and instance.textinput):
             instance.unbind(pos=instance.textinput.pos, size=instance.textinput.size)
             instance.remove_widget(instance.textinput)
             instance.textinput = None
             instance.screen.polestar = None
         elif value == 'edit':
-            instance._switch = False
             instance.textinput = t = BoundedTextInput(text=instance.text,
                                                       size_hint=(None, None),
                                                       font_size=instance.label.font_size,
@@ -514,7 +510,6 @@ class Editable(ButtonRoot):
             t.bind(on_text_validate=instance.on_text_validate, focus=instance.on_text_focus)
             t.focus = True
             instance.screen.polestar = instance
-
         super(Editable, self).on_state(instance, value)
 
     def on_text_validate(self, instance, value):
@@ -522,7 +517,9 @@ class Editable(ButtonRoot):
             instance.focus = False
             return False
         else:
-            self.text = value.lstrip()
+            value = value.lstrip()
+            self.text = value
+            #self.text = unicode(value, encoding=chardetect(value)["encoding"])
             instance.focus = False
             return True
 
@@ -573,10 +570,11 @@ class DragNDroppable(ButtonRoot):
         listview = instance.listview
 
         if ((value <> 'dragged') and listview.placeholder):
-            #instance.dispatch('on_drop', instance, instance.drop_zones)
             if listview.placeholder.parent:
                 listview.placeholder.parent.remove_widget(listview.placeholder)
+
             listview.placeholder = None
+            listview.parent.dispatch('on_pre_enter')
 
         elif value == 'dragged':
             #instance.dispatch('on_drag_start', instance)
@@ -585,7 +583,10 @@ class DragNDroppable(ButtonRoot):
         super(DragNDroppable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
-        if self.state == 'normal':
+        if self.state == 'dragged':
+            touch.ungrab(self)
+            return True
+        elif self.state == 'normal':
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
@@ -628,8 +629,7 @@ class DragNDroppable(ButtonRoot):
                 else:
                     viewer = self.listview
 
-                viewer.dispatch('on_motion_out', self, indices)
-                self.dispatch('on_drop', self, viewer)
+                self.dispatch('on_drop', self, viewer, indices)
                 return True
 
         return super(DragNDroppable, self).on_touch_up(touch)
@@ -637,22 +637,29 @@ class DragNDroppable(ButtonRoot):
     def on_drag(self, instance, pos_y):
         instance.center_y = pos_y
         
-    def on_drop(self, instance, viewer):
+    def on_drop(self, instance, viewer, indices):
         point = instance.center
+        child = viewer.placeholder
 
-        for child in viewer.container.children:
-            if (child.collide_point(*point) and (child is not Widget)):
+        if not child:
+
+            for child in viewer.container.children:
+                if (child.collide_point(*point) and (child is not Widget)):
+                    _anim = Animation(y=child.y, d=0.3)
+                    break
+            else:
+                child = instance.listview.placeholder
                 _anim = Animation(y=child.y, d=0.5, t='out_back')
-                break
+
         else:
-            child = instance.listview.placeholder
-            _anim = Animation(y=child.y, d=0.5, t='out_back')
+            _anim = Animation(y=child.y, d=0.3, t='out_back')
 
         def _on_complete(a, w):
             viewer.reparent(w, child)
             w.state = 'normal'
 
-        _anim.bind(on_complete=_on_complete)
+        _on_start = lambda a, w: viewer.dispatch('on_motion_out', w, indices)
+        _anim.bind(on_start=_on_start, on_complete=_on_complete)
         instance._anim = _anim.start(instance)
 
     """def on_drag_start(self, widget):
@@ -676,7 +683,6 @@ class Button_(Clickable):
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
             return False
-
         else:
             return super(Button_, self).on_touch_down(touch)
 
@@ -705,7 +711,6 @@ class EditButton(Editable):
 class DoubleClickButton(DoubleClickable):
     icon_text = StringProperty('')
     icon_font_name = StringProperty('heydings_icons.ttf')
-    text = StringProperty('')
 
     def on_touch_down(self, touch):
         if ((self.collide_point(*touch.pos)) and (self.state == 'normal')):
@@ -717,7 +722,6 @@ class AccordionListItem(Selectable, FloatLayout):
     listview = ObjectProperty(None)
     state_color = ListProperty([])
     text_color = ListProperty([])
-    shadow_color = ListProperty([])
     text = StringProperty('')
     collapse_alpha = NumericProperty(1.0)
     title_height_hint = NumericProperty(0.0)
@@ -970,9 +974,6 @@ Builder.load_string("""
 <ButtonRoot>:
     label: label_id
     layout: layout_id
-    state_color: app.no_color
-    text_color: app.blue
-    font_size: (self.height*0.421875)
 
     FloatLayout:
         id: layout_id
@@ -987,8 +988,9 @@ Builder.load_string("""
 
         Label:
             id: label_id
-            pos_hint: {'x': 0, 'y': 0}
             text: root.text
+            size_hint: 1, 1
+            pos_hint: {'x': 0, 'y': 0}
             font_size: root.font_size
             font_name: root.font_name
             shorten: root.shorten
@@ -997,34 +999,10 @@ Builder.load_string("""
             disabled_color: self.color
             text_size: (self.size[0]-(0.1*self.size[0]), None) if root.aleft else (None, None)
 
-<-DoubleClickButton>:
-    font_size: self.height*0.421875
-    text_color: app.white
-
-    BoxLayout:
-        size: root.size
-        pos: root.pos
-
-        Label:
-            id: icon_id
-            text: root.icon_text
-            size_hint: None, 1
-            width: self.height
-            color: root.text_color
-            font_name: root.icon_font_name
-            font_size: root.font_size
-        Label:
-            text: root.text
-            size_hint: None, 1
-            width: root.width - icon_id.width
-            color: root.text_color
-            font_name: 'Walkway Bold.ttf'
-            font_size: root.font_size
-            text_size: self.size[0], None
-
 <Button_>:
     state_color: app.blue
     text_color: app.white
+    font_size: self.height*0.421875
 
 <DeleteButton>:
     text: 'X'
@@ -1047,8 +1025,6 @@ Builder.load_string("""
 
 <-EditButton>:
     label: label_id
-    text_color: app.blue
-    font_size: self.height*0.1
 
     Label:
         id: label_id
@@ -1059,9 +1035,38 @@ Builder.load_string("""
         font_name: root.font_name
         shorten: root.shorten
         color: root.text_color
+        disabled_color: self.color
         markup: root.markup
         text_size: self.size
         valign: 'top'
+
+<-DoubleClickButton>:
+    label: label_id
+
+    Label:
+        id: icon_id
+        text: root.icon_text
+        size_hint: None, None
+        height: root.height
+        width: self.height
+        pos: root.pos
+        color: root.text_color
+        disabled_color: self.color
+        font_name: root.icon_font_name
+        font_size: root.font_size
+        text_size: self.size[0], None
+    Label:
+        id: label_id
+        text: root.text
+        size_hint: None, None
+        height: root.height
+        width: root.width - icon_id.width
+        pos: icon_id.right, root.pos[1]
+        color: root.text_color
+        disabled_color: self.color
+        font_name: 'Walkway Bold.ttf'
+        font_size: root.font_size
+        text_size: self.size[0], None
 
 <AccordionListItem>:
     cols: 1
