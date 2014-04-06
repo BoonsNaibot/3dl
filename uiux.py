@@ -20,7 +20,7 @@ class StatusBar(Widget):
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):
-            self.parent.dispatch('on_status_bar')
+            self.parent.parent.dispatch('on_status_bar')
             return True
 
 class BoundedTextInput(TextInput):
@@ -703,10 +703,6 @@ class EditButton(Editable):
     def on_touch_down(self, touch):
         if ((self.collide_point(*touch.pos)) or (self.state == 'edit')):
             return super(EditButton, self).on_touch_down(touch)
-
-    def on_text_validate(self, instance, *args):
-        self.text = instance.text.lstrip()
-        instance.focus = False
 
 class DoubleClickButton(DoubleClickable):
     icon_text = StringProperty('')
