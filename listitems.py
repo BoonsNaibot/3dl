@@ -102,6 +102,7 @@ class NoteItem(AccordionListItem):
         self.title.aleft = kwargs['aleft']
 
     def on_comments(self, *args):#instance, value):
+        print args
         value = value.lstrip()
         #instance.focus = False
 
@@ -109,7 +110,7 @@ class NoteItem(AccordionListItem):
             _l = lambda *_: self.screen.dispatch('on_comments', self, value)
             Clock.schedule_once(_l, 0.25)
 
-    def on_importance(self, *args):#instance, value):
+    def on_importance(self, instance, value):
         if self.why <> value:
             _l = lambda *_: self.screen.dispatch('on_importance', self, value)
             Clock.schedule_once(_l, 0.25)
@@ -186,7 +187,7 @@ class ContentMajor(FloatLayout):
         pass
 
     def on_comments(self, *args):
-        pass
+        print args
 
 Builder.load_string("""
 #:import EditButton uiux.EditButton
@@ -337,7 +338,7 @@ Builder.load_string("""
         font_size: root.width*0.035
         text_color: root.text_color
         screen: root.screen
-        on_text_validate: root.dispatch('on_comments', *args)
+        on_text_validate: root.parent.dispatch('on_comments', *args)
    
 <ListScreenItem>:
     title: title_id
@@ -370,7 +371,7 @@ Builder.load_string("""
         text_color: root.text_color
         state_color: root.state_color
         height: root.screen.height*root.content_height_hint
-        on_comments: print args
+        #on_comments: print args
         on_importance: root.dispatch('on_importance', root, args[2])
 
 <ActionListItem>:
