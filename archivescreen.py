@@ -6,7 +6,6 @@ Created on Jul 23, 2013
 from uiux import Screen_
 from kivy.lang import Builder
 from listitems import ArchiveScreenItem
-from kivy.uix.screenmanager import SlideTransition
 from kivy.properties import ObjectProperty, ListProperty
 
 class ArchiveScreen(Screen_):
@@ -19,31 +18,30 @@ class ArchiveScreen(Screen_):
             cursor = self.root_directory.cursor()
             cursor.execute("""
                            SELECT ix, what, when_, why, how
-                           FROM archive
+                           FROM [archive]
                            WHERE page=?
                            ORDER BY ROWID;
                            """,
-                           (self.page,)):
+                           (self.page,))
             self.list_items = cursor.fetchall()
 
     def _args_converter(self, row_index, an_obj):
-        dict = {'title_height_hint': 0.088,
-                'content_height_hint': (190./1136.),
-                'aleft': False,
-                'font_name': 'Walkway Bold.ttf',
-                'size_hint_y': None,
-                'screen': self}
-        dict['ix'], dict['text'], dict['when'], dict['why'], dict['how'] = an_obj
-        dict['why'] = bool(dict['why'])
-        return dict
+        _dict = {'title_height_hint': (153./1136.),
+                 'content_height_hint': (322./1136.),
+                 'aleft': True,
+                 'screen': self}
+        _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
+        _dict['why'] = bool(_dict['why'])
+        return _dict
 
     def on_delete(self, instance):
+        ix = instance.parent.ix
         cursor = self.root_directory.cursor()
         cursor.execute("""
-                       DELETE FROM archive
+                       DELETE FROM [archive]
                        WHERE ix=? AND what=? AND page=?;
                        """,
-                       (instance.ix, instance.title, self.page))
+                       (ix, instance.text, self.page))
         self.dispatch('on_pre_enter')
 
 Builder.load_string("""
@@ -57,21 +55,20 @@ Builder.load_string("""
 
     NavBar:
         id: navbar_id
-        size_hint: 1, .0775
-        pos_hint:{'top': 0.9648}
+        text: 'Archive'
+        size_hint: 1, 0.1127
+        font_size: root.width*0.3
+        pos_hint:{'top': 1, 'x': 0}
 
-        Label:
-            text: root.page
-            pos_hint: {'center_x': 0.5, 'center_y': 0.5}
-            font_size: self.height*0.8
-            font_name: 'Walkway Bold.ttf'
-            color: app.white
         Button_:
-            font_size: self.height*0.8
-            size_hint: 0.09375, .682
+            text: '<q'
+            state_color: app.no_color
+            text_color: app.white
+            font_size: self.width*0.5
+            font_name: 'breezi_font-webfont.ttf'
+            size_hint: 0.18, 1
             pos_hint: {'center_x': 0.08, 'center_y': 0.5}
-            text: '< Back'
-            on_press: root.dispatch('on_screen_change', 'List Screen', **{'direction': 'left', 'duration': 0.2})
+            on_press: root.dispatch('on_screen_change', 'List Screen', {'direction': 'right', 'duration': 0.2})
             
     AccordionListView:
         id: list_view_id
