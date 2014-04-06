@@ -23,6 +23,7 @@ class ListScreen(Screen_):
     def __init__(self, **kwargs):
         self.register_event_type('on_what')
         self.register_event_type('on_drop')
+        self.register_event_type('on_archive')
         self.register_event_type('on_comments')
         self.register_event_type('on_new_item')
         self.register_event_type('on_due_date')
@@ -63,11 +64,9 @@ class ListScreen(Screen_):
             _dict['content_height_hint'] = (322./1136.)
             _dict['listview'] = self.action_view
             _dict['aleft'] = True
-            #_dict['font_name'] = 'PermianSerifTypeface-webfont.ttf'
-            _dict['font_name'] = 'Walkway Bold.ttf'
 
             if not _dict['text']:
-                _dict['text'] = 'Drag an Important Item here.'
+                _dict['text'] = 'Drag a Task here.'
                 _dict['disabled'] = True
         else:
             _dict['title_height_hint'] = 0.088
@@ -75,7 +74,6 @@ class ListScreen(Screen_):
             _dict['drop_zones'].append(self.accordion_view)
             _dict['listview'] = self.accordion_view
             _dict['aleft'] = False
-            _dict['font_name'] = 'Walkway Bold.ttf'
 
         return _dict
 
@@ -162,7 +160,13 @@ class ListScreen(Screen_):
                                WHERE ix=? AND page=?;
                                """,
                                items)
-            self.dispatch('on_pre_enter')
+            #self.dispatch('on_pre_enter')
+
+    def on_archive(self, *args):
+        screen = self.manager.get_screen('Archive Screen')
+        screen.page, screen.page_number = self.page, self.page_number
+        kwargs = {'direction': 'left', 'duration': 0.2}
+        self.dispatch('on_screen_change', 'Archive Screen', kwargs)
 
 Builder.load_string("""
 #:import NavBar uiux.NavBar
@@ -179,14 +183,14 @@ Builder.load_string("""
         id: navbar_id
         text: root.page
         size_hint: 1, 0.1127
-        font_size: root.height*0.25
+        font_size: root.width*0.3
         pos_hint:{'top': 1, 'x': 0}
 
         Button_:
             text: '<D'
             state_color: app.no_color
-            text_color: app.black
-            font_size: self.height*0.7
+            text_color: app.white
+            font_size: self.width*0.5
             font_name: 'breezi_font-webfont.ttf'
             size_hint: 0.18, 1
             pos_hint: {'center_x': 0.08, 'center_y': 0.5}
@@ -194,11 +198,12 @@ Builder.load_string("""
         Button_:
             text: '5'
             state_color: app.no_color
-            text_color: app.black
-            font_size: self.height*0.8
+            text_color: app.white
+            font_size: self.width*0.5
             font_name: 'heydings_icons.ttf'
             size_hint: 0.18, 1
             pos_hint: {'center_x': 0.9, 'center_y': 0.5}
+            on_press: root.dispatch('on_archive', 'Archive Screen', {'direction': 'left', 'duration': 0.2})
 
     ActionListView:
         id: action_view_id
