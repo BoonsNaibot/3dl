@@ -43,7 +43,7 @@ class PagesScreen(Screen_):
             cursor = self.root_directory.cursor()
             cursor.execute("""
                            UPDATE [table of contents]
-                           SET bookmark=0
+                           SET bookmark=0;
                            """)
 
     def _args_converter(self, row_index, an_obj):
@@ -67,7 +67,7 @@ class PagesScreen(Screen_):
         cursor = self.root_directory.cursor()
         cursor.execute("""
                        SELECT COUNT(what)
-                       FROM notebook
+                       FROM [notebook]
                        WHERE page=? AND ix<4 AND what<>'';
                        """,
                        (text,))
@@ -162,7 +162,7 @@ Builder.load_string("""
     NavBar:
         id: navbar_id
         text: 'Lists'
-        font_size: self.height*0.8
+        font_size: root.width*0.3
 
         Button_:
             font_size: self.height*0.8
