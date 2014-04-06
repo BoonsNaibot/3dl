@@ -2,7 +2,7 @@ from kivy.app import App
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from kivy.uix.screenmanager import NoTransition
-from kivy.properties import ObjectProperty, ListProperty
+from kivy.properties import ListProperty, ObjectProperty
 
 from apsw import Connection, SQLITE_OPEN_READWRITE, CantOpenError
 from kivy.modules import inspector
@@ -12,6 +12,7 @@ import cProfile
 kv = """
 #:import ListScreen listscreen.ListScreen
 #:import PagesScreen pagesscreen.PagesScreen
+#:import ArchiveScreen archivescreen.ArchiveScreen
 #:import QuickViewScreen quickviewscreen.QuickViewScreen
 #:import DateTimeMiniScreen datepickerminiscreen.DateTimeMiniScreen
 #:import ScreenManager kivy.uix.screenmanager.ScreenManager
@@ -36,8 +37,8 @@ kv = """
             root_directory: app.db
         ListScreen:
             root_directory: app.db
-        #ArchiveScreen:
-        #    root_directory: app.db
+        ArchiveScreen:
+            root_directory: app.db
         #DateTimeMiniScreen:
         #    root_directory: app.db
 """
