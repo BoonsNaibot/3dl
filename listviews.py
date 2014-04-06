@@ -219,7 +219,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
                     d[widget] = placeholder.ix = child_ix
                     #_dict = {widget.text: child.ix, child.text: placeholder.ix}
                     #placeholder.ix, child.ix = child.ix, placeholder.ix
-                    placeholder.index = child.index
+                    placeholder.index, child.index = c_index, p_index
                     break
 
         _dict = dict(indices, **d)
@@ -228,9 +228,9 @@ class DNDListView(FloatLayout, ListViewAdapter):
     def on_motion_over(self, *args):
         return {}
 
-    def on_motion_out(self, widget, _dict):
-        if _dict:
-            self.parent.dispatch('on_drop', _dict)
+    def on_motion_out(self, widget, l):
+        if l:
+            self.parent.dispatch('on_drop', l)
 
 class AccordionListView(DNDListView):
 
@@ -265,10 +265,10 @@ class AccordionListView(DNDListView):
 
     def on_motion_out(self, widget, indices):
         if indices:
-            widget = widget.parent
             point = widget.center
             page = widget.screen.page
-            deleting = widget.listview.__self__ is not self
+            deleting = self.placeholder is None
+            #deleting = widget.listview.__self__ is not self
             args = []
 
             for k in indices.keys():
@@ -280,8 +280,9 @@ class AccordionListView(DNDListView):
                 else:
                     args.append((k.text, k.when, int(k.why), k.how, indices[k], page))
 
-            _on_complete = lambda *_: self.parent.dispatch('on_drop', tuple(args)) 
-            Clock.schedule_once(_on_complete, 0.1)
+            #_on_complete = lambda *_: self.parent.dispatch('on_drop', tuple(args)) 
+            #Clock.schedule_once(_on_complete, 0.1)
+            super(AccordionListView, self).on_motion_out(widget, tuple(args))
 
 class ActionListView(AccordionListView):
 
