@@ -25,7 +25,7 @@ class ScrollerEffect(DampedScrollEffect):
     
     def on_scroll(self, instance, value):
         parent = instance._parent
-        vp = instance.target_widget
+        vp = parent._viewport
 
         if vp:
             sh = vp.height - parent.height
