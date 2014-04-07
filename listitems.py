@@ -18,15 +18,11 @@ class PagesScreenItem(Clickable, Deletable, Editable):
             Clock.schedule_once(_l, 0.25)
 
     def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            nruter = self.state == 'normal'
-
-            if not nruter:
-                self.state = 'normal'
-            return not nruter
-
-        else:
+        if ((self.collide_point(*touch.pos)) or (self.state == 'edit')):
             return super(PagesScreenItem, self).on_touch_down(touch)
+        elif self.state <> 'normal':
+            self.state = 'normal'
+            return True
 
 class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'dragged', 'edit', 'normal'))
@@ -45,15 +41,11 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
             return super(NoteItemTitle, self).on_hold_down(*args)
 
     def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            nruter = self.state == 'normal'
-
-            if not nruter:
-                self.state = 'normal'            
-            return not nruter
-
-        else:
+        if ((self.collide_point(*touch.pos)) or (self.state == 'edit')):
             return super(NoteItemTitle, self).on_touch_down(touch)
+        elif self.state <> 'normal':
+            self.state = 'normal'
+            return True
 
     def on_text_validate(self, instance):
         if super(NoteItemTitle, self).on_text_validate(instance, instance.text):
@@ -78,11 +70,9 @@ class ArchiveScreenItemTitle(Deletable, Clickable):
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
-            nruter = self.state == 'normal'
-
-            if not nruter:
-                self.state = 'normal'            
-            return not nruter
+            if self.state <> 'normal':
+                self.state = 'normal'
+            return True
 
         else:
             return super(ArchiveScreenItemTitle, self).on_touch_down(touch)
@@ -135,11 +125,9 @@ class QuickViewScreenItemTitle(Completable, Deletable):
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
-            nruter = self.state == 'normal'
-
-            if not nruter:
+            if self.state <> 'normal':
                 self.state = 'normal'
-            return not nruter
+            return True
 
         else:
             return super(QuickViewScreenItemTitle, self).on_touch_down(touch)
