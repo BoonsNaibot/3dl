@@ -765,7 +765,9 @@ class AccordionListItem(Selectable, FloatLayout):
         self._anim = _anim.start(self)
 
     def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
+        if self._anim:
+            return True
+        elif not self.collide_point(*touch.pos):
             return False
         else:
             return super(AccordionListItem, self).on_touch_down(touch)
