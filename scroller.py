@@ -105,34 +105,32 @@ class Scroller(StencilView):
                 return True
 
     def on_touch_move(self, touch):
-        if ((touch.grab_current is not self) and (self.mode == 'down')):
-            #touch.push()
-            #touch.apply_transform_2d(self.to_local)
-            ret = super(Scroller, self).on_touch_move(touch)
-            #touch.pop()
+        if touch.grab_current is self:
             
-            if ret:
-                touch.ungrab(self)
-                self.effect_y.cancel()
-                self.mode = 'normal'
-                return ret
-            elif ((abs(touch.dy) > self.scroll_distance) and (self._viewport.height > self.height)):
-                self.mode = 'scrolling'
-                grab_list = touch.grab_list
-                l = len(grab_list)
+            if self.mode == 'down':
+                ret = super(Scroller, self).on_touch_move(touch)
+                
+                if ret:
+                    touch.ungrab(self)
+                    self.effect_.velocity = 0
+                    self.effect_y.cancel()
+                    self.mode = 'normal'
+                elif ((abs(touch.dy) > self.scroll_distance) and (self._viewport.height > self.height)):
+                    self.mode = 'scrolling'
+                    grab_list = touch.grab_list
+                    l = len(grab_list)
+    
+                    if l > 1:
+                        for x in xrange(l):
+                            item = grab_list[x]()
+    
+                            if type(item) is not Scroller:
+                                touch.ungrab(item)
+                                item.cancel()
 
-                if l > 1:
-                    for x in xrange(l):
-                        item = grab_list[x]()
-
-                        if type(item) is not Scroller:
-                            touch.ungrab(item)
-                            item.cancel()
-
-                return True
-
-        elif ((touch.grab_current is self) and (self.mode == 'scrolling')):
-            self.effect_y.update(touch.y)
+            elif self.mode == 'scrolling':
+                self.effect_y.update(touch.y)
+                
             return True
 
     def on_touch_up(self, touch):
@@ -140,6 +138,7 @@ class Scroller(StencilView):
             touch.ungrab(self)
 
             if self.mode == 'down':
+                self.effect_y.velocity = 0
                 self.effect_y.cancel()
             elif self.mode == 'scrolling':
                 self.effect_y.stop(touch.y)
