@@ -332,7 +332,7 @@ Builder.load_string("""
     title: title_id
     content: content_id
     text_color: app.blue if (self.collapse_alpha==0.0 or title_id.state=='dragged') else app.dark_gray
-    state_color: app.no_color if self.state=='dragged' else app.smoke_white
+    state_color: app.no_color if title_id.state=='dragged' else app.smoke_white
     height: title_id.height + (content_id.height*(1-self.collapse_alpha))
 
     NoteItemTitle:
