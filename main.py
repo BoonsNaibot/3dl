@@ -76,8 +76,6 @@ class ThreeDoListApp(App):
             connection = Connection('db.db')
             cursor = connection.cursor()
             cursor.execute("""
-                           PRAGMA foreign_keys=1;
-
                            CREATE TABLE [table of contents](
                            page_number UNSIGNED INTEGER,
                            page TEXT PRIMARY KEY,
@@ -147,6 +145,8 @@ class ThreeDoListApp(App):
                            """)
             #cursor.execute("commit")
             self.db = connection
+            
+        self.db.cursor().execute("PRAGMA foreign_keys=ON;")
 
     def on_pre_start(self):
         global kv
