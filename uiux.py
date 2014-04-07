@@ -736,33 +736,33 @@ class AccordionListItem(Selectable, FloatLayout):
     state = AliasProperty(_get_state, _set_state)
 
     def __init__(self, **kwargs):
-        self._anim_collapse = None
+        self._anim = None
         #self.register_event_type('on_release')
         super(AccordionListItem, self).__init__(**kwargs)
 
     def select(self, *args):
-        if self._anim_collapse:
-            self._anim_collapse.stop()
-            self._anim_collapse = None
+        if self._anim:
+            self._anim.stop()
+            self._anim = None
 
         def _do_progress(anim, instance, progression):
             instance.listview._sizes[instance.index] = instance.height
 
         _anim = Animation(collapse_alpha=0.0, t='out_expo', d=0.25)
         _anim.bind(on_progress=_do_progress)
-        self._anim_collapse = _anim.start(self)
+        self._anim = _anim.start(self)
 
     def deselect(self, *args):
-        if self._anim_collapse:
-            self._anim_collapse.stop()
-            self._anim_collapse = None
+        if self._anim:
+            self._anim.stop()
+            self._anim = None
 
         def _do_progress(anim, instance, progression):
             instance.listview._sizes[instance.index] = instance.height
 
         _anim = Animation(collapse_alpha=1.0, t='out_expo', d=0.25)
         _anim.bind(on_progress=_do_progress)
-        self._anim_collapse = _anim.start(self)
+        self._anim = _anim.start(self)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
