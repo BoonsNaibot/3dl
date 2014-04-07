@@ -365,7 +365,7 @@ Builder.load_string("""
 <ActionListItem>:
     title: title_id
     content: content_id
-    state_color: app.no_color if title_id.state in ('down', 'dragged') else app.white
+    state_color: app.no_color if title_id.state=='dragged' else (app.light_blue if title_id.state=='down' else app.white)
     height: title_id.height + (content_id.height*(1-self.collapse_alpha))
     text_color: app.dark_gray if self.disabled else app.blue
 
