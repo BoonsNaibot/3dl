@@ -48,7 +48,7 @@ class ScrollerEffect(DampedScrollEffect):
                 Clock.schedule_once(_mode_change, 0.055)
 
 class Scroller(StencilView):
-    scroll_distance = NumericProperty('20dp')
+    scroll_distance = NumericProperty('10dp')
     scroll_y = NumericProperty(1.)
     bar_color = ListProperty([.7, .7, .7, .9])
     bar_width = NumericProperty('2dp')
