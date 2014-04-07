@@ -42,6 +42,7 @@ class ArchiveScreen(Screen_):
                        WHERE ix=? AND what=? AND page=?;
                        """,
                        (ix, instance.text, self.page))
+        self.polestar = None
         self.dispatch('on_pre_enter')
 
 Builder.load_string("""
