@@ -164,13 +164,13 @@ Builder.load_string("""
         text: 'Lists'
         font_size: root.width*0.3
 
-        Button_:
-            font_size: self.height*0.8
-            font_name: 'breezi_font-webfont.ttf'
-            size_hint: 0.09375, .682
-            pos_hint: {'center_x': 0.08, 'center_y': 0.5}
-            text: 'E'
-            on_press: root.dispatch('on_settings')
+        #Button_:
+        #    font_size: self.height*0.8
+        #    font_name: 'breezi_font-webfont.ttf'
+        #    size_hint: 0.09375, .682
+        #    pos_hint: {'center_x': 0.08, 'center_y': 0.5}
+        #    text: 'E'
+        #    on_press: root.dispatch('on_settings')
             
     DNDListView:
         id: list_view_id
