@@ -16,8 +16,11 @@ class ScrollerEffect(DampedScrollEffect):
     target_widget = AliasProperty(_get_target_widget, None)
     
     def _get_min(self):
-        if self.target_widget:
-            return -(self.target_widget.size[1] - self._parent.height)
+        parent = instance._parent
+        tw = parent._viewport
+
+        if tw:
+            return -(tw.size[1] - parent.height)
         else:
             return 0
         
