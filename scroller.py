@@ -10,40 +10,42 @@ class ScrollerEffect(DampedScrollEffect):
     max = NumericProperty(0)
     
     def _get_target_widget(self):
-        return self._parent._viewport
-        
-    target_widget = AliasProperty(_get_target_widget, None, bind=('_parent',))
+        if self._parent:
+            return self._parent._viewport
+
+    target_widget = AliasProperty(_get_target_widget, None)
     
     def _get_min(self):
-        tw = self.target_widget
-
-        if tw:
-            return -(tw.size[1] - self._parent.height)
+        if self.target_widget:
+            return -(self.target_widget.size[1] - self._parent.height)
         else:
             return 0
         
-    min = AliasProperty(_get_min, None, bind=('target_widget',))
+    min = AliasProperty(_get_min, None)
     
     def on_scroll(self, instance, value):
         parent = instance._parent
         vp = instance.target_widget
-        
+
         if vp:
             sh = vp.height - parent.height
-            
+
             if sh >= 1:
                 sy = value/float(sh)
-                parent.scroll_y = -sy
                 
-    def on_is_manual(self, instance, value):
-        if not value:
-
-            def _mode_change(*_):
-                if not (instance.is_manual and (instance._parent.mode=='scrolling')):
-                    instance._parent.mode = 'normal'
+                if parent.scroll_y == -sy:
+                    parent.trigger_update_from_scroll()
                 else:
-                    return False
-            Clock.schedule_once(_mode_change, 0.055)
+                    parent.scroll_y = -sy
+
+            if not (instance.velocity or instance.is_manual):
+
+                def _mode_change(*_):
+                    if not (instance.velocity or instance.is_manual):
+                        parent.mode = 'normal'
+                    else:
+                        return False
+                Clock.schedule_once(_mode_change, 0.055)
 
 class Scroller(StencilView):
     scroll_distance = NumericProperty('20dp')
@@ -54,7 +56,7 @@ class Scroller(StencilView):
     bar_anim = ObjectProperty(None, allownone=True)
     effect_y = ObjectProperty(None)
     _viewport = ObjectProperty(None)
-    bar_alpha = NumericProperty(1.)
+    bar_alpha = NumericProperty(1.0)
     mode = OptionProperty('normal', options=('down', 'normal', 'scrolling'))
 
     def _get_vbar(self):
@@ -111,7 +113,7 @@ class Scroller(StencilView):
                 self.effect_y.cancel()
                 self.mode = 'normal'
                 return ret
-            elif ((abs(touch.oy-touch.y) > self.scroll_distance) and (self._viewport.height > self.height)):
+            elif ((abs(touch.dy) > self.scroll_distance) and (self._viewport.height > self.height)):
                 self.mode = 'scrolling'
                 grab_list = touch.grab_list
                 l = len(grab_list)
@@ -127,11 +129,8 @@ class Scroller(StencilView):
                 return True
 
         elif ((touch.grab_current is self) and (self.mode == 'scrolling')):
-            min_height = self._viewport.height
-
-            if min_height > self.height:
-                self.effect_y.update(touch.y)
-                return True
+            self.effect_y.update(touch.y)
+            return True
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
@@ -146,39 +145,22 @@ class Scroller(StencilView):
         return super(Scroller, self).on_touch_up(touch)
 
     def update_from_scroll(self, *largs):
-        '''Force the reposition of the content, according to current value of
-        :data:`scroll_x` and :data:`scroll_y`.
-
-        This method is automatically called when one of the :data:`scroll_x`,
-        :data:`scroll_y`, :data:`pos` or :data:`size` properties change, or
-        if the size of the content changes.
-        '''
         vp = self._viewport
 
         if vp:
-            
-            if vp.size_hint_x is not None:
-                vp.width = vp.size_hint_x * self.width
-            if vp.width > self.width:
-                sw = vp.width - self.width
-                x = self.x - self.scroll_x * sw
-            else:
-                x = self.x
+            vp.width = vp.size_hint_x * self.width
+
             if vp.height > self.height:
                 sh = vp.height - self.height
                 y = self.y - self.scroll_y * sh
             else:
                 y = self.top - vp.height
-            vp.pos = x, y
-
-            # new in 1.2.0, show bar when scrolling happen
-            # and slowly remove them when no scroll is happening.
+            vp.pos = self.x, y
             self.bar_alpha = 1.
             
             if self.bar_anim:
                 self.bar_anim.stop()
                 Clock.unschedule(self._start_decrease_alpha)
-    
             Clock.schedule_once(self._start_decrease_alpha, .5)
 
     def _start_decrease_alpha(self, *l):
