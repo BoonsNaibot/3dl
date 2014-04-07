@@ -175,10 +175,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
 
     def reparent(self, instance, widget):
         #Mimic `ListAdapter.create_view`
-        data = instance.listview.get_data_item(instance.index)
-        d = [widget.ix]
-        [d.extend([_]) for _ in data[1:]]
-        data = tuple(d)
+        data = ((widget.ix,) + instance.listview.get_data_item(instance.index)[1:])
         item_args = self.args_converter(widget.index, data)
         item_args['index'] = widget.index
         new_item = self.list_item(**item_args)
