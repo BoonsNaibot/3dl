@@ -470,6 +470,8 @@ Builder.load_string("""
                     Line:
                         points: self.parent.x, self.y, self.right, self.y
 
+<QuickLabel@Label>:
+    disabled_color: self.color
 
 <QuickViewScreenItem>:
     orientation: 'vertical'
@@ -490,7 +492,7 @@ Builder.load_string("""
         size_hint: 1, 0.9
         spacing: 10
 
-        Label:
+        QuickLabel:
             size_hint: 0.8, 1
             text: root.how
             valign: 'top'
@@ -499,7 +501,7 @@ Builder.load_string("""
             size_hint: 0.2, .6
             pos_hint: {'top' : 0.9}
 
-            Label:
+            QuickLabel:
                 size_hint: 1, .75
                 text: '2 Days'
                 font_size: (self.height*0.421875)
@@ -509,7 +511,7 @@ Builder.load_string("""
                     Rectangle:
                         size: self.size
                         pos: self.pos
-            Label:
+            QuickLabel:
                 text: '11.06.2013'
                 size_hint: 0.75, 0.25
                 pos_hint: {'center_x' : .5}
