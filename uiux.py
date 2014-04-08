@@ -117,13 +117,8 @@ class Screen_(Screen):
         pass
 
 class Selectable(object):
+    index = NumericProperty(None)
     is_selected = BooleanProperty(False)
-    
-    def _get_index(self):
-        if self.parent:
-            return self.parent.children.index(self)
-            
-    index = AliasProperty(_get_index, None)
 
     def __init__(self, **kwargs):
         super(Selectable, self).__init__(**kwargs)
