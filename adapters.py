@@ -52,6 +52,7 @@ class ListViewAdapter(object):
 
         if item is not None:
             item_args = self.args_converter(index, item)
+            item_args['index'] = index
             item_args['listview'] = self
             view_instance = self.list_item(**item_args)
 
