@@ -8,7 +8,8 @@ class DateTimeMiniScreen(Screen_):
     month = NumericProperty(1)
     item = ObjectProperty(None)
     body = ObjectProperty(None)
-    date = ObjectProperty(datetime.date.today())
+    #date = ObjectProperty(datetime.date.today())
+    date = ObjectProperty(None)
     time = ObjectProperty(datetime.time(12, 00))
     month_names = ListProperty(('January ', 'February ', 'March ', 'April ', 'May ', 'June ', 'July ', 'August ', 'September ', 'October ', 'November ', 'December '))
 
