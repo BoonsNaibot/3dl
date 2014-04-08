@@ -84,21 +84,22 @@ class Screen_(Screen):
             instance._anim = _anim.start(instance)
 
     def on_touch_down(self, touch):
-        polestar = self.polestar
-
-        if polestar:
-            touch.push()
-            touch.apply_transform_2d(self.to_local)
-            ret = polestar.dispatch('on_touch_down', touch)
-            touch.pop()
-
-            if not ret:
-                self.polestar = None
-
-            return ret
-
-        else:
-            return super(Screen_, self).on_touch_down(touch)
+        if self._anim is None:
+            polestar = self.polestar
+    
+            if polestar:
+                touch.push()
+                touch.apply_transform_2d(self.to_local)
+                ret = polestar.dispatch('on_touch_down', touch)
+                touch.pop()
+    
+                if not ret:
+                    self.polestar = None
+    
+                return ret
+    
+            else:
+                return super(Screen_, self).on_touch_down(touch)
 
     def on_screen_change(self, destination, kwargs, transition=SlideTransition):
         manager =  self.manager
@@ -116,8 +117,13 @@ class Screen_(Screen):
         pass
 
 class Selectable(object):
-    index = NumericProperty(None)
     is_selected = BooleanProperty(False)
+    
+    def _get_index(self):
+        if self.parent:
+            return self.parent.children.index(self)
+            
+    index = AliasProperty(_get_index, None)
 
     def __init__(self, **kwargs):
         super(Selectable, self).__init__(**kwargs)
@@ -287,6 +293,9 @@ class Deletable(ButtonRoot):
         super(Deletable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
+        if self._anim:
+            touch.ungrab(self)
+            return True
         if self.state == 'delete':
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
@@ -374,7 +383,10 @@ class Completable(ButtonRoot):
         super(Completable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
-        if self.state == 'complete':
+        if self._anim:
+            touch.ungrab(self)
+            return True
+        elif self.state == 'complete':
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
@@ -713,6 +725,7 @@ class DoubleClickButton(DoubleClickable):
             return super(DoubleClickButton, self).on_touch_down(touch)
 
 class AccordionListItem(Selectable, FloatLayout):
+    _anim = ObjectProperty(None, allownone=True)
     title = ObjectProperty(None)
     content = ObjectProperty(None)
     listview = ObjectProperty(None)
@@ -736,7 +749,6 @@ class AccordionListItem(Selectable, FloatLayout):
     state = AliasProperty(_get_state, _set_state)
 
     def __init__(self, **kwargs):
-        self._anim = None
         #self.register_event_type('on_release')
         super(AccordionListItem, self).__init__(**kwargs)
 
