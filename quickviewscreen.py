@@ -58,6 +58,30 @@ class QuickViewScreen(Screen_):
             if str.startswith(word + ' '):
                 return '[b]' + word + '[/b]' + escape_markup(str[(len(word)-1):])
 
+    def on_delete(self, instance):
+        cursor = self.root_directory.cursor()
+        ix = instance.parent.ix
+
+        cursor.execute("""
+                       DELETE FROM [notebook]
+                       WHERE ix=? AND page=? AND page_number=?;
+                       """,
+                       (ix, self.page, self.page_number))
+        self.polestar = None
+        self.dispatch('on_pre_enter')
+
+    def on_complete(self, instance):
+        cursor = self.root_directory.cursor()
+        ix = instance.parent.ix
+
+        cursor.execute("""
+                       INSERT INTO [archive]
+                       SELECT * FROM [notebook] WHERE ix=? AND page=? AND page_number=?;
+                       """,
+                       (ix, self.page, self.page_number))
+        self.polestar = None
+        self.dispatch('on_pre_enter')
+
 Builder.load_string("""
 #:import NavBar uiux.NavBar
 #:import QuickListView listviews
