@@ -112,7 +112,9 @@ class Scroller(StencilView):
                 ret = super(Scroller, self).on_touch_move(touch)
                 
                 if ret:
-                    return self.dispatch('on_touch_up', touch) #I guess it's easier this way...?
+                    touch.ungrab(self)
+                    self.halt()
+                    return True
                 elif ((abs(touch.dy) > self.scroll_distance) and (self._viewport.height > self.height)):
                     self.mode = 'scrolling'
                     grab_list = touch.grab_list
@@ -141,8 +143,6 @@ class Scroller(StencilView):
                 self.mode = 'normal'
             elif self.mode == 'scrolling':
                 effect.stop(touch.y)
-                self.on_height(self)
-
             effect.on_scroll(effect, effect.scroll)
             return True
 
@@ -166,6 +166,11 @@ class Scroller(StencilView):
                 self.bar_anim.stop()
                 Clock.unschedule(self._start_decrease_alpha)
             Clock.schedule_once(self._start_decrease_alpha, .5)
+
+    def halt(self):        
+        self.effect_y.is_manual = False
+        self.on_height(self)
+        self.effect_y.velocity = 0
 
     def _start_decrease_alpha(self, *l):
         self.bar_alpha = 1.
