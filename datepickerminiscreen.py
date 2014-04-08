@@ -44,9 +44,14 @@ class DateTimeMiniScreen(Screen_):
 
     def on_pre_enter(self, *args):
         if self.item:
-            dt = datetime.datetime.strptime(self.item.when, '%Y-%m-%dT%H:%M')
-            self.date = dt.date()
-            self.time = dt.time()
+            when = self.item.when
+            
+            if when:
+                dt = datetime.datetime.strptime(self.item.when, '%Y-%m-%dT%H:%M')
+                self.date = dt.date()
+                self.time = dt.time()
+            else:
+                self.dispatch('on_today') 
 
     def on_date(self, instance, date):
         self.body.dispatch('on_populated', instance)
