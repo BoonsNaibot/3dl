@@ -18,7 +18,7 @@ class DateTimeMiniScreen(Screen_):
             
     day = AliasProperty(_get_day, None, bind=('body',))
 
-    def _get_when(self):
+    """def _get_when(self):
         if self.day:
             dt = datetime.datetime.combine(self.date, self.time)
             return dt.isoformat()[:16]
@@ -33,7 +33,7 @@ class DateTimeMiniScreen(Screen_):
         else:
             return False
 
-    when = AliasProperty(_get_when, _set_when, bind=('day',))
+    when = AliasProperty(_get_when, _set_when, bind=('day',))"""
     
     def __init__(self, **kwargs):
         self.register_event_type('on_today')
@@ -43,7 +43,10 @@ class DateTimeMiniScreen(Screen_):
         super(DateTimeMiniScreen, self).__init__(**kwargs)
 
     def on_pre_enter(self, *args):
-        self.when = ''#self.item.when
+        if self.item:
+            dt = datetime.datetime.strptime(self.item.when, '%Y-%m-%dT%H:%M')
+            self.date = dt.date()
+            self.time = dt.time()
 
     def on_date(self, instance, date):
         self.body.dispatch('on_populated', instance)
@@ -66,10 +69,10 @@ class DateTimeMiniScreen(Screen_):
             new_year = self.date.year + 1
 
             if new_year <= maxyear:
-                self.date = datetime.date(new_year, 1, self.date.day)
+                self.date = datetime.date(new_year, 1, 1)
 
         else:
-            self.date = datetime.date(self.date.year, self.date.month + 1, self.date.day)
+            self.date = datetime.date(self.date.year, self.date.month + 1, 1)
 
     def on_previous_month(self, instance, today=datetime.date.today()):
         self.dispatch('on_deselect')
