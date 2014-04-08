@@ -283,18 +283,18 @@ class AccordionListView(DNDListView):
 
 class ActionListView(AccordionListView):
 
-    def on_motion_over(self, widget, indices):
-        d = {}
+    def on_motion_over(self, instance, indices):
+        d = {instance: instance.listview.placeholder.ix}
         children = self.container.children
 
         for child in children:
-            collision = child.collide_point(*widget.center)
+            collision = child.collide_point(*instance.center)
 
             if collision:
-                child.title.state = 'down'
-                d = {widget: child.ix, child: widget.ix}
-            elif child.title.state <> 'normal':
-                child.title.state = 'normal'
+                child.state = 'down'
+                d.update({instance: child.ix, child: instance.ix})
+            elif child.state <> 'normal':
+                child.state = 'normal'
 
                 if child in indices:
                     del indices[child]
