@@ -96,13 +96,12 @@ class Scroller(StencilView):
     def on_touch_down(self, touch):        
         if self.collide_point(*touch.pos):
             touch.grab(self)
+            self.effect_y.start(touch.y)
 
             if self.mode == 'normal':
-                self.effect_y.start(touch.y)
                 self.mode = 'down'
                 return super(Scroller, self).on_touch_down(touch)
             elif self.mode == 'scrolling':
-                self.effect_y.start(touch.y)
                 return True
 
     def on_touch_move(self, touch):
