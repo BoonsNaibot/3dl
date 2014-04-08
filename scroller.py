@@ -16,7 +16,7 @@ class ScrollerEffect(DampedScrollEffect):
     target_widget = AliasProperty(_get_target_widget, None)
     
     def _get_min(self):
-        parent = instance._parent
+        parent = self._parent
         tw = parent._viewport
 
         if tw:
@@ -37,14 +37,14 @@ class ScrollerEffect(DampedScrollEffect):
                 sy = value/float(sh)
                 
                 if parent.scroll_y == -sy:
-                    parent.trigger_update_from_scroll()
+                    parent._trigger_update_from_scroll()
                 else:
                     parent.scroll_y = -sy
 
-            if not (instance.velocity or instance.is_manual):
+            if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not value))):
 
                 def _mode_change(*_):
-                    if not (instance.velocity or instance.is_manual):
+                    if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not instance.scroll))):
                         parent.mode = 'normal'
                     else:
                         return False
@@ -96,12 +96,13 @@ class Scroller(StencilView):
     def on_touch_down(self, touch):        
         if self.collide_point(*touch.pos):
             touch.grab(self)
-            self.effect_y.start(touch.y)
 
             if self.mode == 'normal':
+                self.effect_y.start(touch.y)
                 self.mode = 'down'
                 return super(Scroller, self).on_touch_down(touch)
-            else:
+            elif self.mode == 'scrolling':
+                self.effect_y.start(touch.y)
                 return True
 
     def on_touch_move(self, touch):
@@ -133,13 +134,16 @@ class Scroller(StencilView):
     def on_touch_up(self, touch):
         if touch.grab_current is self:
             touch.ungrab(self)
+            effect = self.effect_y
 
             if self.mode == 'down':
-                self.effect_y.velocity = 0
-                self.effect_y.cancel()
+                effect.cancel()
                 self.mode = 'normal'
             elif self.mode == 'scrolling':
-                self.effect_y.stop(touch.y)
+                effect.stop(touch.y)
+                self.on_height(self)
+
+            effect.on_scroll(effect, effect.scroll)
             return True
 
         return super(Scroller, self).on_touch_up(touch)
