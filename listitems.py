@@ -324,7 +324,7 @@ Builder.load_string("""
         font_size: root.width*0.035
         text_color: root.text_color
         screen: root.screen
-        on_text_validate: root.dispatch('on_comments', *args)
+        on_text_validate: root.dispatch('on_comments', *args[1:])
    
 <ListScreenItem>:
     title: title_id
