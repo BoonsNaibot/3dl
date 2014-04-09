@@ -707,7 +707,7 @@ class EditButton(Editable):
 
     def on_text_validate(self, instance):
         if super(EditButton, self).on_text_validate(instance, instance.text):
-            self.parent.dispatch('on_text_validate', self.parent.parent, instance.text)
+            self.parent.dispatch('on_comments', instance.text)
             
 
 class DoubleClickButton(DoubleClickable):
