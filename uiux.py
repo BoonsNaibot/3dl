@@ -86,18 +86,18 @@ class Screen_(Screen):
     def on_touch_down(self, touch):
         if self._anim is None:
             polestar = self.polestar
-    
+
             if polestar:
                 touch.push()
                 touch.apply_transform_2d(self.to_local)
                 ret = polestar.dispatch('on_touch_down', touch)
                 touch.pop()
-    
+
                 if not ret:
                     self.polestar = None
-    
+
                 return ret
-    
+
             else:
                 return super(Screen_, self).on_touch_down(touch)
 
@@ -288,9 +288,6 @@ class Deletable(ButtonRoot):
         super(Deletable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
-        if self._anim:
-            touch.ungrab(self)
-            return True
         if self.state == 'delete':
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
@@ -378,10 +375,7 @@ class Completable(ButtonRoot):
         super(Completable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
-        if self._anim:
-            touch.ungrab(self)
-            return True
-        elif self.state == 'complete':
+        if self.state == 'complete':
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
@@ -711,6 +705,11 @@ class EditButton(Editable):
         if ((self.collide_point(*touch.pos)) or (self.state == 'edit')):
             return super(EditButton, self).on_touch_down(touch)
 
+    def on_text_validate(self, instance):
+        if super(EditButton, self).on_text_validate(instance, instance.text):
+            self.parent.dispatch('on_text_validate', self.parent.parent, instance.text)
+            
+
 class DoubleClickButton(DoubleClickable):
     icon_text = StringProperty('')
     icon_font_name = StringProperty('heydings_icons.ttf')
@@ -720,7 +719,6 @@ class DoubleClickButton(DoubleClickable):
             return super(DoubleClickButton, self).on_touch_down(touch)
 
 class AccordionListItem(Selectable, FloatLayout):
-    _anim = ObjectProperty(None, allownone=True)
     title = ObjectProperty(None)
     content = ObjectProperty(None)
     listview = ObjectProperty(None)
@@ -744,6 +742,7 @@ class AccordionListItem(Selectable, FloatLayout):
     state = AliasProperty(_get_state, _set_state)
 
     def __init__(self, **kwargs):
+        self._anim = None
         #self.register_event_type('on_release')
         super(AccordionListItem, self).__init__(**kwargs)
 
@@ -959,7 +958,7 @@ Builder.load_string("""
     pos_hint:{'top': 1, 'x': 0}
     canvas.before:
         Color:
-            rgba: app.blue
+            rgba: app.dark_blue
         Rectangle:
             size: self.size
             pos: self.pos
