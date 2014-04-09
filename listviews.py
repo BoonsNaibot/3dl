@@ -269,6 +269,7 @@ class AccordionListView(DNDListView):
             args = []
 
             for k in indices.keys():
+                k.index = k.parent.children.index(k)
 
                 if (deleting and (not k.collide_point(*point))):
                     del indices[k]
