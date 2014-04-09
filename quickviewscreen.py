@@ -64,9 +64,9 @@ class QuickViewScreen(Screen_):
 
         cursor.execute("""
                        DELETE FROM [notebook]
-                       WHERE ix=? AND page=? AND page_number=?;
+                       WHERE ix=? AND page=?;
                        """,
-                       (ix, self.page, self.page_number))
+                       (ix, self.page))
         self.polestar = None
         self.dispatch('on_pre_enter')
 
@@ -76,9 +76,9 @@ class QuickViewScreen(Screen_):
 
         cursor.execute("""
                        INSERT INTO [archive]
-                       SELECT * FROM [notebook] WHERE ix=? AND page=? AND page_number=?;
+                       SELECT * FROM [notebook] WHERE ix=? AND page=?;
                        """,
-                       (ix, self.page, self.page_number))
+                       (ix, self.page))
         self.polestar = None
         self.dispatch('on_pre_enter')
 
