@@ -205,6 +205,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
 
                 if ((widget.center_y <= child.top) and (widget.center_y <= placeholder.y)) or ((widget.center_y >= child.y) and (widget.center_y >= placeholder.top)):
                     children.insert(c_index, children.pop(p_index))
+                    placeholder.index, child.index = c_index, p_index
                     #maybe scroll here
                     child_ix = child.ix
 
@@ -216,7 +217,6 @@ class DNDListView(FloatLayout, ListViewAdapter):
                     d[widget] = placeholder.ix = child_ix
                     #_dict = {widget.text: child.ix, child.text: placeholder.ix}
                     #placeholder.ix, child.ix = child.ix, placeholder.ix
-                    placeholder.index, child.index = c_index, p_index
                     break
 
         _dict = dict(indices, **d)
@@ -262,21 +262,20 @@ class AccordionListView(DNDListView):
 
     def on_motion_out(self, widget, indices):
         if indices:
+            args = []
             point = widget.center
             page = widget.screen.page
             deleting = self.placeholder is None
             #deleting = widget.listview.__self__ is not self
-            args = []
 
-            for k in indices.keys():
-                k.index = k.parent.children.index(k)
+            for k, v in indices.iteritems():
 
                 if (deleting and (not k.collide_point(*point))):
-                    del indices[k]
+                    k.index -= 1
                 elif k.disabled:
-                    args.append((u"", u"", 0, u"", indices[k], page))
+                    args.append((u"", u"", 0, u"", v, page))
                 else:
-                    args.append((k.text, k.when, int(k.why), k.how, indices[k], page))
+                    args.append((k.text, k.when, int(k.why), k.how, v, page))
 
             #_on_complete = lambda *_: self.parent.dispatch('on_drop', tuple(args)) 
             #Clock.schedule_once(_on_complete, 0.1)
