@@ -91,7 +91,7 @@ class NoteItem(AccordionListItem):
 
         self.title.aleft = kwargs['aleft']
 
-    def on_comments(self, instance, value):
+    def on_comments(self, value):
         value = value.lstrip()
         #instance.focus = False
 
@@ -324,7 +324,6 @@ Builder.load_string("""
         font_size: root.width*0.035
         text_color: root.text_color
         screen: root.screen
-        on_text_validate: root.dispatch('on_comments', *args[1:])
    
 <ListScreenItem>:
     title: title_id
@@ -357,7 +356,7 @@ Builder.load_string("""
         text_color: root.text_color
         state_color: root.state_color
         height: root.screen.height*root.content_height_hint
-        on_comments: root.dispatch('on_comments', *args[1:])
+        on_comments: root.dispatch('on_comments', args[-1])
         on_importance: root.dispatch('on_importance', *args[1:])
 
 <ActionListItem>:
@@ -395,7 +394,7 @@ Builder.load_string("""
         text_color: root.text_color
         state_color: root.state_color
         height: root.screen.height*root.content_height_hint
-        on_comments: root.dispatch('on_comments', *args[1:])
+        on_comments: root.dispatch('on_comments', args[-1])
         on_importance: root.dispatch('on_importance', *args[1:])
 
 <ArchiveScreenItem>:
