@@ -174,8 +174,8 @@ class ContentMajor(FloatLayout):
     def on_importance(self, *args):
         pass
 
-    def on_comments(self, *args):
-        print args
+    def on_comments(self, *rgs):
+        pass
 
 Builder.load_string("""
 #:import EditButton uiux.EditButton
@@ -276,7 +276,6 @@ Builder.load_string("""
         font_size: self.width*0.053
         text_color: root.text_color
         screen: root.screen
-        on_text_validate: root.dispatch('on_comments', *args)
 
 <-ContentMinor@ContentMajor>:
     canvas.before:
@@ -331,7 +330,7 @@ Builder.load_string("""
 <ListScreenItem>:
     title: title_id
     content: content_id
-    text_color: app.blue if (self.collapse_alpha==0.0 or title_id.state=='dragged') else app.dark_gray
+    text_color: app.dark_blue if (self.collapse_alpha==0.0 or title_id.state=='dragged') else app.dark_gray
     state_color: app.no_color if title_id.state=='dragged' else app.smoke_white
     height: title_id.height + (content_id.height*(1-self.collapse_alpha))
 
@@ -367,7 +366,7 @@ Builder.load_string("""
     content: content_id
     state_color: app.no_color if title_id.state=='dragged' else (app.light_blue if title_id.state=='down' else app.white)
     height: title_id.height + (content_id.height*(1-self.collapse_alpha))
-    text_color: app.dark_gray if self.disabled else app.blue
+    text_color: app.dark_gray if self.disabled else app.dark_blue
     canvas.after:
         Color:
             rgba: app.shadow_gray
@@ -398,7 +397,7 @@ Builder.load_string("""
         state_color: root.state_color
         height: root.screen.height*root.content_height_hint
         on_comments: print args
-        on_importance: root.dispatch('on_importance', root, args[2])
+        on_importance: root.dispatch('on_importance', *args)
 
 <ArchiveScreenItem>:
     title: title_id
@@ -406,7 +405,7 @@ Builder.load_string("""
     size_hint: 1, None
     state_color: app.no_color if title_id.state in ('down', 'dragged') else app.white
     height: title_id.height + (content_id.height*(1-self.collapse_alpha))
-    text_color: app.blue
+    text_color: app.dark_blue
 
     ArchiveScreenItemTitle:
         id: title_id
@@ -438,17 +437,17 @@ Builder.load_string("""
     layout: layout_id
     font_size: (self.height*0.421875)
     state_color: app.smoke_white
-    canvas.before:
-        Color:
-            rgba: self.state_color
-        Rectangle:
-            size: self.size
-            pos: self.pos
 
     FloatLayout:
         id: layout_id
         size: root.size
         pos: root.pos
+        canvas.before:
+            Color:
+                rgba: root.state_color
+            Rectangle:
+                size: self.size
+                pos: self.pos
 
         BoxLayout:
             spacing: 5
@@ -470,7 +469,7 @@ Builder.load_string("""
                     Line:
                         points: self.parent.x, self.y, self.right, self.y
 
-<QuickLabel@Label>:
+<QuickLabel@Label>
     disabled_color: self.color
 
 <QuickViewScreenItem>:
