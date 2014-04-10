@@ -773,7 +773,7 @@ class AccordionListItem(Selectable, FloatLayout):
         else:
             return super(AccordionListItem, self).on_touch_down(touch)
 
-    def _do_progress(anim, instance, progression):
+    def _do_progress(self, anim, instance, progression):
         instance.listview._sizes[instance.index] = instance.height
 
 class FreeRotateLayout(Widget):
