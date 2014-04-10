@@ -492,7 +492,10 @@ Builder.load_string("""
         QuickLabel:
             size_hint: 0.8, 1
             text: root.how
+            color: app.dark_gray
+            text_size: self.size
             valign: 'top'
+            font_size: self.width*0.0421875
         BoxLayout:
             orientation: 'vertical'
             size_hint: 0.2, .6
