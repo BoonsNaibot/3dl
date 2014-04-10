@@ -752,11 +752,8 @@ class AccordionListItem(Selectable, FloatLayout):
             self._anim.stop()
             self._anim = None
 
-        def _do_progress(anim, instance, progression):
-            instance.listview._sizes[instance.index] = instance.height
-
         _anim = Animation(collapse_alpha=0.0, t='out_expo', d=0.25)
-        _anim.bind(on_progress=_do_progress)
+        _anim.bind(on_progress=self._do_progress)
         self._anim = _anim.start(self)
 
     def deselect(self, *args):
@@ -764,11 +761,8 @@ class AccordionListItem(Selectable, FloatLayout):
             self._anim.stop()
             self._anim = None
 
-        def _do_progress(anim, instance, progression):
-            instance.listview._sizes[instance.index] = instance.height
-
         _anim = Animation(collapse_alpha=1.0, t='out_expo', d=0.25)
-        _anim.bind(on_progress=_do_progress)
+        _anim.bind(on_progress=self._do_progress)
         self._anim = _anim.start(self)
 
     def on_touch_down(self, touch):
@@ -778,6 +772,9 @@ class AccordionListItem(Selectable, FloatLayout):
             return False
         else:
             return super(AccordionListItem, self).on_touch_down(touch)
+
+    def _do_progress(anim, instance, progression):
+        instance.listview._sizes[instance.index] = instance.height
 
 class FreeRotateLayout(Widget):
     content = ObjectProperty(None)
