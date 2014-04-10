@@ -51,12 +51,10 @@ class QuickViewScreen(Screen_):
 
         return _dict
 
-    def format_title(self, str):
-    	watchwords = self.watchwords
-
-    	for word in watchwords:
-            if str.startswith(word + ' '):
-                return '[b]' + word + '[/b]' + escape_markup(str[(len(word)-1):])
+    def format_title(self, string):
+    	for word in self.watchwords:
+            if string.startswith(word + ' '):
+                return '[b]' + word + '[/b]' + escape_markup(string[(len(word)):])
 
     def on_delete(self, instance):
         cursor = self.root_directory.cursor()
