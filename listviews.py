@@ -6,12 +6,13 @@ import datetime, math, itertools
 from kivy.uix.widget import Widget
 from adapters import ListViewAdapter
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import ObjectProperty, StringProperty, NumericProperty, BooleanProperty, DictProperty, ListProperty, AliasProperty, ReferenceListProperty, OptionProperty
+from kivy.properties import ObjectProperty, StringProperty, NumericProperty, BooleanProperty, DictProperty, ListProperty, AliasProperty, OptionProperty
 
 class Placeholder(Widget):
     ix = NumericProperty(None)
     text = StringProperty('')
     index = NumericProperty(None)
+    placeholder = ListProperty([])
 
     def on_touch_move(self, touch):
         return True
@@ -277,9 +278,10 @@ class AccordionListView(DNDListView):
                 else:
                     args.append((k.text, k.when, int(k.why), k.how, v, page))
 
+            return tuple(args)
             #_on_complete = lambda *_: self.parent.dispatch('on_drop', tuple(args)) 
             #Clock.schedule_once(_on_complete, 0.1)
-            super(AccordionListView, self).on_motion_out(widget, tuple(args))
+            #super(AccordionListView, self).on_motion_out(widget, tuple(args))
 
 class ActionListView(AccordionListView):
 
@@ -378,11 +380,6 @@ Builder.load_string("""
         size_hint: 1, None
         minimum_height: root.height
         pos_hint: {'x': 0, 'top': 1}
-        canvas.after:
-            Color:
-                rgba: app.shadow_gray
-            Line:
-                points: self.x, self.y, self.right, self.y
 
 <-QuickListView@DNDListView>:
     container: container

@@ -151,7 +151,7 @@ class ListScreen(Screen_):
             dtms = self.manager.get_screen('Date-Time Mini-Screen')
             dtms.item = instance
             kwargs = {'duration': 0.2}
-            self.dispatch('on_screen_change', 'Date-Time Mini-Screen', RiseInTransition, **kwargs)
+            self.dispatch('on_screen_change', 'Date-Time Mini-Screen', kwargs, RiseInTransition)
 
     def on_drop(self, items):
         if items:
@@ -219,7 +219,7 @@ Builder.load_string("""
     AccordionListView:
         id: accordion_view_id
         size_hint: 1, 0.4
-        top: action_view_id.container.y
+        top: action_view_id.container.y - 1
         list_item: root.accordion_view_item
         selection: root.selection
         args_converter: root._args_converter

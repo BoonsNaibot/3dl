@@ -655,11 +655,14 @@ class DragNDroppable(ButtonRoot):
         else:
             _anim = Animation(y=child.y, d=0.3, t='out_back')
 
+        def _on_start(a, w):
+            viewer.placeholder.placeholder = viewer.dispatch('on_motion_out', w, indices)
+
         def _on_complete(a, w):
             viewer.reparent(w, child)
+            viewer.parent.dispatch('on_drop', viewer.placeholder.placeholder)
             w.state = 'normal'
 
-        _on_start = lambda a, w: viewer.dispatch('on_motion_out', w, indices)
         _anim.bind(on_start=_on_start, on_complete=_on_complete)
         instance._anim = _anim.start(instance)
 
@@ -692,7 +695,6 @@ class DeleteButton(Button_):
 
     def on_press(self):
         self.button.screen.dispatch('on_delete', self.button)
-            
 
 class CompleteButton(DeleteButton):
 
@@ -708,7 +710,6 @@ class EditButton(Editable):
     def on_text_validate(self, instance):
         if super(EditButton, self).on_text_validate(instance, instance.text):
             self.parent.dispatch('on_comments', instance.text)
-            
 
 class DoubleClickButton(DoubleClickable):
     icon_text = StringProperty('')

@@ -206,7 +206,7 @@ Builder.load_string("""
                 text: '[b]' + 'Go to the Foobar'.upper() + '[/b]'
                 markup: True
                 font_size: (self.height*0.58)
-                font_name: 'Oswald-Bold.otf'
+                font_name: 'Walkway Bold.ttf'
                 shorten: True
                 text_size: (self.size[0], None)
             Label:
@@ -240,5 +240,5 @@ Builder.load_string("""
                 color: app.white
                 text: 'PM'
                 font_size: self.width
-                font_name: 'Oswald-Bold.otf'
+                font_name: 'Walkway Bold.ttf'
 """)

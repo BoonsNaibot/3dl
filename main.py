@@ -39,8 +39,8 @@ kv = """
             root_directory: app.db
         ArchiveScreen:
             root_directory: app.db
-        #DateTimeMiniScreen:
-        #    root_directory: app.db
+        DateTimeMiniScreen:
+            root_directory: app.db
 """
 
 class Application(Widget):
@@ -156,12 +156,12 @@ class ThreeDoListApp(App):
     def build(self):
         ''''''
         self.dispatch('on_pre_start')
-        app = Application()
+        app = Application(size=(640, 1002))
         inspector.create_inspector(Window, app)
         return app
 
     def on_start(self):
-        self.profile = cProfile.Profile()
+        #self.profile = cProfile.Profile()
         app = self.root
         app.manager.transition = NoTransition()
         cursor = self.db.cursor()
@@ -196,8 +196,8 @@ class ThreeDoListApp(App):
 
     def on_stop(self):
         self.db.close()
-        self.profile.disable()
-        self.profile.dump_stats('myapp.profile')
+        #self.profile.disable()
+        #self.profile.dump_stats('myapp.profile')
 
 if __name__ == '__main__':
     ThreeDoListApp().run()
