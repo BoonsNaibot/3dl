@@ -591,7 +591,7 @@ class DragNDroppable(ButtonRoot):
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
-                Clock.schedule_interval(self.on_hold_down, 0.1)
+                Clock.schedule_interval(self.on_hold_down, 0.07) #gotta be larger than `_press_()`
                 touch.ud['indices'] = {}
             else:
                 return sup
