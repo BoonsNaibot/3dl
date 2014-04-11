@@ -262,8 +262,9 @@ class AccordionListView(DNDListView):
         super(AccordionListView, self).deparent(instance)
 
     def on_motion_out(self, widget, indices):
+        args = []
+
         if indices:
-            args = []
             point = widget.center
             page = widget.screen.page
             deleting = self.placeholder is None
@@ -278,7 +279,7 @@ class AccordionListView(DNDListView):
                 else:
                     args.append((k.text, k.when, int(k.why), k.how, v, page))
 
-            return tuple(args)
+        return tuple(args)
             #_on_complete = lambda *_: self.parent.dispatch('on_drop', tuple(args)) 
             #Clock.schedule_once(_on_complete, 0.1)
             #super(AccordionListView, self).on_motion_out(widget, tuple(args))
