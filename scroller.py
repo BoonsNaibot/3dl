@@ -42,13 +42,13 @@ class ScrollerEffect(DampedScrollEffect):
                     parent.scroll_y = -sy
 
             if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not value))):
-
-                def _mode_change(*_):
+                parent.mode = 'normal'
+                """def _mode_change(*_):
                     if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not instance.scroll))):
                         parent.mode = 'normal'
                     else:
                         return False
-                Clock.schedule_once(_mode_change, 0.055)
+                Clock.schedule_once(_mode_change, 0.055)"""
 
 class Scroller(StencilView):
     scroll_distance = NumericProperty('10dp')
@@ -129,7 +129,7 @@ class Scroller(StencilView):
 
             elif self.mode == 'scrolling':
                 self.effect_y.update(touch.y)
-                
+
             return True
 
     def on_touch_up(self, touch):
