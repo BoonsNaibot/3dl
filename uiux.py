@@ -656,11 +656,11 @@ class DragNDroppable(ButtonRoot):
             _anim = Animation(y=child.y, d=0.3, t='out_back')
 
         def _on_start(a, w):
-            viewer.placeholder.placeholder = viewer.dispatch('on_motion_out', w, indices)
+            w.listview.placeholder.placeholder = viewer.dispatch('on_motion_out', w, indices)
 
         def _on_complete(a, w):
             viewer.reparent(w, child)
-            viewer.parent.dispatch('on_drop', viewer.placeholder.placeholder)
+            viewer.parent.dispatch('on_drop', w.listview.placeholder.placeholder)
             w.state = 'normal'
 
         _anim.bind(on_start=_on_start, on_complete=_on_complete)
@@ -773,7 +773,7 @@ class AccordionListItem(Selectable, FloatLayout):
         else:
             return super(AccordionListItem, self).on_touch_down(touch)
 
-    def _do_progress(anim, instance, progression):
+    def _do_progress(self, anim, instance, progression):
         instance.listview._sizes[instance.index] = instance.height
 
 class FreeRotateLayout(Widget):
@@ -1137,6 +1137,7 @@ Builder.load_string("""
         BoundedTextInput:
             id: textinput_id
             size_hint: 0.774, 1
+            font_size: self.width*0.06
             hint_text: root.hint_text
             multiline: False
             on_text_validate: root.dispatch('on_text_validate', args[0], args[0].text)

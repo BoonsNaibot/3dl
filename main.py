@@ -52,8 +52,8 @@ class ThreeDoListApp(App):
     no_color = ListProperty((0.0, 0.0, 0.0, 0.0))
     light_blue = ListProperty((0.498, 0.941, 1.0, 1.0))
     blue = ListProperty((0.0, 0.824, 1.0, 1.0))
-    dark_blue = ListProperty((0.004, 0.612, 0.7412, 1.0))
     red = ListProperty((1.0, 0.549, 0.5294, 1.0))
+    dark_blue = ListProperty((0.0, 0.522, 0.8118, 1.0))
     purple = ListProperty((0.451, 0.4627, 0.561, 1.0))
     white = ListProperty((1.0, 1.0, 1.0, 1.0))
     light_gray = ListProperty((1.0, 0.98, 0.941, 1.0))
@@ -141,7 +141,7 @@ class ThreeDoListApp(App):
                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 5, 'Swipe left to delete me', 'You can also delete a list itself in the "List Screen" this way.');
                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 6, 'Double-tap to rename me', 'You can also rename a list itself in the "List Screen" this way.');
                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 7, 'Press and hold to Drag-N''-Drop', 'You can re-order your tasks this way.');
-                           INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 8, 'Drag 2 more of us to the "Action Items", at the top.', 'The "Action Items" are your top 3 tasks to focus on at a time.');
+                           INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 8, 'Drag me to an "Action Item".', 'The "Action Items" are your top 3 tasks to focus on at a time.');
                            """)
             #cursor.execute("commit")
             self.db = connection

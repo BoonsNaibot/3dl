@@ -197,7 +197,7 @@ Builder.load_string("""
 <-ActionListItemTitle@NoteItemTitle, -ArchiveScreenItemTitle>:
     label: label_id
     layout: layout_id
-    font_size: self.width*0.0421875
+    font_size: self.width*0.062
 
     FloatLayout:
         id: layout_id
@@ -339,7 +339,7 @@ Builder.load_string("""
         size_hint: 1, None
         pos_hint: {'x': 0, 'top': 1}
         screen: root.screen
-        font_size: self.width*0.043
+        font_size: self.width*0.07
         text_color: root.text_color
         state_color: root.state_color
         on_release: root.listview.handle_selection(root)
@@ -377,7 +377,6 @@ Builder.load_string("""
         size_hint: 1, None
         pos_hint: {'x': 0, 'top': 1}
         screen: root.screen
-        font_size: (self.height*0.3)
         text_color: root.text_color
         state_color: root.state_color
         on_release: root.listview.handle_selection(root)
