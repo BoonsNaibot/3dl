@@ -183,7 +183,7 @@ Builder.load_string("""
 <PagesScreenItem>:
     aleft: True
     shorten: True
-    font_size: self.width*0.0421875
+    font_size: self.width*0.07
     height: self.screen.height*0.088
     state_color: app.no_color if self.state == 'down' else app.white
     on_release: self.screen.dispatch('on_selected_page', args[0].text, args[0].page_number)
