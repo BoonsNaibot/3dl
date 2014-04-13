@@ -148,6 +148,7 @@ class ListScreen(Screen_):
 
     def on_due_date(self, instance, value):
         if value:
+            instance.screen.opacity = 0.5
             dtms = self.manager.get_screen('Date-Time Mini-Screen')
             dtms.item = instance
             kwargs = {'duration': 0.2}
@@ -162,7 +163,7 @@ class ListScreen(Screen_):
                                WHERE ix=? AND page=?;
                                """,
                                items)
-            #self.dispatch('on_pre_enter')
+            self.dispatch('on_pre_enter')
 
     def on_archive(self, *args):
         screen = self.manager.get_screen('Archive Screen')

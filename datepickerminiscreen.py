@@ -1,9 +1,10 @@
-from kivy.properties import ObjectProperty, AliasProperty, ListProperty, NumericProperty
+from kivy.properties import ObjectProperty, AliasProperty, ListProperty, NumericProperty, StringProperty
 from kivy.lang import Builder
 from uiux import Screen_
 import datetime
 
 class DateTimeMiniScreen(Screen_):
+    text = StringProperty('')
     year = NumericProperty(1)
     month = NumericProperty(1)
     item = ObjectProperty(None)
@@ -45,6 +46,7 @@ class DateTimeMiniScreen(Screen_):
 
     def on_pre_enter(self, *args):
         if self.item:
+            self.text = self.item.text
             when = self.item.when
             
             if when:
@@ -60,6 +62,7 @@ class DateTimeMiniScreen(Screen_):
     def _args_converter(self, i, _):
         return {'index': i,
                 'screen': self,
+                'text': self.text,
                 'size_hint_y': None,
                 'listview': self.body,
                 'title_height_hint': 1.0/15.0,
@@ -116,32 +119,29 @@ Builder.load_string("""
 
     NavBar:
         id: navbar_id
-        size_hint: 1, .0775
-        pos_hint:{'top': 0.9648}
+        text: root.month_names[root.month-1] + str(root.year)
+        size_hint: 1, 0.1127
+        font_size: root.width*0.1
+        pos_hint:{'top': 1, 'x': 0}
 
-        BoxLayout:
-            size_hint: .9, .9
-            pos_hint: {'center_x': .5, 'center_y': .5}
-
-            Button_:
-                text: '<'
-                size_hint: None, 1
-                width: self.height
-                font_size: self.height*0.9
-                on_press: root.dispatch('on_previous_month', root)
-            Label:
-                id: title_id
-                color: app.white
-                font_name: 'Walkway Bold.ttf'
-                #font_size: self.height*0.421875
-                font_size: self.height*0.7
-                text: root.month_names[root.month-1] + str(root.year)
-            Button_:
-                text: '>'
-                size_hint: None, 1
-                width: self.height
-                font_size: self.height*0.9
-                on_press: root.dispatch('on_next_month', root)
+        Button_:
+            text: '<'
+            state_color: app.no_color
+            text_color: app.white
+            font_size: self.width*0.5
+            font_name: 'breezi_font-webfont.ttf'
+            size_hint: 0.18, 1
+            pos_hint: {'center_x': 0.08, 'center_y': 0.5}
+            on_press: root.dispatch('on_previous_month', root)
+        Button_:
+            text: '>'
+            state_color: app.no_color
+            text_color: app.white
+            font_size: self.width*0.5
+            font_name: 'heydings_icons.ttf'
+            size_hint: 0.18, 1
+            pos_hint: {'center_x': 0.9, 'center_y': 0.5}
+            on_press: root.dispatch('on_next_month', root)
 
     BoxLayout:
         size_hint: 1, 0.05
@@ -166,13 +166,13 @@ Builder.load_string("""
         id: body_id
         spacing: 0
         list_item: Week
-        size_hint: 1, 0.8
+        size_hint: 1, 0.75
         pos_hint: {'x': 0, 'top': 0.8373}
         args_converter: root._args_converter
         data: range(6)
     BoxLayout:
         pos_hint: {'x': 0, 'y': 0}
-        size_hint: 1, 0.0789
+        size_hint: 1, 0.086
 
         Foobuttons:
             text: 'Cancel'

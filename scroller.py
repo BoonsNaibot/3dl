@@ -11,7 +11,7 @@ class ScrollerEffect(DampedScrollEffect):
     
     def _get_target_widget(self):
         if self._parent:
-            return self._parent._viewport
+            return self._parent._viewport.proxy_ref
 
     target_widget = AliasProperty(_get_target_widget, None)
     

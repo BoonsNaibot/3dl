@@ -174,7 +174,8 @@ class DNDListView(FloatLayout, ListViewAdapter):
         container.get_root_window().add_widget(widget)
         return
 
-    def reparent(self, instance, widget):
+    def reparent(self, instance, widget, indices):
+        placeholder = instance.listview.placeholder
         #Mimic `ListAdapter.create_view`
         data = ((widget.ix,) + instance.listview.get_data_item(instance.index)[1:])
         item_args = self.args_converter(widget.index, data)
@@ -189,6 +190,12 @@ class DNDListView(FloatLayout, ListViewAdapter):
         container.remove_widget(widget)
         container.get_root_window().remove_widget(instance)
         container.add_widget(new_item, index)
+        _l = lambda *_: self.parent.dispatch('on_drop', indices)
+        Clock.schedule_once(_l, 0.055)
+
+        if placeholder.parent:
+            placeholder.parent.remove_widget(placeholder)
+        instance.state = 'normal'
 
     def on_drag(self, widget, indices):
         placeholder = self.placeholder
@@ -280,9 +287,6 @@ class AccordionListView(DNDListView):
                     args.append((k.text, k.when, int(k.why), k.how, v, page))
 
         return tuple(args)
-            #_on_complete = lambda *_: self.parent.dispatch('on_drop', tuple(args)) 
-            #Clock.schedule_once(_on_complete, 0.1)
-            #super(AccordionListView, self).on_motion_out(widget, tuple(args))
 
 class ActionListView(AccordionListView):
 
@@ -361,7 +365,6 @@ Builder.load_string("""
 
     Scroller:
         pos_hint: {'x': 0, 'y': 0}
-        scroll_timeout: 0.2
         on_scroll_y: root._scroll(args[1])
 
         GridLayout:
@@ -369,7 +372,6 @@ Builder.load_string("""
             cols: 1
             size_hint: 1, None
             spacing: root.spacing
-            minimum_height: root.height
 
 <-ActionListView>:
     container: container_id
@@ -379,7 +381,6 @@ Builder.load_string("""
         cols: 1
         spacing: 0, 1
         size_hint: 1, None
-        minimum_height: root.height
         pos_hint: {'x': 0, 'top': 1}
 
 <-QuickListView@DNDListView>:

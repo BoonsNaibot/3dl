@@ -9,6 +9,7 @@ from kivy.vector import Vector
 from kivy.lang import Builder
 from kivy.clock import Clock
 import math
+from weakref import ref
 
 class NavBar(FloatLayout):
     text = StringProperty('')
@@ -60,7 +61,7 @@ class Screen_(Screen):
     root_directory = ObjectProperty(None)
     keyboard_height = NumericProperty(None)
     polestar = ObjectProperty(None, allownone=True)
-    _anim = ObjectProperty(None, allownone=True)
+    _anim = ObjectProperty(lambda : None)
 
     def __init__(self, **kwargs):
         self.register_event_type('on_delete')
@@ -70,21 +71,23 @@ class Screen_(Screen):
         super(Screen_, self).__init__(**kwargs)
 
     def on_polestar(self, instance, value):
-        if value and value.state == 'edit':
+        if (value and (value.state == 'edit')):
             y = instance.to_window(*value.pos)[1]
             kh = instance.keyboard_height
             #center_y = 0.38*instance.get_root_window().height
 
             if y < kh:
                 _anim = Animation(y=(kh-y), t='out_expo', d=0.3)
-                instance._anim = _anim.start(instance)
+                instance._anim = ref(_anim)
+                instance._anim().start(instance)
 
         elif instance.y <> 0:
             _anim = Animation(y=0, t='out_expo', d=0.3)
-            instance._anim = _anim.start(instance)
+            instance._anim = ref(_anim)
+            instance._anim().start(instance)
 
     def on_touch_down(self, touch):
-        if self._anim is None:
+        if self._anim() is None:
             polestar = self.polestar
 
             if polestar:
@@ -95,7 +98,6 @@ class Screen_(Screen):
 
                 if not ret:
                     self.polestar = None
-
                 return ret
 
             else:
@@ -544,6 +546,9 @@ class DoubleClickable(Editable):
             self.double_click_switch = not self.double_click_switch
             instance.state = 'normal'
 
+class DropAnimation(Animation):
+    indices = ListProperty(None)
+
 class DragNDroppable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'down', 'dragged'))
     hold_time = NumericProperty(0.0)
@@ -552,8 +557,6 @@ class DragNDroppable(ButtonRoot):
     def __init__(self, **kwargs):
         self.register_event_type('on_drag')
         self.register_event_type('on_drop')
-        #self.register_event_type('on_drag_start')
-        #self.register_event_type('on_drag_finish')
         super(DragNDroppable, self).__init__(**kwargs)
 
     def on_hold_down(self, dt):
@@ -570,29 +573,26 @@ class DragNDroppable(ButtonRoot):
     def on_state(self, instance, value):
         listview = instance.listview
 
-        if ((value <> 'dragged') and listview.placeholder):
-            if listview.placeholder.parent:
-                listview.placeholder.parent.remove_widget(listview.placeholder)
-
+        if value == 'down' and not listview.parent.polestar:
+            Clock.schedule_interval(instance.on_hold_down, 0.07)
+        elif ((value <> 'dragged') and listview.placeholder):
             listview.placeholder = None
-            listview.parent.dispatch('on_pre_enter')
-
+            listview.parent.polestar = None
         elif value == 'dragged':
-            #instance.dispatch('on_drag_start', instance)
             listview.deparent(instance)
-
+            listview.parent.polestar = instance
         super(DragNDroppable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
-        if self.state == 'dragged':
+        """if self.state == 'dragged':
             touch.ungrab(self)
-            return True
-        elif self.state == 'normal':
+            return True"""
+        if self.state == 'normal':
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
-                Clock.schedule_interval(self.on_hold_down, 0.07) #gotta be larger than `_press_()`
-                touch.ud['indices'] = {}
+                self.hold_time = 0.0
+                touch.ud['indices'] = {} #gotta be larger than `_press_()`
             else:
                 return sup
 
@@ -609,7 +609,6 @@ class DragNDroppable(ButtonRoot):
                 for zone in self.drop_zones:
                     if self.collide_widget(zone):
                         touch.ud['indices'] = zone.dispatch('on_drag', self, indices)
-
                 return True
 
         return super(DragNDroppable, self).on_touch_move(touch)
@@ -628,7 +627,7 @@ class DragNDroppable(ButtonRoot):
                     if viewer.collide_point(*self.center):
                         break
                 else:
-                    viewer = self.listview
+                    viewer = None# self.listview
 
                 self.dispatch('on_drop', self, viewer, indices)
                 return True
@@ -640,31 +639,31 @@ class DragNDroppable(ButtonRoot):
         
     def on_drop(self, instance, viewer, indices):
         point = instance.center
-        child = viewer.placeholder
 
-        if not child:
+        if viewer:
+            child = viewer.placeholder
 
-            for child in viewer.container.children:
-                if (child.collide_point(*point) and (child is not Widget)):
-                    _anim = Animation(y=child.y, d=0.3)
-                    break
-            else:
-                child = instance.listview.placeholder
-                _anim = Animation(y=child.y, d=0.5, t='out_back')
+            if not child:
+                for child in viewer.container.children:
+                    if (child.collide_point(*point) and (child is not Widget)):
+                        break
+
+            _anim = DropAnimation(y=child.y, d=0.1)
 
         else:
-            _anim = Animation(y=child.y, d=0.3, t='out_back')
+            viewer = instance.listview
+            child = viewer.placeholder
+            _anim = DropAnimation(y=child.y, d=0.5, t='out_back')
 
         def _on_start(a, w):
-            w.listview.placeholder.placeholder = viewer.dispatch('on_motion_out', w, indices)
+            a.indices = viewer.dispatch('on_motion_out', w, indices)
 
         def _on_complete(a, w):
-            viewer.reparent(w, child)
-            viewer.parent.dispatch('on_drop', w.listview.placeholder.placeholder)
-            w.state = 'normal'
+            viewer.reparent(w, child, a.indices)
 
         _anim.bind(on_start=_on_start, on_complete=_on_complete)
-        instance._anim = _anim.start(instance)
+        instance._anim = ref(_anim)
+        instance._anim().start(instance)
 
     """def on_drag_start(self, widget):
         widget.listview.deselect_all()
@@ -720,6 +719,7 @@ class DoubleClickButton(DoubleClickable):
             return super(DoubleClickButton, self).on_touch_down(touch)
 
 class AccordionListItem(Selectable, FloatLayout):
+    _anim = ObjectProperty(lambda : None)
     title = ObjectProperty(None)
     content = ObjectProperty(None)
     listview = ObjectProperty(None)
@@ -742,34 +742,31 @@ class AccordionListItem(Selectable, FloatLayout):
 
     state = AliasProperty(_get_state, _set_state)
 
-    def __init__(self, **kwargs):
-        self._anim = None
-        #self.register_event_type('on_release')
-        super(AccordionListItem, self).__init__(**kwargs)
-
     def select(self, *args):
-        if self._anim:
-            self._anim.stop()
-            self._anim = None
+        """if self._anim():
+            self._anim().stop()
+            self._anim = None"""
 
         _anim = Animation(collapse_alpha=0.0, t='out_expo', d=0.25)
         _anim.bind(on_progress=self._do_progress)
-        self._anim = _anim.start(self)
+        self._anim = ref(_anim)#.start(self)
+        self._anim().start(self)
 
     def deselect(self, *args):
-        if self._anim:
+        """if self._anim():
             self._anim.stop()
-            self._anim = None
+            self._anim = None"""
 
         _anim = Animation(collapse_alpha=1.0, t='out_expo', d=0.25)
         _anim.bind(on_progress=self._do_progress)
-        self._anim = _anim.start(self)
+        self._anim = ref(_anim)#.start(self)
+        self._anim().start(self)
 
     def on_touch_down(self, touch):
-        if self._anim:
+        if not self.collide_point(*touch.pos):
+            return False        
+        elif self._anim():
             return True
-        elif not self.collide_point(*touch.pos):
-            return False
         else:
             return super(AccordionListItem, self).on_touch_down(touch)
 

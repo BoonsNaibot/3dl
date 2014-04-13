@@ -34,6 +34,7 @@ class Day(Selectable, Button_):
 
 class DayDropDown(DelayedClickable):
     day = StringProperty('')
+    text = StringProperty('')
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -203,7 +204,7 @@ Builder.load_string("""
                 size_hint: 1, 0.75
                 color: app.white
                 #text: '[b]' + root.text + '[/b]'
-                text: '[b]' + 'Go to the Foobar'.upper() + '[/b]'
+                text: '[b]' + root.text.upper() + '[/b]'
                 markup: True
                 font_size: (self.height*0.58)
                 font_name: 'Walkway Bold.ttf'

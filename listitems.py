@@ -147,6 +147,7 @@ class QuickViewScreenItem(BoxLayout):
             return super(QuickViewScreenItem, self).on_touch_down(touch)
 
 class Week(AccordionListItem):
+    text = StringProperty('')
     screen = ObjectProperty(None)
     title_height_hint = NumericProperty(0.0)
     content_height_hint = NumericProperty(0.0)
@@ -531,6 +532,7 @@ Builder.load_string("""
         pos_hint: {'top': 1, 'x': 0}
     DayDropDown:
         id: content_id
+        text: root.text
         size_hint: 1, None
         height: 83 + (1.0/3.0)
         top: title_id.y
