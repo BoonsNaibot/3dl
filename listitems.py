@@ -185,7 +185,8 @@ Builder.load_string("""
     aleft: True
     shorten: True
     font_size: self.width*0.07
-    height: self.screen.height*0.088
+    #height: self.screen.height*0.088
+    height: self.screen.height*(153./1136.)
     state_color: app.no_color if self.state == 'down' else app.white
     on_release: self.screen.dispatch('on_selected_page', args[0].text, args[0].page_number)
     canvas.after:

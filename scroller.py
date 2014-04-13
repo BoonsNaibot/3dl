@@ -170,6 +170,7 @@ class Scroller(StencilView):
         self.effect_y.is_manual = False
         self.on_height(self)
         self.effect_y.velocity = 0
+        self.mode = 'normal'
 
     def _start_decrease_alpha(self, *l):
         self.bar_alpha = 1.
