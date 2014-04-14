@@ -301,8 +301,6 @@ class Deletable(ButtonRoot):
             return super(Deletable, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):
-        if ((touch.grab_current is not self) and (self.state == 'delete') and (self.collide_point(*touch.pos))):
-            return True
 
         if touch.grab_current is self:
             assert(self in touch.ud)
@@ -320,6 +318,9 @@ class Deletable(ButtonRoot):
                 new_pos = max(self.delete_button.x, min((self.layout.right+touch.dx), self.right))
                 self.layout.right = new_pos
                 return True
+        
+        elif ((self.state == 'delete') or (self.state in ('down', 'normal') and ((touch.dx < -10) and not self.delete_button))):
+            return True
 
         return super(Deletable, self).on_touch_move(touch)
 
@@ -389,9 +390,6 @@ class Completable(ButtonRoot):
             return super(Completable, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):
-        if ((touch.grab_current is not self) and (self.state == 'complete') and (self.collide_point(*touch.pos))):
-            return True
-
         if touch.grab_current is self:
             assert(self in touch.ud)
 
@@ -408,6 +406,9 @@ class Completable(ButtonRoot):
                 new_pos = max(self.x, min((self.layout.x+touch.dx), self.complete_button.right))
                 self.layout.x = new_pos
                 return True
+        
+        elif ((self.state == 'complete') or (self.state in ('down', 'normal') and ((touch.dx > 10) and not self.complete_button))):
+            return True
 
         return super(Completable, self).on_touch_move(touch)
 
@@ -488,7 +489,7 @@ class Editable(ButtonRoot):
         return super(Editable, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):
-        if ((self.state == 'edit') and self.collide_point(*touch.pos)):
+        if (self.state == 'edit'):
             return True
         return super(Editable, self).on_touch_move(touch)
 
