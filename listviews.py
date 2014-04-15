@@ -239,6 +239,14 @@ class DNDListView(FloatLayout, ListViewAdapter):
             self.parent.dispatch('on_drop', l)
 
 class AccordionListView(DNDListView):
+    
+    def _get_selection(self):
+        return self.parent.selection
+        
+    def _set_selection(self, selection):
+        self.parent.selection = selection
+        
+    selection = AliasProperty(_get_selection, _set_selection)
 
     def _lcm(self, a, b):
         a, b = int(a), int(b)
