@@ -34,7 +34,7 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
     listview = AliasProperty(_get_listview, None)
     
     def on_hold_down(self, *args):
-        if self.screen.selected:
+        if self.screen.selection:
             self.hold_time = 0.0
             return False
         else:
