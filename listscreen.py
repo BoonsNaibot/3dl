@@ -213,7 +213,6 @@ Builder.load_string("""
         size_hint: 1, 0.4
         #pos_hint: {'x': 0, 'top': 0.8873}
         top: navbar_id.y - 1
-        selection: root.selection
         list_item: root.action_view_item
         args_converter: root._args_converter
         data: root.action_items
@@ -222,9 +221,8 @@ Builder.load_string("""
         size_hint: 1, 0.4
         top: action_view_id.container.y - 1
         list_item: root.accordion_view_item
-        selection: root.selection
         args_converter: root._args_converter
-        data: root.list_items    
+        data: root.list_items
     NewItemWidget:
         hint_text: 'Create New Task...'
         size_hint: 1, .086
