@@ -9,6 +9,7 @@ from listitems import ArchiveScreenItem
 from kivy.properties import ObjectProperty, ListProperty
 
 class ArchiveScreen(Screen_):
+    selection = ListProperty([])
     list_items = ListProperty([])
     list_view = ObjectProperty(None)
     _item = ObjectProperty(ArchiveScreenItem)
