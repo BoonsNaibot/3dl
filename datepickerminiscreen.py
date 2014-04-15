@@ -16,8 +16,8 @@ class DateTimeMiniScreen(Screen_):
     month_names = ListProperty(('January ', 'February ', 'March ', 'April ', 'May ', 'June ', 'July ', 'August ', 'September ', 'October ', 'November ', 'December '))
 
     def _get_day(self):
-        if self.body and self.body.selection:
-            return int(self.body.selection[0].text)
+        if self.body and self.selection:
+            return int(self.selection[0].text)
             
     day = AliasProperty(_get_day, None, bind=('body',))
 
