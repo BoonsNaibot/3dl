@@ -181,7 +181,7 @@ class Scroller(StencilView):
             raise Exception('Scroller accept only one widget')
         super(Scroller, self).add_widget(widget, index)
         self._viewport = widget
-        widget.bind(size=self._trigger_update_from_scroll,
+        widget.bind(#size=self._trigger_update_from_scroll,
                     height=self.on_height)
         self._trigger_update_from_scroll()
 

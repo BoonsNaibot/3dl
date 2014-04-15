@@ -6,7 +6,7 @@ import datetime, math, itertools
 from kivy.uix.widget import Widget
 from adapters import ListViewAdapter
 from kivy.uix.floatlayout import FloatLayout
-from kivy.properties import ObjectProperty, StringProperty, NumericProperty, BooleanProperty, DictProperty, ListProperty, AliasProperty, OptionProperty
+from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty
 
 class Placeholder(Widget):
     ix = NumericProperty(None)
@@ -26,6 +26,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
     _wstart = NumericProperty(0)
     _wend = NumericProperty(None, allownone=True)
     _i_offset = NumericProperty(0)
+    spacing = VariableListProperty([0, 1], length=2)
     placeholder = ObjectProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
@@ -310,6 +311,7 @@ class ActionListView(AccordionListView):
         return _dict
 
 class DatePickerListView(AccordionListView):
+    spacing = VariableListProperty([0, 0], length=2)
     
     def __init__(self, **kwargs):
         self.register_event_type('on_populated')
@@ -360,7 +362,6 @@ Builder.load_string("""
 #:import Scroller scroller.Scroller
 
 <DNDListView>:
-    spacing: 1
     container: container_id
 
     Scroller:
@@ -379,8 +380,8 @@ Builder.load_string("""
     GridLayout:
         id: container_id
         cols: 1
-        spacing: 0, 1
         size_hint: 1, None
+        spacing: root.spacing
         pos_hint: {'x': 0, 'top': 1}
 
 <-QuickListView@DNDListView>:
