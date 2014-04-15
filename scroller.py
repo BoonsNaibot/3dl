@@ -50,6 +50,12 @@ class ScrollerEffect(DampedScrollEffect):
                     else:
                         return False
                 Clock.schedule_once(_mode_change, 0.055)"""
+                
+    def cancel(self):
+        self.is_manual = False
+        self._parent.on_height(self)
+        self.velocity = 0
+        self._parent.mode = 'normal'
 
 class Scroller(StencilView):
     scroll_distance = NumericProperty('10dp')
@@ -113,7 +119,7 @@ class Scroller(StencilView):
                 
                 if ret:
                     touch.ungrab(self)
-                    self.halt()
+                    self.cancel()
                     return True
                 elif ((abs(touch.dy) > self.scroll_distance) and (self._viewport.height > self.height)):
                     self.mode = 'scrolling'
@@ -140,10 +146,9 @@ class Scroller(StencilView):
 
             if self.mode == 'down':
                 effect.cancel()
-                self.mode = 'normal'
             elif self.mode == 'scrolling':
                 effect.stop(touch.y)
-            effect.on_scroll(effect, effect.scroll)
+                effect.on_scroll(effect, effect.scroll)
             return True
 
         return super(Scroller, self).on_touch_up(touch)
@@ -166,12 +171,6 @@ class Scroller(StencilView):
                 self.bar_anim.stop()
                 Clock.unschedule(self._start_decrease_alpha)
             Clock.schedule_once(self._start_decrease_alpha, .5)
-
-    def halt(self):        
-        self.effect_y.is_manual = False
-        self.on_height(self)
-        self.effect_y.velocity = 0
-        self.mode = 'normal'
 
     def _start_decrease_alpha(self, *l):
         self.bar_alpha = 1.
