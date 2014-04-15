@@ -81,13 +81,29 @@ class ListScreen(Screen_):
         text = text.lstrip()
 
         if text:
+            listview = self.accordion_view
             cursor = self.root_directory.cursor()
             cursor.execute("""
                            INSERT INTO [notebook](ix, what, page)
-                           VALUES((SELECT MAX(ROWID) FROM notebook)+1, ?, ?);
+                           VALUES((SELECT MAX(ROWID) FROM [notebook])+1, ?, ?);
+                           
+                           SELECT ix, what, when_, why, how
+                           FROM [notebook]
+                           WHERE page=? AND ix=(SELECT MAX(ROWID) FROM [notebook]);
                            """,
-                           (text, self.page))
-            self.dispatch('on_pre_enter')#, self, self.page)
+                           (text, self.page, self.page))
+            
+            #Mimic `ListAdapter.create_view`
+            data = cursor.fetchall()
+            index = len(listview)
+            item_args = self.args_converter(index, data[0])
+            item_args.update({'index': index, 'listview': listview})
+            new_item = listview.cached_views[index] = self.accordion_view_item(**item_args)
+            new_item.bind(on_release=listview.handle_selection)
+            listview.container.add_widget(new_item)
+            _l = lambda *_: self.list_items.extend(data)
+            Clock.schedule_once(_l, 0.055)
+            #self.dispatch('on_pre_enter')#, self, self.page)
 
         instance.text = ''
         instance.focus = False
