@@ -6,6 +6,7 @@ from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import AliasProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty
 
 class ScrollerEffect(DampedScrollEffect):
+    min_velocity = NumericProperty(2.5)
     _parent = ObjectProperty(None)
     max = NumericProperty(0)
     
