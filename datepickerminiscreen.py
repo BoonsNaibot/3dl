@@ -12,6 +12,7 @@ class DateTimeMiniScreen(Screen_):
     #date = ObjectProperty(datetime.date.today())
     date = ObjectProperty(None)
     time = ObjectProperty(datetime.time(12, 00))
+    selection = ListProperty([])
     month_names = ListProperty(('January ', 'February ', 'March ', 'April ', 'May ', 'June ', 'July ', 'August ', 'September ', 'October ', 'November ', 'December '))
 
     def _get_day(self):
