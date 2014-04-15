@@ -138,7 +138,7 @@ Builder.load_string("""
             state_color: app.no_color
             text_color: app.white
             font_size: self.width*0.5
-            font_name: 'heydings_icons.ttf'
+            font_name: 'breezi_font-webfont.ttf'
             size_hint: 0.18, 1
             pos_hint: {'center_x': 0.9, 'center_y': 0.5}
             on_press: root.dispatch('on_next_month', root)
