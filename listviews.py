@@ -243,10 +243,7 @@ class AccordionListView(DNDListView):
     def _get_selection(self):
         return self.parent.selection
         
-    def _set_selection(self, selection):
-        self.parent.selection = selection
-        
-    selection = AliasProperty(_get_selection, _set_selection)
+    selection = AliasProperty(_get_selection, None)
 
     def _lcm(self, a, b):
         a, b = int(a), int(b)
@@ -380,7 +377,8 @@ Builder.load_string("""
             id: container_id
             cols: 1
             size_hint: 1, None
-            spacing: root.spacing
+            #spacing: root.spacing
+            spacing: 0, 1
 
 <-ActionListView>:
     container: container_id
@@ -389,7 +387,8 @@ Builder.load_string("""
         id: container_id
         cols: 1
         size_hint: 1, None
-        spacing: root.spacing
+        #spacing: root.spacing
+        spacing: 0, 1
         pos_hint: {'x': 0, 'top': 1}
 
 <-QuickListView@DNDListView>:

@@ -211,6 +211,7 @@ class Clickable(ButtonRoot):
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if sup:
+                print sup
                 return sup
             else:
                 self._press_()

@@ -7,6 +7,7 @@ from kivy.properties import ObjectProperty, ListProperty, StringProperty, Numeri
 from listitems import ActionListItem, ListScreenItem
 from kivy.uix.screenmanager import RiseInTransition
 from kivy.lang import Builder
+from kivy.clock import Clock
 from uiux import Screen_
 
 class ListScreen(Screen_):
@@ -95,8 +96,8 @@ class ListScreen(Screen_):
             
             #Mimic `ListAdapter.create_view`
             data = cursor.fetchall()
-            index = len(listview)
-            item_args = self.args_converter(index, data[0])
+            index = len(self.list_items)
+            item_args = self._args_converter(index, data[0])
             item_args.update({'index': index, 'listview': listview})
             new_item = listview.cached_views[index] = self.accordion_view_item(**item_args)
             new_item.bind(on_release=listview.handle_selection)

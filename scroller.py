@@ -18,7 +18,7 @@ class ScrollerEffect(DampedScrollEffect):
     
     def _get_min(self):
         parent = self._parent
-        tw = parent._viewport
+        tw = self.target_widget
 
         if tw:
             return -(tw.size[1] - parent.height)
@@ -44,7 +44,8 @@ class ScrollerEffect(DampedScrollEffect):
 
             if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not value))):
                 parent.mode = 'normal'
-                """def _mode_change(*_):
+            print value, parent.scroll_y, self.value
+            """def _mode_change(*_):
                     if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not instance.scroll))):
                         parent.mode = 'normal'
                     else:
@@ -158,13 +159,15 @@ class Scroller(StencilView):
 
         if vp:
             vp.width = vp.size_hint_x * self.width
+            vp.x = self.x
 
             if vp.height > self.height:
-                sh = vp.height - self.height
+                vp.y = self.effect_y.value
+                """sh = vp.height - self.height
                 y = self.y - self.scroll_y * sh
             else:
                 y = self.top - vp.height
-            vp.pos = self.x, y
+            vp.pos = self.x, y"""
             self.bar_alpha = 1.
             
             if self.bar_anim:
