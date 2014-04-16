@@ -72,7 +72,7 @@ class ArchiveScreenItemTitle(Deletable, Clickable):
         if not self.collide_point(*touch.pos):
             if self.state <> 'normal':
                 self.state = 'normal'
-            return True
+                return True
 
         else:
             return super(ArchiveScreenItemTitle, self).on_touch_down(touch)
@@ -126,7 +126,7 @@ class QuickViewScreenItemTitle(Completable, Deletable):
         if not self.collide_point(*touch.pos):
             if self.state <> 'normal':
                 self.state = 'normal'
-            return True
+                return True
 
         else:
             return super(QuickViewScreenItemTitle, self).on_touch_down(touch)
