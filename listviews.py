@@ -34,10 +34,14 @@ class DNDListView(FloatLayout, ListViewAdapter):
         self.register_event_type("on_motion_over")
         self.register_event_type("on_motion_out")
         self.register_event_type("on_drag")
-        self._trigger_populate = Clock.create_trigger(self._do_layout, -1)
+        #self._trigger_populate = Clock.create_trigger(self._do_layout, -1)
         super(DNDListView, self).__init__(**kwargs)
 
-        self.bind(size=self._trigger_populate, pos=self._trigger_populate)
+        #self.bind(size=self._trigger_populate, pos=self._trigger_populate)
+        
+    def do_layout(self, *args, **kwargs):
+        super(DNDListView, self).do_layout(*args, **kwargs)
+        self._do_layout()
 
     def on_data(self, instance, value):
         #print self, '.on_data'
