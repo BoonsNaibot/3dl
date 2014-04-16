@@ -57,6 +57,9 @@ class NewItemWidget(FloatLayout):
     def on_text_validate(self, *args):
         pass
 
+class StencilLayout(FloatLayout):
+    pass
+
 class Screen_(Screen):
     root_directory = ObjectProperty(None)
     keyboard_height = NumericProperty(None)
@@ -722,7 +725,7 @@ class DoubleClickButton(DoubleClickable):
         if ((self.collide_point(*touch.pos)) and (self.state == 'normal')):
             return super(DoubleClickButton, self).on_touch_down(touch)
 
-class AccordionListItem(Selectable, FloatLayout):
+class AccordionListItem(Selectable, StencilLayout):
     _anim = ObjectProperty(lambda : None)
     title = ObjectProperty(None)
     content = ObjectProperty(None)
@@ -1073,10 +1076,7 @@ Builder.load_string("""
         font_size: root.font_size
         text_size: self.size[0], None
 
-<AccordionListItem>:
-    cols: 1
-    size_hint: 1, None
-    shadow_color: app.shadow_gray
+<StencilLayout>:
     canvas.before:
         StencilPush
         Rectangle:
@@ -1089,6 +1089,10 @@ Builder.load_string("""
             pos: self.pos
             size: self.size
         StencilPop
+
+<AccordionListItem>:
+    size_hint: 1, None
+    shadow_color: app.shadow_gray
 
 <-BoundedTextInput>:
     font_name: 'Walkway Bold.ttf'
