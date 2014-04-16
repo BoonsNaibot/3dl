@@ -204,9 +204,6 @@ class Clickable(ButtonRoot):
         self.state = 'normal'
 
     def on_touch_down(self, touch):
-        if touch.is_mouse_scrolling:
-            return False
-
         if self.state == 'normal':
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
