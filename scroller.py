@@ -1,7 +1,7 @@
 from kivy.clock import Clock
 from kivy.lang import Builder
+from uiux import StencilLayout
 from kivy.animation import Animation
-from kivy.uix.stencilview import StencilView
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import AliasProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty
 
@@ -17,40 +17,29 @@ class ScrollerEffect(DampedScrollEffect):
     target_widget = AliasProperty(_get_target_widget, None)
     
     def _get_min(self):
-        parent = self._parent
         tw = self.target_widget
 
         if tw:
-            return -(tw.size[1] - parent.height)
+            return -(tw.size[1] - tw.parent.height)
         else:
             return 0
         
     min = AliasProperty(_get_min, None)
     
     def on_scroll(self, instance, value):
-        parent = instance._parent
-        vp = parent._viewport
+        vp = self.target_widget
 
         if vp:
+            vp.y = value
+            parent = vp.parent
             sh = vp.height - parent.height
 
             if sh >= 1:
                 sy = value/float(sh)
-                
-                if parent.scroll_y == -sy:
-                    parent._trigger_update_from_scroll()
-                else:
-                    parent.scroll_y = -sy
+                parent.scroll_y = -sy
 
             if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not value))):
                 parent.mode = 'normal'
-            print value, parent.scroll_y, self.value
-            """def _mode_change(*_):
-                    if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not instance.scroll))):
-                        parent.mode = 'normal'
-                    else:
-                        return False
-                Clock.schedule_once(_mode_change, 0.055)"""
                 
     def cancel(self):
         self.is_manual = False
@@ -58,7 +47,7 @@ class ScrollerEffect(DampedScrollEffect):
         self.velocity = 0
         self._parent.mode = 'normal'
 
-class Scroller(StencilView):
+class Scroller(StencilLayout):
     scroll_distance = NumericProperty('10dp')
     scroll_y = NumericProperty(1.)
     bar_color = ListProperty([.7, .7, .7, .9])
@@ -94,10 +83,14 @@ class Scroller(StencilView):
         super(Scroller, self).__init__(**kwargs)
 
         self.effect_y = ScrollerEffect(_parent=self)
-        self.bind(scroll_y=self._trigger_update_from_scroll,
-                  pos=self._trigger_update_from_scroll,
-                  size=self._trigger_update_from_scroll)
-                  
+        self.bind(scroll_y=self._trigger_update_from_scroll)#,
+                  #pos=self._trigger_update_from_scroll,
+                  #size=self._trigger_update_from_scroll)"""
+
+    def do_layout(self, *args, **kwargs):
+        super(Scroller, self).do_layout(*args, **kwargs)
+        self._trigger_update_from_scroll()
+
     def on_height(self, instance, *args):
         self.effect_y.value = self.effect_y.min * self.scroll_y
 
@@ -155,7 +148,7 @@ class Scroller(StencilView):
         return super(Scroller, self).on_touch_up(touch)
 
     def update_from_scroll(self, *largs):
-        vp = self._viewport
+        """p = self._viewport
 
         if vp:
             vp.width = vp.size_hint_x * self.width
@@ -163,17 +156,17 @@ class Scroller(StencilView):
 
             if vp.height > self.height:
                 vp.y = self.effect_y.value
-                """sh = vp.height - self.height
+                sh = vp.height - self.height
                 y = self.y - self.scroll_y * sh
             else:
                 y = self.top - vp.height
             vp.pos = self.x, y"""
-            self.bar_alpha = 1.
-            
-            if self.bar_anim:
-                self.bar_anim.stop()
-                Clock.unschedule(self._start_decrease_alpha)
-            Clock.schedule_once(self._start_decrease_alpha, .5)
+        self.bar_alpha = 1.
+        
+        if self.bar_anim:
+            self.bar_anim.stop()
+            Clock.unschedule(self._start_decrease_alpha)
+        Clock.schedule_once(self._start_decrease_alpha, .5)
 
     def _start_decrease_alpha(self, *l):
         self.bar_alpha = 1.
@@ -186,7 +179,8 @@ class Scroller(StencilView):
         self._viewport = widget
         widget.bind(#size=self._trigger_update_from_scroll,
                     height=self.on_height)
-        self._trigger_update_from_scroll()
+        widget.top = self.top
+        #self._trigger_update_from_scroll()
 
     def remove_widget(self, widget):
         super(Scroller, self).remove_widget(widget)
