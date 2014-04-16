@@ -168,8 +168,6 @@ class ButtonRoot(Widget):
         if touch.grab_current is self:
             touch.ungrab(self)
             return True
-        else:
-            return False
             
     def cancel(self):
         self.state = 'normal'
@@ -180,28 +178,28 @@ class Clickable(ButtonRoot):
     def __init__(self, **kwargs):
         self.register_event_type('on_press')
         self.register_event_type('on_release')
-        self._press_ = Clock.create_trigger(self.trigger_press, 0.0625)
-        self._release_ = Clock.create_trigger(self.trigger_release, .15)        
+        self._press_ = Clock.create_trigger(self._trigger_press, 0.0625)
+        self._release_ = Clock.create_trigger(self._trigger_release, .15)        
         super(Clickable, self).__init__(**kwargs)
 
-    def trigger_press(self, dt):
+    def _trigger_press(self, dt):
         if ((self.state == 'normal') and not self.disabled):
-            self._do_press()
-            self.dispatch('on_press')
+            #self._do_press()
+            #self.dispatch('on_press')
+            self.state = 'down'
         else:
             return False
 
-    def trigger_release(self, dt):
+    def _trigger_release(self, dt):
         if self.state == 'normal':
             self.dispatch('on_release')
         else:
             return False
-
-    def _do_press(self):
-        self.state = 'down'
-
-    def _do_release(self):
-        self.state = 'normal'
+        
+    def on_state(self, instance, value):
+        if value == 'down':
+            instance.dispatch('on_press')
+        super(Clickable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
         if self.state == 'normal':
@@ -226,7 +224,7 @@ class Clickable(ButtonRoot):
                     touch.ungrab(self)
                     return sup
                 else:
-                    self._do_release()
+                    self.state = 'normal'
                     self._release_()
 
         return super(Clickable, self).on_touch_up(touch)
@@ -243,7 +241,7 @@ class Clickable(ButtonRoot):
 
 class DelayedClickable(Clickable):
 
-    def trigger_release(self, dt):
+    def _trigger_release(self, dt):
         if self.state == 'down':
             self.dispatch('on_release')
             self._do_release()
@@ -268,6 +266,7 @@ class DelayedClickable(Clickable):
 class Deletable(ButtonRoot):    
     state = OptionProperty('normal', options=('normal', 'delete'))
     delete_button = ObjectProperty(None, allownone=True)
+    _anim = ObjectProperty(lambda : None)
 
     def __init__(self, **kwargs):
         self.register_event_type('on_delete_out')
@@ -309,7 +308,7 @@ class Deletable(ButtonRoot):
                 if sup:
                     touch.ungrab(self)
                     return sup
-                elif ((touch.dx < -10) and not self.delete_button):
+                elif ((touch.dx < '-10dp') and not self.delete_button):
                     self.state = 'delete'
 
             if self.state == 'delete':
@@ -317,9 +316,8 @@ class Deletable(ButtonRoot):
                 self.layout.right = new_pos
                 return True
         
-        elif ((self.state == 'delete') or (self.state in ('down', 'normal') and ((touch.dx < -10) and not self.delete_button))):
+        elif ((self.state == 'delete') or (self.state in ('down', 'normal') and ((touch.dx < '-10dp') and not self.delete_button))):
             return True
-
         return super(Deletable, self).on_touch_move(touch)
 
     def on_touch_up(self, touch):
@@ -337,7 +335,8 @@ class Deletable(ButtonRoot):
                     layout = self.layout
 
                     if (layout.right < self.delete_button.center_x):
-                        self._anim = Animation(right=self.delete_button.x, t='out_quad', d=0.2).start(layout)
+                        self._anim = ref(Animation(right=self.delete_button.x, t='out_quad', d=0.2))
+                        self._anim().start(layout)
                     else:
                         self.state = 'normal'
                     return True
@@ -353,11 +352,13 @@ class Deletable(ButtonRoot):
         
         _anim = Animation(right=self.right, t='out_quad', d=0.2)
         _anim.bind(on_complete=_do_release)
-        self._anim = _anim.start(layout)
+        self._anim = ref(_anim)
+        _anim.start(layout)
 
 class Completable(ButtonRoot):
-    state = OptionProperty('normal', options=('normal', 'complete'))
+    _anim = ObjectProperty(lambda : None)
     complete_button = ObjectProperty(None, allownone=True)
+    state = OptionProperty('normal', options=('normal', 'complete'))
 
     def __init__(self, **kwargs):
         self.register_event_type('on_complete_out')
@@ -381,7 +382,6 @@ class Completable(ButtonRoot):
 
             if not sup:
                 self.state = 'normal'
-
             return True
 
         else:
@@ -397,7 +397,7 @@ class Completable(ButtonRoot):
                 if sup:
                     touch.ungrab(self)
                     return sup
-                elif ((touch.dx > 10) and not self.complete_button):
+                elif ((touch.dx > '10dp') and not self.complete_button):
                     self.state = 'complete'
 
             if self.state == 'complete':
@@ -405,9 +405,8 @@ class Completable(ButtonRoot):
                 self.layout.x = new_pos
                 return True
         
-        elif ((self.state == 'complete') or (self.state in ('down', 'normal') and ((touch.dx > 10) and not self.complete_button))):
+        elif ((self.state == 'complete') or (self.state in ('down', 'normal') and ((touch.dx > '10dp') and not self.complete_button))):
             return True
-
         return super(Completable, self).on_touch_move(touch)
 
     def on_touch_up(self, touch):
@@ -425,7 +424,8 @@ class Completable(ButtonRoot):
                     layout = self.layout
 
                     if (layout.x > self.complete_button.center_x):
-                        self._anim = Animation(x=self.complete_button.right, t='out_quad', d=0.2).start(layout)
+                        self._anim = ref(Animation(x=self.complete_button.right, t='out_quad', d=0.2))
+                        self._anim().start(layout)
                     else:
                         self.state = 'normal'
                     return True
@@ -441,7 +441,8 @@ class Completable(ButtonRoot):
         
         _anim = Animation(x=self.x, t='out_quad', d=0.2)
         _anim.bind(on_complete=_do_release)
-        self._anim = _anim.start(layout)
+        self._anim = ref(_anim)
+        _anim.start(layout)
 
 class Editable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'edit'))
@@ -545,6 +546,8 @@ class DoubleClickable(Editable):
             self.double_click_switch = not self.double_click_switch
             instance.state = 'normal'
 
+        super(DoubleClickable, self).on_state(instance, value)
+
 class DropAnimation(Animation):
     indices = ListProperty(None)
 
@@ -557,12 +560,16 @@ class DragNDroppable(ButtonRoot):
         self.register_event_type('on_drag')
         self.register_event_type('on_drop')
         super(DragNDroppable, self).__init__(**kwargs)
+        
+    def on_press(self, *args):
+        if ((self.state == 'down') and (not self.screen.polestar)):
+            Clock.schedule_interval(self.on_hold_down, 0.05)
 
     def on_hold_down(self, dt):
         if ((self.state == 'down') and not self.disabled):
             self.hold_time += dt
 
-            if self.hold_time > 1.0:
+            if self.hold_time > 0.085:
                 self.state = 'dragged'
 
         else:
@@ -572,9 +579,7 @@ class DragNDroppable(ButtonRoot):
     def on_state(self, instance, value):
         listview = instance.listview
 
-        if value == 'down' and not listview.parent.polestar:
-            Clock.schedule_interval(instance.on_hold_down, 0.07)
-        elif ((value <> 'dragged') and listview.placeholder):
+        if ((value <> 'dragged') and listview.placeholder):
             listview.placeholder = None
             listview.parent.polestar = None
         elif value == 'dragged':
@@ -591,7 +596,7 @@ class DragNDroppable(ButtonRoot):
 
             if not sup:
                 self.hold_time = 0.0
-                touch.ud['indices'] = {} #gotta be larger than `_press_()`
+                touch.ud['indices'] = {}
             else:
                 return sup
 
