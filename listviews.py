@@ -376,6 +376,7 @@ Builder.load_string("""
         GridLayout:
             id: container_id
             cols: 1
+            pos_hint: {'x': 0}
             size_hint: 1, None
             #spacing: root.spacing
             spacing: 0, 1
