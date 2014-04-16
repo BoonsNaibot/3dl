@@ -763,8 +763,10 @@ class AccordionListItem(Selectable, FloatLayout):
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
-            return False        
-        elif self._anim():
+            return False
+        elif self.disabled:
+            return True
+        elif self._anim() is not None
             return True
         else:
             return super(AccordionListItem, self).on_touch_down(touch)
