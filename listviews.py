@@ -5,6 +5,7 @@ from datetimewidgets import Day
 import datetime, math, itertools
 from kivy.uix.widget import Widget
 from adapters import ListViewAdapter
+from weakref import ref, WeakKeyDictionary
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty
 
@@ -87,7 +88,12 @@ class DNDListView(FloatLayout, ListViewAdapter):
         if value:
             container = instance.container
             instance.row_height = rh = next(value.itervalues(), 0) #since they're all the same
-            container.height = max((rh*instance.get_count()), container.minimum_height)
+            
+            if rh <> 0:
+                ch = max((rh*instance.get_count()), container.minimum_height)
+                
+                if ch <> container.height:
+                    container.height = ch
 
     def _reset_spopulate(self, *args):
         #print self, '._reset_spopulate'
@@ -210,7 +216,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
 
         children = self.container.children
         p_index = children.index(placeholder)
-        d = {}
+        d = WeakKeyDictionary()
 
         for child in children:
             if (widget.collide_widget(child) and (child is not placeholder) and (type(child) is not Widget)):
@@ -222,12 +228,12 @@ class DNDListView(FloatLayout, ListViewAdapter):
                     #maybe scroll here
                     child_ix = child.ix
 
-                    if child in indices:
-                        child_ix = indices.pop(child)
+                    if ref(child) in indices:
+                        child_ix = indices.pop(ref(child))
                     else:
-                        d[child] = placeholder.ix
+                        d[ref(child)] = placeholder.ix
 
-                    d[widget] = placeholder.ix = child_ix
+                    d[ref(widget)] = placeholder.ix = child_ix
                     #_dict = {widget.text: child.ix, child.text: placeholder.ix}
                     #placeholder.ix, child.ix = child.ix, placeholder.ix
                     break
@@ -265,10 +271,13 @@ class AccordionListView(DNDListView):
         if value:
             sizes = set(value.itervalues()); _min = min(sizes); _max = max(sizes)
             count = instance.get_count() - 1
-            instance.container.height = real_height = _max + (_min * count)
-            instance.row_height = r_h = real_height / (count + 1)
-            numerator = instance._lcm(_min, r_h)
-            instance._i_offset = int((numerator/_min) - (numerator/r_h)) + 1
+            real_height = _max + (_min * count)
+            
+            if real_height <> instance.container.height:
+                instance.container.height = real_height
+                instance.row_height = r_h = real_height / (count + 1)
+                numerator = instance._lcm(_min, r_h)
+                instance._i_offset = int((numerator/_min) - (numerator/r_h)) + 1
 
     def on_drag(self, instance, *args):
         instance = instance.parent
@@ -288,6 +297,7 @@ class AccordionListView(DNDListView):
             #deleting = widget.listview.__self__ is not self
 
             for k, v in indices.iteritems():
+                k = k()
 
                 if (deleting and (not k.collide_point(*point))):
                     k.index -= 1
@@ -301,7 +311,7 @@ class AccordionListView(DNDListView):
 class ActionListView(AccordionListView):
 
     def on_motion_over(self, instance, indices):
-        d = {instance: instance.listview.placeholder.ix}
+        d = WeakKeyDictionary({ref(instance): instance.listview.placeholder.ix})
         children = self.container.children
 
         for child in children:
@@ -309,12 +319,12 @@ class ActionListView(AccordionListView):
 
             if collision:
                 child.state = 'down'
-                d.update({instance: child.ix, child: instance.ix})
+                d.update({ref(instance): child.ix, ref(child): instance.ix})
             elif child.state <> 'normal':
                 child.state = 'normal'
 
-                if child in indices:
-                    del indices[child]
+                if ref(child) in indices:
+                    del indices[ref(child)]
 
         _dict = dict(indices, **d)
         return _dict
