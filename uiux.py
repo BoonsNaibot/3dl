@@ -2,14 +2,14 @@ from kivy.properties import ObjectProperty, NumericProperty, ListProperty, Optio
 from kivy.uix.screenmanager import SlideTransition, Screen
 from kivy.graphics.transformation import Matrix
 from kivy.uix.floatlayout import FloatLayout
+from weakref import ref, WeakKeyDictionary
 from kivy.uix.textinput import TextInput
 from kivy.animation import Animation
 from kivy.uix.widget import Widget
 from kivy.vector import Vector
+from math import radians, ceil
 from kivy.lang import Builder
 from kivy.clock import Clock
-import math
-from weakref import ref
 
 class NavBar(FloatLayout):
     text = StringProperty('')
@@ -608,7 +608,7 @@ class DragNDroppable(ButtonRoot):
 
             if not sup:
                 self.hold_time = 0.0
-                touch.ud['indices'] = {}
+                touch.ud['indices'] = WeakKeyDictionary()
             else:
                 return sup
 
@@ -620,11 +620,10 @@ class DragNDroppable(ButtonRoot):
 
             if self.state == 'dragged':
                 self.dispatch('on_drag', self, touch.y)
-                indices = touch.ud['indices']
 
                 for zone in self.drop_zones:
                     if self.collide_widget(zone):
-                        touch.ud['indices'] = zone.dispatch('on_drag', self, indices)
+                        touch.ud['indices'] = zone.dispatch('on_drag', self, touch.ud['indices'])
                 return True
 
         return super(DragNDroppable, self).on_touch_move(touch)
@@ -839,7 +838,7 @@ class FreeRotateLayout(Widget):
         ret = -1.0 * (v1.angle(v2) + 180) % 360
         return ret
 
-    def _set_angle(self, angle, matrix=Matrix, radians=math.radians, ceil=math.ceil):
+    def _set_angle(self, angle, matrix=Matrix):#, radians=math.radians, ceil=math.ceil):
         angle_change = self.angle - angle
         r = matrix().rotate(-radians(angle_change), 0, 0, 1)
         self.apply_transform(r, post_multiply=True, anchor=self.to_local(*self.center))
