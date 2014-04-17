@@ -462,6 +462,7 @@ class Editable(ButtonRoot):
     textinput = ObjectProperty(None, allownone=True)
     _double_tap_time = NumericProperty(0.0)
     _switch = BooleanProperty(False)
+    max_chars = NumericProperty(31)
     screen = ObjectProperty(None)
 
     def __init__(self, **kwargs):
@@ -517,6 +518,7 @@ class Editable(ButtonRoot):
         elif value == 'edit':
             instance.textinput = t = BoundedTextInput(text=instance.text,
                                                       size_hint=(None, None),
+                                                      max_chars=instance.max_chars,
                                                       font_size=instance.label.font_size,
                                                       font_name=instance.label.font_name,
                                                       pos=instance.pos,
