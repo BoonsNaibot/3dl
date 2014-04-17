@@ -53,7 +53,7 @@ class ThreeDoListApp(App):
     light_blue = ListProperty((0.498, 0.941, 1.0, 1.0))
     blue = ListProperty((0.0, 0.824, 1.0, 1.0))
     red = ListProperty((1.0, 0.549, 0.5294, 1.0))
-    dark_blue = ListProperty((0.0, 0.522, 0.8118, 1.0))
+    dark_blue = ListProperty((0.0784, 0.349, 0.604, 1.0))
     purple = ListProperty((0.451, 0.4627, 0.561, 1.0))
     white = ListProperty((1.0, 1.0, 1.0, 1.0))
     light_gray = ListProperty((1.0, 0.98, 0.941, 1.0))
