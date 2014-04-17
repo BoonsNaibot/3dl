@@ -242,7 +242,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
         return _dict
 
     def on_motion_over(self, *args):
-        return {}
+        return WeakKeyDictionary()
 
     def on_motion_out(self, widget, l):
         if l:
