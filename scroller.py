@@ -40,13 +40,15 @@ class ScrollerEffect(DampedScrollEffect):
         vp = self.target_widget
 
         if vp:
-            vp.y = value
             parent = vp.parent
             sh = vp.height - parent.height
 
             if sh >= 1:
+                vp.y = value
                 sy = value/float(sh)
                 parent.scroll_y = -sy
+            else:
+                vp.top = parent.top
 
             if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not value))):
                 parent.mode = 'normal'
