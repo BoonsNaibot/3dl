@@ -37,7 +37,7 @@ class ScrollerEffect(DampedScrollEffect):
     max = AliasProperty(_get_max, None)
     
     def on_scroll(self, instance, value):
-        vp = self.target_widget
+        vp = instance.target_widget
 
         if vp:
             parent = vp.parent
