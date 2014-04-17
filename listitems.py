@@ -272,6 +272,7 @@ Builder.load_string("""
         text_size: self.size[0], None
     EditButton:
         text: root.how
+        max_chars: 70
         size_hint: 0.75, 0.3
         top: icon_id.top
         x: icon_id.right
@@ -321,6 +322,7 @@ Builder.load_string("""
         valign: 'top'
     EditButton:
         text: root.how
+        max_chars: 70
         size_hint: 0.8, 0.5
         top: icon_id.top
         x: icon_id.right
