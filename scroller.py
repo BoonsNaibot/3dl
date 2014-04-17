@@ -6,9 +6,8 @@ from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import AliasProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty
 
 class ScrollerEffect(DampedScrollEffect):
-    min_velocity = NumericProperty(2.5)
+    min_velocity = NumericProperty(5)
     _parent = ObjectProperty(None)
-    max = NumericProperty(0)
     
     def _get_target_widget(self):
         if self._parent:
@@ -20,11 +19,22 @@ class ScrollerEffect(DampedScrollEffect):
         tw = self.target_widget
 
         if tw:
-            return -(tw.size[1] - tw.parent.height)
+            #return -(tw.size[1] - tw.parent.height)
+            return tw.parent.top - tw.size[1]
         else:
             return 0
         
     min = AliasProperty(_get_min, None)
+    
+    def _get_max(self):
+        parent = self._parent
+
+        if parent:
+            return parent.pos[1]
+        else:
+            return 0
+        
+    max = AliasProperty(_get_max, None)
     
     def on_scroll(self, instance, value):
         vp = self.target_widget
@@ -91,8 +101,19 @@ class Scroller(StencilLayout):
         super(Scroller, self).do_layout(*args, **kwargs)
         self._trigger_update_from_scroll()
 
+    def on_pos(self, *args):
+        if self._viewport:
+            vp = self._viewport
+
+            if vp.height > self.height:
+                sh = vp.height - self.height
+                vp.y = self.y - self.scroll_y * sh
+            else:
+                vp.top = self.top
+
     def on_height(self, instance, *args):
-        self.effect_y.value = self.effect_y.min * self.scroll_y
+        if self.effect_y:
+            self.effect_y.value = self.effect_y.min * self.scroll_y
 
     def on_touch_down(self, touch):        
         if self.collide_point(*touch.pos):

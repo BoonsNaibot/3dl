@@ -26,12 +26,15 @@ class PagesScreenItem(Clickable, Deletable, Editable):
 
 class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'dragged', 'edit', 'normal'))
-    screen = ObjectProperty(None)
     
     def _get_listview(self):
         return self.parent.listview
         
     listview = AliasProperty(_get_listview, None)
+        
+    def on_press(self, *args):
+        if ((self.state == 'down') and (not self.screen.polestar)):
+            Clock.schedule_interval(self.on_hold_down, 0.05)
     
     def on_hold_down(self, *args):
         if self.screen.selection:
@@ -65,7 +68,6 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
         super(NoteItemTitle, self).on_return(instance, *args)
 
 class ArchiveScreenItemTitle(Deletable, Clickable):
-    screen = ObjectProperty(None)
     state = OptionProperty('normal', options=('delete', 'down', 'normal'))
 
     def on_touch_down(self, touch):
@@ -330,7 +332,7 @@ Builder.load_string("""
 <ListScreenItem>:
     title: title_id
     content: content_id
-    text_color: app.dark_blue if (self.collapse_alpha==0.0 or title_id.state=='dragged') else (app.blue if title_id.state=='down' app.dark_gray)
+    text_color: app.dark_blue if (self.collapse_alpha==0.0 or title_id.state=='dragged') else (app.blue if title_id.state=='down' else app.dark_gray)
     state_color: app.no_color if title_id.state=='dragged' else app.smoke_white
     height: title_id.height + (content_id.height*(1-self.collapse_alpha))
 

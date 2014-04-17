@@ -327,41 +327,42 @@ class DatePickerListView(AccordionListView):
         super(DatePickerListView, self).__init__(**kwargs)
     
     def on_populated(self, root):
-        cached_views = self.cached_views
+        if root.date:
+            cached_views = self.cached_views
+                
+            if len(cached_views) == 6:
+                year, month = root.date.year, root.date.month
+                
+                if (year, month) <> (root.year, root.month):
+                    root.year, root.month = year, month
+                    timedelta = datetime.timedelta
+                    today = datetime.date.today()
+                    ravel = itertools.chain.from_iterable
             
-        if len(cached_views) == 6:
-            year, month = root.date.year, root.date.month
+                    def _args_converter(date_cursor, delta):
+                        date_label = Day(text=str(date_cursor.day))
             
-            if (year, month) <> (root.year, root.month):
-                root.year, root.month = year, month
-                timedelta = datetime.timedelta
-                today = datetime.date.today()
-                ravel = itertools.chain.from_iterable
+                        if date_cursor < today:
+                            date_label.disabled = True
+                        elif ((delta < 0) or (month <> date_cursor.month)):
+                            date_label.in_month = False
+            
+                        return date_label
         
-                def _args_converter(date_cursor, delta):
-                    date_label = Day(text=str(date_cursor.day))
-        
-                    if date_cursor < today:
-                        date_label.disabled = True
-                    elif ((delta < 0) or (month <> date_cursor.month)):
-                        date_label.in_month = False
-        
-                    return date_label
-    
-                date = datetime.date(year, month, 1)
-                dt = date.isoweekday()# - instance.type_of_calendar
-        
-                for child in cached_views.itervalues():
-                    child.title.clear_widgets()
-        
-                these = ravel(itertools.repeat(i, 7) for i in sorted(cached_views.itervalues(), key=cached_views.get))
-                those = (_args_converter((date+timedelta(days=delta)), delta) for delta in xrange(-dt, ((7*6)-dt)))
-                _on_release = self.handle_selection
-        
-                for this, that in itertools.izip(these, those):
-                    that.bind(on_release=_on_release)
-                    that.week = this
-                    this.title.add_widget(that)
+                    date = datetime.date(year, month, 1)
+                    dt = date.isoweekday()# - instance.type_of_calendar
+            
+                    for child in cached_views.itervalues():
+                        child.title.clear_widgets()
+            
+                    these = ravel(itertools.repeat(i, 7) for i in sorted(cached_views.itervalues(), key=cached_views.get))
+                    those = (_args_converter((date+timedelta(days=delta)), delta) for delta in xrange(-dt, ((7*6)-dt)))
+                    _on_release = self.handle_selection
+            
+                    for this, that in itertools.izip(these, those):
+                        that.bind(on_release=_on_release)
+                        that.week = this
+                        this.title.add_widget(that)
     
     def _do_layout(self, *args):
         super(DatePickerListView, self)._do_layout(*args)

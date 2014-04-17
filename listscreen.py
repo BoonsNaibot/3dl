@@ -61,7 +61,7 @@ class ListScreen(Screen_):
         _dict['why'] = bool(_dict['why'])
 
         if _dict['ix'] < 4:
-            _dict['title_height_hint'] = (153./1136.)
+            _dict['title_height_hint'] = (2.0/15.0)
             _dict['content_height_hint'] = (322./1136.)
             _dict['listview'] = self.action_view
             _dict['aleft'] = True
@@ -80,6 +80,8 @@ class ListScreen(Screen_):
 
     def on_new_item(self, instance, text):
         text = text.lstrip()
+        instance.text = ''
+        instance.focus = False
 
         if text:
             listview = self.accordion_view
@@ -105,9 +107,6 @@ class ListScreen(Screen_):
             _l = lambda *_: self.list_items.extend(data)
             Clock.schedule_once(_l, 0.055)
             #self.dispatch('on_pre_enter')#, self, self.page)
-
-        instance.text = ''
-        instance.focus = False
 
     def on_what(self, instance, value):
         instance.text = value
@@ -229,20 +228,20 @@ Builder.load_string("""
         id: action_view_id
         size_hint: 1, 0.4
         #pos_hint: {'x': 0, 'top': 0.8873}
-        top: navbar_id.y - 1
+        top: navbar_id.y
         list_item: root.action_view_item
         args_converter: root._args_converter
         data: root.action_items
     AccordionListView:
         id: accordion_view_id
         size_hint: 1, 0.4
-        top: action_view_id.container.y - 1
+        top: action_view_id.container.y
         list_item: root.accordion_view_item
         args_converter: root._args_converter
         data: root.list_items
     NewItemWidget:
         hint_text: 'Create New Task...'
-        size_hint: 1, .086
+        size_hint: 1, 0.086
         pos_hint: {'y': 0}
         on_text_validate: root.dispatch('on_new_item', *args[1:])
 """)

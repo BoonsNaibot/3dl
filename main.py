@@ -156,7 +156,7 @@ class ThreeDoListApp(App):
     def build(self):
         ''''''
         self.dispatch('on_pre_start')
-        app = Application(size=(640, 1002))
+        app = Application()
         inspector.create_inspector(Window, app)
         return app
 

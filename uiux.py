@@ -209,7 +209,6 @@ class Clickable(ButtonRoot):
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if sup:
-                print sup
                 return sup
             else:
                 self._press_()
@@ -239,7 +238,7 @@ class Clickable(ButtonRoot):
         pass
     
     def cancel(self):
-        Clock.unschedule(self.trigger_press)
+        Clock.unschedule(self._trigger_press)
         super(Clickable, self).cancel()
 
 class DelayedClickable(Clickable):
@@ -266,10 +265,11 @@ class DelayedClickable(Clickable):
 
         return super(Clickable, self).on_touch_up(touch)
 
-class Deletable(ButtonRoot):    
+class Deletable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'delete'))
     delete_button = ObjectProperty(None, allownone=True)
     _anim = ObjectProperty(lambda : None)
+    screen = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         self.register_event_type('on_delete_out')
@@ -290,7 +290,10 @@ class Deletable(ButtonRoot):
         super(Deletable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
-        if self.state == 'delete':
+        if self._anim() is not None:
+            print 'dlete'
+            return True
+        elif self.state == 'delete':
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
@@ -311,7 +314,7 @@ class Deletable(ButtonRoot):
                 if sup:
                     touch.ungrab(self)
                     return sup
-                elif ((touch.dx < '-10dp') and not self.delete_button):
+                elif ((touch.dx < -10) and not self.delete_button):
                     self.state = 'delete'
 
             if self.state == 'delete':
@@ -319,7 +322,7 @@ class Deletable(ButtonRoot):
                 self.layout.right = new_pos
                 return True
         
-        elif ((self.state == 'delete') or (self.state in ('down', 'normal') and ((touch.dx < '-10dp') and not self.delete_button))):
+        elif ((self.state == 'delete') or (self.state in ('down', 'normal') and ((touch.dx < -10) and not self.delete_button))):
             return True
         return super(Deletable, self).on_touch_move(touch)
 
@@ -338,8 +341,10 @@ class Deletable(ButtonRoot):
                     layout = self.layout
 
                     if (layout.right < self.delete_button.center_x):
-                        self._anim = ref(Animation(right=self.delete_button.x, t='out_quad', d=0.2))
-                        self._anim().start(layout)
+                        _anim = Animation(right=self.delete_button.x, t='out_quad', d=0.2)
+                        self._anim = ref(_anim)
+                        _anim.start(layout)
+
                     else:
                         self.state = 'normal'
                     return True
@@ -359,6 +364,7 @@ class Deletable(ButtonRoot):
         _anim.start(layout)
 
 class Completable(ButtonRoot):
+    screen = ObjectProperty(None)
     _anim = ObjectProperty(lambda : None)
     complete_button = ObjectProperty(None, allownone=True)
     state = OptionProperty('normal', options=('normal', 'complete'))
@@ -380,7 +386,10 @@ class Completable(ButtonRoot):
         super(Completable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
-        if self.state == 'complete':
+        if self._anim() is not None:
+            print 'cumplete'
+            return True
+        elif self.state == 'complete':
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
@@ -400,7 +409,7 @@ class Completable(ButtonRoot):
                 if sup:
                     touch.ungrab(self)
                     return sup
-                elif ((touch.dx > '10dp') and not self.complete_button):
+                elif ((touch.dx > 10) and not self.complete_button):
                     self.state = 'complete'
 
             if self.state == 'complete':
@@ -408,7 +417,7 @@ class Completable(ButtonRoot):
                 self.layout.x = new_pos
                 return True
         
-        elif ((self.state == 'complete') or (self.state in ('down', 'normal') and ((touch.dx > '10dp') and not self.complete_button))):
+        elif ((self.state == 'complete') or (self.state in ('down', 'normal') and ((touch.dx > 10) and not self.complete_button))):
             return True
         return super(Completable, self).on_touch_move(touch)
 
@@ -427,8 +436,9 @@ class Completable(ButtonRoot):
                     layout = self.layout
 
                     if (layout.x > self.complete_button.center_x):
-                        self._anim = ref(Animation(x=self.complete_button.right, t='out_quad', d=0.2))
-                        self._anim().start(layout)
+                        _anim = Animation(x=self.complete_button.right, t='out_quad', d=0.2)
+                        self._anim = ref(_anim)
+                        _anim.start(layout)
                     else:
                         self.state = 'normal'
                     return True
@@ -452,6 +462,7 @@ class Editable(ButtonRoot):
     textinput = ObjectProperty(None, allownone=True)
     _double_tap_time = NumericProperty(0.0)
     _switch = BooleanProperty(False)
+    screen = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         self.register_event_type('on_text_validate')
@@ -563,16 +574,12 @@ class DragNDroppable(ButtonRoot):
         self.register_event_type('on_drag')
         self.register_event_type('on_drop')
         super(DragNDroppable, self).__init__(**kwargs)
-        
-    def on_press(self, *args):
-        if ((self.state == 'down') and (not self.screen.polestar)):
-            Clock.schedule_interval(self.on_hold_down, 0.05)
 
     def on_hold_down(self, dt):
         if ((self.state == 'down') and not self.disabled):
             self.hold_time += dt
 
-            if self.hold_time > 0.085:
+            if self.hold_time > 0.85:
                 self.state = 'dragged'
 
         else:
@@ -672,12 +679,6 @@ class DragNDroppable(ButtonRoot):
         instance._anim = ref(_anim)
         instance._anim().start(instance)
 
-    """def on_drag_start(self, widget):
-        widget.listview.deselect_all()
-
-    def on_drag_finish(self, widget):
-        pass"""
-
     def cancel(self):
         Clock.unschedule(self.on_hold_down)
         self.hold_time = 0.0
@@ -688,7 +689,7 @@ class Button_(Clickable):
 
     def __init__(self, **kwargs):
         super(Button_, self).__init__(**kwargs)
-        self._press_ = Clock.create_trigger(self.trigger_press, 0)
+        self._press_ = Clock.create_trigger(self._trigger_press, 0)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -774,7 +775,7 @@ class AccordionListItem(Selectable, StencilLayout):
             return False
         elif self.disabled:
             return True
-        elif self._anim() is not None
+        elif self._anim() is not None:
             return True
         else:
             return super(AccordionListItem, self).on_touch_down(touch)
@@ -957,6 +958,7 @@ class FreeRotateLayout(Widget):
 
 
 Builder.load_string("""
+
 <NavBar>:
     size_hint: 1, 0.1127
     pos_hint:{'top': 1, 'x': 0}
