@@ -61,11 +61,10 @@ class ScrollerEffect(DampedScrollEffect):
 
 class Scroller(StencilLayout):
     scroll_distance = NumericProperty('10dp')
-    scroll_y = NumericProperty(1.)
-    bar_color = ListProperty([.7, .7, .7, .9])
+    scroll_y = NumericProperty(1.0)
+    bar_color = ListProperty([0.7, 0.7, 0.7, 0.9])
     bar_width = NumericProperty('2dp')
     bar_margin = NumericProperty(0)
-    bar_anim = ObjectProperty(None, allownone=True)
     effect_y = ObjectProperty(None)
     _viewport = ObjectProperty(None)
     bar_alpha = NumericProperty(1.0)
@@ -74,7 +73,7 @@ class Scroller(StencilLayout):
     def _get_vbar(self):
         # must return (y, height) in %
         # calculate the viewport size / Scroller size %
-        ret = (0, 1.)
+        ret = (0, 1.0)
 
         if self._viewport:
             vh = self._viewport.height
@@ -184,11 +183,6 @@ class Scroller(StencilLayout):
             else:
                 y = self.top - vp.height
             vp.pos = self.x, y"""
-        self.bar_alpha = 1.
-        
-        if self.bar_anim:
-            self.bar_anim.stop()
-            Clock.unschedule(self._start_decrease_alpha)
         Clock.schedule_once(self._start_decrease_alpha, .5)
 
     def _start_decrease_alpha(self, *l):
