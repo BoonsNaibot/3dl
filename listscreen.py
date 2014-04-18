@@ -6,9 +6,11 @@ Created on Jul 27, 2013
 from kivy.properties import ObjectProperty, ListProperty, StringProperty, NumericProperty
 from listitems import ActionListItem, ListScreenItem
 from kivy.uix.screenmanager import RiseInTransition
+from kivy.animation import Animation
 from kivy.lang import Builder
 from kivy.clock import Clock
 from uiux import Screen_
+from weakref import ref
 
 class ListScreen(Screen_):
     action_view = ObjectProperty(None)
@@ -80,33 +82,39 @@ class ListScreen(Screen_):
 
     def on_new_item(self, instance, text):
         text = text.lstrip()
-        instance.text = ''
-        instance.focus = False
 
         if text:
-            listview = self.accordion_view
-            cursor = self.root_directory.cursor()
-            cursor.execute("""
-                           INSERT INTO [notebook](ix, what, page)
-                           VALUES((SELECT MAX(ROWID) FROM [notebook])+1, ?, ?);
-                           
-                           SELECT ix, what, when_, why, how
-                           FROM [notebook]
-                           WHERE page=? AND ix=(SELECT MAX(ROWID) FROM [notebook]);
-                           """,
-                           (text, self.page, self.page))
-            
             #Mimic `ListAdapter.create_view`
-            data = cursor.fetchall()
+            listview = self.accordion_view
+            data = (9e9, text, u"", 0, u"")
             index = len(self.list_items)
-            item_args = self._args_converter(index, data[0])
+            item_args = self._args_converter(index, data)
             item_args.update({'index': index, 'listview': listview})
             new_item = listview.cached_views[index] = self.accordion_view_item(**item_args)
             new_item.bind(on_release=listview.handle_selection)
             listview.container.add_widget(new_item)
-            _l = lambda *_: self.list_items.extend(data)
-            Clock.schedule_once(_l, 0.055)
-            #self.dispatch('on_pre_enter')#, self, self.page)
+
+            def _on_start(a, w):
+                instance.text = ''
+                instance.focus = False
+
+            def _on_complete(a, w):
+                cursor = w.root_directory.cursor()
+                cursor.execute("""
+                               INSERT INTO [notebook](ix, what, page)
+                               VALUES((SELECT MAX(ROWID) FROM [notebook])+1, ?, ?);
+                               
+                               SELECT MAX(ROWID) FROM [notebook];
+                               """,
+                               (text, w.page))
+                ix = cursor.fetchall()[0][0]
+                new_item.ix = ix
+                self.list_items.append((ix, text, u"", 0, u""))
+
+            _anim = Animation(y=0, t='out_expo', d=0.3)
+            _anim.bind(on_start=_on_start, on_complete=_on_complete)
+            instance._anim = ref(_anim)
+            _anim.start(self)
 
     def on_what(self, instance, value):
         instance.text = value
@@ -136,7 +144,7 @@ class ListScreen(Screen_):
 
         cursor.execute("""
                        INSERT INTO [archive]
-                       SELECT * FROM notebook WHERE ix=? and page=?;
+                       SELECT * FROM [notebook] WHERE ix=? and page=?;
                        """,
                        (ix, self.page))
         self.polestar = None

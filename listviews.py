@@ -5,7 +5,7 @@ from datetimewidgets import Day
 import datetime, math, itertools
 from kivy.uix.widget import Widget
 from adapters import ListViewAdapter
-from weakref import ref, WeakKeyDictionary
+from weakref import WeakKeyDictionary
 from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty
 
@@ -35,14 +35,10 @@ class DNDListView(FloatLayout, ListViewAdapter):
         self.register_event_type("on_motion_over")
         self.register_event_type("on_motion_out")
         self.register_event_type("on_drag")
-        #self._trigger_populate = Clock.create_trigger(self._do_layout, -1)
+        self._trigger_populate = Clock.create_trigger(self._do_layout, -1)
         super(DNDListView, self).__init__(**kwargs)
 
-        #self.bind(size=self._trigger_populate, pos=self._trigger_populate)
-        
-    def do_layout(self, *args, **kwargs):
-        super(DNDListView, self).do_layout(*args, **kwargs)
-        self._do_layout()
+        self.bind(size=self._trigger_populate, pos=self._trigger_populate)
 
     def on_data(self, instance, value):
         #print self, '.on_data'
@@ -88,12 +84,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
         if value:
             container = instance.container
             instance.row_height = rh = next(value.itervalues(), 0) #since they're all the same
-            
-            if rh <> 0:
-                ch = max((rh*instance.get_count()), container.minimum_height)
-                
-                if ch <> container.height:
-                    container.height = ch
+            container.height = max((rh*instance.get_count()), container.minimum_height)
 
     def _reset_spopulate(self, *args):
         #print self, '._reset_spopulate'
@@ -216,7 +207,7 @@ class DNDListView(FloatLayout, ListViewAdapter):
 
         children = self.container.children
         p_index = children.index(placeholder)
-        d = WeakKeyDictionary()
+        d = WeakKeyDictionary({widget: placeholder.ix})
 
         for child in children:
             if (widget.collide_widget(child) and (child is not placeholder) and (type(child) is not Widget)):
@@ -228,17 +219,15 @@ class DNDListView(FloatLayout, ListViewAdapter):
                     #maybe scroll here
                     child_ix = child.ix
 
-                    if ref(child) in indices:
-                        child_ix = indices.pop(ref(child))
+                    if child in indices:
+                        child_ix = indices.pop(child)
                     else:
-                        d[ref(child)] = placeholder.ix
+                        d[child] = placeholder.ix
 
-                    d[ref(widget)] = placeholder.ix = child_ix
-                    #_dict = {widget.text: child.ix, child.text: placeholder.ix}
-                    #placeholder.ix, child.ix = child.ix, placeholder.ix
+                    d[widget] = placeholder.ix = child_ix
                     break
 
-        _dict = dict(indices, **d)
+        _dict = WeakKeyDictionary(dict(indices, **d))
         return _dict
 
     def on_motion_over(self, *args):
@@ -271,13 +260,10 @@ class AccordionListView(DNDListView):
         if value:
             sizes = set(value.itervalues()); _min = min(sizes); _max = max(sizes)
             count = instance.get_count() - 1
-            real_height = _max + (_min * count)
-            
-            if real_height <> instance.container.height:
-                instance.container.height = real_height
-                instance.row_height = r_h = real_height / (count + 1)
-                numerator = instance._lcm(_min, r_h)
-                instance._i_offset = int((numerator/_min) - (numerator/r_h)) + 1
+            instance.container.height = real_height = _max + (_min * count)
+            instance.row_height = r_h = real_height / (count + 1)
+            numerator = instance._lcm(_min, r_h)
+            instance._i_offset = int((numerator/_min) - (numerator/r_h)) + 1
 
     def on_drag(self, instance, *args):
         instance = instance.parent
@@ -297,7 +283,6 @@ class AccordionListView(DNDListView):
             #deleting = widget.listview.__self__ is not self
 
             for k, v in indices.iteritems():
-                k = k()
 
                 if (deleting and (not k.collide_point(*point))):
                     k.index -= 1
@@ -311,7 +296,7 @@ class AccordionListView(DNDListView):
 class ActionListView(AccordionListView):
 
     def on_motion_over(self, instance, indices):
-        d = WeakKeyDictionary({ref(instance): instance.listview.placeholder.ix})
+        d = WeakKeyDictionary({instance: instance.listview.placeholder.ix})
         children = self.container.children
 
         for child in children:
@@ -319,14 +304,14 @@ class ActionListView(AccordionListView):
 
             if collision:
                 child.state = 'down'
-                d.update({ref(instance): child.ix, ref(child): instance.ix})
+                d.update({instance: child.ix, child: instance.ix})
             elif child.state <> 'normal':
                 child.state = 'normal'
 
-                if ref(child) in indices:
-                    del indices[ref(child)]
+                if child in indices:
+                    del indices[child]
 
-        _dict = dict(indices, **d)
+        _dict = WeakKeyDictionary(dict(indices, **d))
         return _dict
 
 class DatePickerListView(AccordionListView):
@@ -337,42 +322,41 @@ class DatePickerListView(AccordionListView):
         super(DatePickerListView, self).__init__(**kwargs)
     
     def on_populated(self, root):
-        if root.date:
-            cached_views = self.cached_views
-                
-            if len(cached_views) == 6:
-                year, month = root.date.year, root.date.month
-                
-                if (year, month) <> (root.year, root.month):
-                    root.year, root.month = year, month
-                    timedelta = datetime.timedelta
-                    today = datetime.date.today()
-                    ravel = itertools.chain.from_iterable
+        cached_views = self.cached_views
             
-                    def _args_converter(date_cursor, delta):
-                        date_label = Day(text=str(date_cursor.day))
+        if len(cached_views) == 6:
+            year, month = root.date.year, root.date.month
             
-                        if date_cursor < today:
-                            date_label.disabled = True
-                        elif ((delta < 0) or (month <> date_cursor.month)):
-                            date_label.in_month = False
-            
-                        return date_label
+            if (year, month) <> (root.year, root.month):
+                root.year, root.month = year, month
+                timedelta = datetime.timedelta
+                today = datetime.date.today()
+                ravel = itertools.chain.from_iterable
         
-                    date = datetime.date(year, month, 1)
-                    dt = date.isoweekday()# - instance.type_of_calendar
-            
-                    for child in cached_views.itervalues():
-                        child.title.clear_widgets()
-            
-                    these = ravel(itertools.repeat(i, 7) for i in sorted(cached_views.itervalues(), key=cached_views.get))
-                    those = (_args_converter((date+timedelta(days=delta)), delta) for delta in xrange(-dt, ((7*6)-dt)))
-                    _on_release = self.handle_selection
-            
-                    for this, that in itertools.izip(these, those):
-                        that.bind(on_release=_on_release)
-                        that.week = this
-                        this.title.add_widget(that)
+                def _args_converter(date_cursor, delta):
+                    date_label = Day(text=str(date_cursor.day))
+        
+                    if date_cursor < today:
+                        date_label.disabled = True
+                    elif ((delta < 0) or (month <> date_cursor.month)):
+                        date_label.in_month = False
+        
+                    return date_label
+    
+                date = datetime.date(year, month, 1)
+                dt = date.isoweekday()# - instance.type_of_calendar
+        
+                for child in cached_views.itervalues():
+                    child.title.clear_widgets()
+        
+                these = ravel(itertools.repeat(i, 7) for i in sorted(cached_views.itervalues(), key=cached_views.get))
+                those = (_args_converter((date+timedelta(days=delta)), delta) for delta in xrange(-dt, ((7*6)-dt)))
+                _on_release = self.handle_selection
+        
+                for this, that in itertools.izip(these, those):
+                    that.bind(on_release=_on_release)
+                    that.week = this
+                    this.title.add_widget(that)
     
     def _do_layout(self, *args):
         super(DatePickerListView, self)._do_layout(*args)

@@ -330,10 +330,19 @@ Builder.load_string("""
         font_size: root.width*0.035
         text_color: root.text_color
         screen: root.screen
+
+<NoteItem>:
+    canvas.after:
+        Color:
+            rgba: self.shadow_color
+        Line:
+            close: True
+            points: self.x, self.y, self.right, self.y, self.right, self.top, self.x, self.top
    
 <ListScreenItem>:
     title: title_id
     content: content_id
+    shadow_color: app.blue if title_id.state in ('down', 'dragged') else app.no_color
     text_color: app.dark_blue if (self.collapse_alpha==0.0 or title_id.state=='dragged') else (app.blue if title_id.state=='down' else app.dark_gray)
     state_color: app.no_color if title_id.state=='dragged' else app.smoke_white
     height: title_id.height + (content_id.height*(1-self.collapse_alpha))
@@ -368,14 +377,10 @@ Builder.load_string("""
 <ActionListItem>:
     title: title_id
     content: content_id
+    shadow_color: app.shadow_gray
     state_color: app.no_color if title_id.state=='dragged' else (app.light_blue if title_id.state=='down' else app.white)
     height: title_id.height + (content_id.height*(1-self.collapse_alpha))
     text_color: app.dark_gray if self.disabled else app.dark_blue
-    canvas.after:
-        Color:
-            rgba: app.shadow_gray
-        Line:
-            points: self.x, self.y, self.right, self.y
 
     ActionListItemTitle:
         id: title_id

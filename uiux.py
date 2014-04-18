@@ -277,7 +277,7 @@ class Deletable(ButtonRoot):
 
     def on_state(self, instance, value):
         if ((value <> 'delete') and instance.delete_button):
-            instance.unbind(right=instance.delete_button.right, y=instance.delete_button.y)
+            #instance.unbind(right=instance.delete_button.right, y=instance.delete_button.y)
             instance.dispatch('on_delete_out', instance.layout)
             instance.screen.polestar = None
         elif value == 'delete':
@@ -285,13 +285,12 @@ class Deletable(ButtonRoot):
                                                                  pos=((instance.right-instance.size[1]), instance.pos[1]),
                                                                  button=instance)
             instance.add_widget(deletebutton, 1)
-            instance.bind(right=deletebutton.right, y=deletebutton.y)
+            #instance.bind(right=deletebutton.right, y=deletebutton.y)
             instance.screen.polestar = instance
         super(Deletable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
         if self._anim() is not None:
-            print 'dlete'
             return True
         elif self.state == 'delete':
             sup = super(ButtonRoot, self).on_touch_down(touch)
@@ -314,7 +313,7 @@ class Deletable(ButtonRoot):
                 if sup:
                     touch.ungrab(self)
                     return sup
-                elif ((touch.dx < -10) and not self.delete_button):
+                elif ((touch.dx < -20) and not self.delete_button):
                     self.state = 'delete'
 
             if self.state == 'delete':
@@ -322,7 +321,7 @@ class Deletable(ButtonRoot):
                 self.layout.right = new_pos
                 return True
         
-        elif ((self.state == 'delete') or (self.state in ('down', 'normal') and ((touch.dx < -10) and not self.delete_button))):
+        elif ((self.state == 'delete') or (self.state in ('down', 'normal') and self.collide_point(*touch.pos) and ((touch.dx < -20) and not self.delete_button))):
             return True
         return super(Deletable, self).on_touch_move(touch)
 
@@ -375,19 +374,18 @@ class Completable(ButtonRoot):
 
     def on_state(self, instance, value):
         if ((value <> 'complete') and instance.complete_button):
-            instance.unbind(pos=instance.complete_button.pos)
+            #instance.unbind(pos=instance.complete_button.pos)
             instance.dispatch('on_complete_out', instance.layout)
             instance.screen.polestar = None
         elif value == 'complete':
             instance.complete_button = completebutton = CompleteButton(size=(instance.size[1], instance.size[1]), pos=instance.pos, button=self)
             instance.add_widget(completebutton, 1)
-            instance.bind(pos=completebutton.pos)
+            #instance.bind(pos=completebutton.pos)
             instance.screen.polestar = instance
         super(Completable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
         if self._anim() is not None:
-            print 'cumplete'
             return True
         elif self.state == 'complete':
             sup = super(ButtonRoot, self).on_touch_down(touch)
@@ -409,7 +407,7 @@ class Completable(ButtonRoot):
                 if sup:
                     touch.ungrab(self)
                     return sup
-                elif ((touch.dx > 10) and not self.complete_button):
+                elif ((touch.dx > 20) and not self.complete_button):
                     self.state = 'complete'
 
             if self.state == 'complete':
@@ -417,7 +415,7 @@ class Completable(ButtonRoot):
                 self.layout.x = new_pos
                 return True
         
-        elif ((self.state == 'complete') or (self.state in ('down', 'normal') and ((touch.dx > 10) and not self.complete_button))):
+        elif ((self.state == 'complete') or (self.state in ('down', 'normal') and self.collide_point(*touch.pos) and ((touch.dx > 20) and not self.complete_button))):
             return True
         return super(Completable, self).on_touch_move(touch)
 
@@ -732,6 +730,7 @@ class AccordionListItem(Selectable, StencilLayout):
     title = ObjectProperty(None)
     content = ObjectProperty(None)
     listview = ObjectProperty(None)
+    shadow_color = ListProperty([])
     state_color = ListProperty([])
     text_color = ListProperty([])
     text = StringProperty('')
@@ -959,7 +958,6 @@ class FreeRotateLayout(Widget):
 
 
 Builder.load_string("""
-
 <NavBar>:
     size_hint: 1, 0.1127
     pos_hint:{'top': 1, 'x': 0}

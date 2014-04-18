@@ -6,7 +6,7 @@ from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import AliasProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty
 
 class ScrollerEffect(DampedScrollEffect):
-    min_velocity = NumericProperty(5)
+    min_velocity = NumericProperty(10)
     _parent = ObjectProperty(None)
     
     def _get_target_widget(self):
@@ -27,12 +27,7 @@ class ScrollerEffect(DampedScrollEffect):
     min = AliasProperty(_get_min, None)
     
     def _get_max(self):
-        parent = self._parent
-
-        if parent:
-            return parent.pos[1]
-        else:
-            return 0
+        return self._parent.pos[1]
         
     max = AliasProperty(_get_max, None)
     
@@ -55,7 +50,6 @@ class ScrollerEffect(DampedScrollEffect):
                 
     def cancel(self):
         self.is_manual = False
-        self._parent.on_height(self)
         self.velocity = 0
         self._parent.mode = 'normal'
 
@@ -94,9 +88,7 @@ class Scroller(StencilLayout):
         super(Scroller, self).__init__(**kwargs)
 
         self.effect_y = ScrollerEffect(_parent=self)
-        self.bind(scroll_y=self._trigger_update_from_scroll)#,
-                  #pos=self._trigger_update_from_scroll,
-                  #size=self._trigger_update_from_scroll)"""
+        self.bind(scroll_y=self._trigger_update_from_scroll)
 
     def do_layout(self, *args, **kwargs):
         super(Scroller, self).do_layout(*args, **kwargs)
@@ -112,8 +104,8 @@ class Scroller(StencilLayout):
             else:
                 vp.top = self.top
 
-    def on_height(self, instance, *args):
-        if self.effect_y:
+    def on_height(self, *args):
+        if self._viewport:
             self.effect_y.value = self.effect_y.min * self.scroll_y
 
     def on_touch_down(self, touch):        
@@ -194,10 +186,7 @@ class Scroller(StencilLayout):
             raise Exception('Scroller accept only one widget')
         super(Scroller, self).add_widget(widget, index)
         self._viewport = widget
-        widget.bind(#size=self._trigger_update_from_scroll,
-                    height=self.on_height)
-        widget.top = self.top
-        #self._trigger_update_from_scroll()
+        widget.bind(height=self.on_height)
 
     def remove_widget(self, widget):
         super(Scroller, self).remove_widget(widget)
