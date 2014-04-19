@@ -738,6 +738,14 @@ class AccordionListItem(Selectable, StencilLayout):
     title_height_hint = NumericProperty(0.0)
     content_height_hint = NumericProperty(0.0)
 
+    def _get_height(self):
+        if self.title and self.content:
+            return self.title.height + (self.content.height*(1-self.collapse_alpha))
+        else:
+            return 1
+
+    height = AliasProperty(_get_height, None, bind=('center_y', 'top', 'title', 'content', 'collapse_alpha'))
+
     def _get_state(self):
         if self.title:
             return self.title.state
@@ -750,25 +758,24 @@ class AccordionListItem(Selectable, StencilLayout):
 
     state = AliasProperty(_get_state, _set_state)
 
-    def select(self, *args):
+    def _select(self, alpha):
         """if self._anim():
             self._anim().stop()
             self._anim = None"""
 
-        _anim = Animation(collapse_alpha=0.0, t='out_expo', d=0.25)
+        _anim = Animation(collapse_alpha=alpha, t='out_expo', d=0.25)
         _anim.bind(on_progress=self._do_progress)
-        self._anim = ref(_anim)#.start(self)
-        self._anim().start(self)
+        self._anim = ref(_anim)
+        _anim.start(self)
+
+    def _do_progress(self, anim, instance, progression):
+        instance.listview._sizes[instance.index] = instance.height
+
+    def select(self, *args):
+        self._select(0.0)
 
     def deselect(self, *args):
-        """if self._anim():
-            self._anim.stop()
-            self._anim = None"""
-
-        _anim = Animation(collapse_alpha=1.0, t='out_expo', d=0.25)
-        _anim.bind(on_progress=self._do_progress)
-        self._anim = ref(_anim)#.start(self)
-        self._anim().start(self)
+        self._select(1.0)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -779,9 +786,6 @@ class AccordionListItem(Selectable, StencilLayout):
             return True
         else:
             return super(AccordionListItem, self).on_touch_down(touch)
-
-    def _do_progress(self, anim, instance, progression):
-        instance.listview._sizes[instance.index] = instance.height
 
 class FreeRotateLayout(Widget):
     content = ObjectProperty(None)

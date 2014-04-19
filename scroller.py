@@ -115,7 +115,12 @@ class Scroller(StencilLayout):
 
             if self.mode == 'normal':
                 self.mode = 'down'
-                return super(Scroller, self).on_touch_down(touch)
+                touch.push()
+                touch.apply_transform_2d(self.to_widget)
+                touch.apply_transform_2d(self.to_parent)
+                ret = super(Scroller, self).on_touch_down(touch)
+                touch.pop()
+                return ret
             elif self.mode == 'scrolling':
                 return True
 
@@ -123,7 +128,11 @@ class Scroller(StencilLayout):
         if touch.grab_current is self:
             
             if self.mode == 'down':
+                touch.push()
+                touch.apply_transform_2d(self.to_widget)
+                touch.apply_transform_2d(self.to_parent)
                 ret = super(Scroller, self).on_touch_move(touch)
+                touch.pop()
                 
                 if ret:
                     touch.ungrab(self)
@@ -158,8 +167,13 @@ class Scroller(StencilLayout):
                 effect.stop(touch.y)
                 effect.on_scroll(effect, effect.scroll)
             return True
-
-        return super(Scroller, self).on_touch_up(touch)
+       
+        touch.push()
+        touch.apply_transform_2d(self.to_widget)
+        touch.apply_transform_2d(self.to_parent)
+        ret = super(Scroller, self).on_touch_up(touch)
+        touch.pop() 
+        return ret
 
     def update_from_scroll(self, *largs):
         """p = self._viewport

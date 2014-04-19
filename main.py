@@ -14,7 +14,7 @@ kv = """
 #:import PagesScreen pagesscreen.PagesScreen
 #:import ArchiveScreen archivescreen.ArchiveScreen
 #:import QuickViewScreen quickviewscreen.QuickViewScreen
-#:import DateTimeMiniScreen datepickerminiscreen.DateTimeMiniScreen
+##:import DateTimeMiniScreen datepickerminiscreen.DateTimeMiniScreen
 #:import ScreenManager kivy.uix.screenmanager.ScreenManager
 
 <Application>:
@@ -39,8 +39,8 @@ kv = """
             root_directory: app.db
         ArchiveScreen:
             root_directory: app.db
-        DateTimeMiniScreen:
-            root_directory: app.db
+        #DateTimeMiniScreen:
+            #root_directory: app.db
 """
 
 class Application(Widget):

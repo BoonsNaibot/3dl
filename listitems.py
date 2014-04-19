@@ -342,10 +342,9 @@ Builder.load_string("""
 <ListScreenItem>:
     title: title_id
     content: content_id
-    shadow_color: app.blue if title_id.state in ('down', 'dragged') else app.no_color
+    shadow_color: app.dark_blue if title_id.state=='down' else (app.blue if title_id.state=='dragged' else app.no_color)
     text_color: app.dark_blue if (self.collapse_alpha==0.0 or title_id.state=='dragged') else (app.blue if title_id.state=='down' else app.dark_gray)
     state_color: app.no_color if title_id.state=='dragged' else app.smoke_white
-    height: title_id.height + (content_id.height*(1-self.collapse_alpha))
 
     NoteItemTitle:
         id: title_id
@@ -379,7 +378,6 @@ Builder.load_string("""
     content: content_id
     shadow_color: app.shadow_gray
     state_color: app.no_color if title_id.state=='dragged' else (app.light_blue if title_id.state=='down' else app.white)
-    height: title_id.height + (content_id.height*(1-self.collapse_alpha))
     text_color: app.dark_gray if self.disabled else app.dark_blue
 
     ActionListItemTitle:
@@ -412,7 +410,6 @@ Builder.load_string("""
     content: content_id
     size_hint: 1, None
     state_color: app.no_color if title_id.state in ('down', 'dragged') else app.white
-    height: title_id.height + (content_id.height*(1-self.collapse_alpha))
     text_color: app.dark_blue
 
     ArchiveScreenItemTitle:
@@ -531,7 +528,6 @@ Builder.load_string("""
     title: title_id
     content: content_id
     shadow_color: app.no_color
-    height: title_id.height + (content_id.height*(1-self.collapse_alpha))
 
     GridLayout:
         id: title_id

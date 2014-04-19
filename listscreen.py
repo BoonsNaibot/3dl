@@ -235,9 +235,10 @@ Builder.load_string("""
 
     ActionListView:
         id: action_view_id
-        size_hint: 1, 0.4
-        #pos_hint: {'x': 0, 'top': 0.8873}
-        top: navbar_id.y
+        #size_hint: 1, 0.4
+        pos_hint: {'x': 0, 'top': 0.8873}
+        height: 0.4*root.height
+        #top: navbar_id.y
         list_item: root.action_view_item
         args_converter: root._args_converter
         data: root.action_items
