@@ -245,7 +245,7 @@ Builder.load_string("""
     AccordionListView:
         id: accordion_view_id
         size_hint: 1, 0.4
-        top: action_view_id.container.y
+        top: action_view_id.y
         list_item: root.accordion_view_item
         args_converter: root._args_converter
         data: root.list_items

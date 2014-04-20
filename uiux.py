@@ -509,7 +509,7 @@ class Editable(ButtonRoot):
         if value not in ('normal', 'down'):
             instance._switch = False
         if ((value <> 'edit') and instance.textinput):
-            instance.unbind(pos=instance.textinput.pos, size=instance.textinput.size)
+            #instance.unbind(pos=instance.textinput.pos, size=instance.textinput.size)
             instance.remove_widget(instance.textinput)
             instance.textinput = None
             instance.screen.polestar = None
@@ -523,7 +523,7 @@ class Editable(ButtonRoot):
                                                       size=instance.size,
                                                       multiline=False)
             instance.add_widget(instance.textinput)
-            instance.bind(pos=t.pos, size=t.size)
+            #instance.bind(pos=t.pos, size=t.size)
             t.bind(on_text_validate=instance.on_text_validate, focus=instance.on_text_focus)
             t.focus = True
             instance.screen.polestar = instance

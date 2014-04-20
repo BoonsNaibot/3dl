@@ -7,7 +7,7 @@ from kivy.properties import ListProperty, ObjectProperty
 from apsw import Connection, SQLITE_OPEN_READWRITE, CantOpenError
 from kivy.modules import inspector
 from kivy.core.window import Window
-import cProfile
+#import cProfile
 
 kv = """
 #:import ListScreen listscreen.ListScreen
@@ -162,6 +162,7 @@ class ThreeDoListApp(App):
 
     def on_start(self):
         #self.profile = cProfile.Profile()
+        #self.profile.enable()
         app = self.root
         app.manager.transition = NoTransition()
         cursor = self.db.cursor()

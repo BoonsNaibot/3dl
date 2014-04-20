@@ -1,3 +1,4 @@
+from weakref import ref
 from kivy.clock import Clock
 from kivy.lang import Builder
 from uiux import StencilLayout
@@ -11,31 +12,31 @@ class ScrollerEffect(DampedScrollEffect):
     
     def _get_target_widget(self):
         if self._parent:
-            return self._parent._viewport.proxy_ref
+            return self._parent._viewport()
 
-    target_widget = AliasProperty(_get_target_widget, None)
-    
+    target_widget = AliasProperty(_get_target_widget, None, bind=('_parent',))
+
+    def _get_max(self):
+        return self._parent.pos[1]
+
+    max = AliasProperty(_get_max, None, bind=('_parent',))
+
     def _get_min(self):
         tw = self.target_widget
 
         if tw:
             #return -(tw.size[1] - tw.parent.height)
-            return tw.parent.top - tw.size[1]
+            return self._parent.top - tw.size[1]
         else:
             return 0
         
-    min = AliasProperty(_get_min, None)
-    
-    def _get_max(self):
-        return self._parent.pos[1]
-        
-    max = AliasProperty(_get_max, None)
+    min = AliasProperty(_get_min, None, bind=('_parent', 'target_widget'))
     
     def on_scroll(self, instance, value):
         vp = instance.target_widget
 
         if vp:
-            parent = vp.parent
+            parent = instance._parent
             sh = vp.height - parent.height
 
             if sh >= 1:
@@ -60,7 +61,7 @@ class Scroller(StencilLayout):
     bar_width = NumericProperty('2dp')
     bar_margin = NumericProperty(0)
     effect_y = ObjectProperty(None)
-    _viewport = ObjectProperty(None)
+    _viewport = ObjectProperty(lambda : None)
     bar_alpha = NumericProperty(1.0)
     mode = OptionProperty('normal', options=('down', 'normal', 'scrolling'))
 
@@ -69,10 +70,10 @@ class Scroller(StencilLayout):
         # calculate the viewport size / Scroller size %
         ret = (0, 1.0)
 
-        if self._viewport:
-            vh = self._viewport.height
+        if self._viewport():
+            vh = self._viewport().height
             h = self.height
-            
+
             if vh > h:
                 ph = max(0.01, h / float(vh))
                 sy = min(1.0, max(0.0, self.scroll_y))
@@ -87,16 +88,51 @@ class Scroller(StencilLayout):
         self._trigger_update_from_scroll = Clock.create_trigger(self.update_from_scroll, -1)
         super(Scroller, self).__init__(**kwargs)
 
-        self.effect_y = ScrollerEffect(_parent=self)
+        self.effect_y = ScrollerEffect(_parent=self.proxy_ref, round_value=False)
         self.bind(scroll_y=self._trigger_update_from_scroll)
 
     def do_layout(self, *args, **kwargs):
-        super(Scroller, self).do_layout(*args, **kwargs)
-        self._trigger_update_from_scroll()
+        if 1 not in self.size:
+            vp = self._viewport()
 
-    def on_pos(self, *args):
-        if self._viewport:
-            vp = self._viewport
+            if vp:
+                # Just like papa
+                w, h = kwargs.get('size', self.size)
+                x, y = kwargs.get('pos', self.pos)
+                #vp.w, vp.x = w, x
+
+                if vp.height > h:
+                    effect = self.effect_y
+                    #self.effect_y.value = self.effect_y.min * self.scroll_y
+                    sh = vp.height - h
+                    print self.scroll_y, -effect.scroll/max(1.0, float(sh))
+                    self.scroll_y = -effect.scroll/max(1.0, float(sh))
+                    vp.y = y - self.scroll_y * sh
+                    #print self.effect_y.value, vp.y, self.effect_y.scroll, sh, self.scroll_y
+                    #value = self.effect_y.min * self.scroll_y
+
+                    """if value < sh:
+                        effect.overscroll = value - sh
+                    elif value > 0:
+                        effect.overscroll = value
+                    else:
+                        effect.overscroll = 0"""
+                    
+                    #self.effect_y.value = vp.y
+                    #print vp.y, self.effect_y.min * self.scroll_y, self.top-vp.size[1]
+                else:
+                    vp.top = y + h
+                """if vp.height > self.height:
+                    sh = vp.height - self.height
+                    vp.y = self.y - self.scroll_y * sh
+                else:
+                    vp.top = self.top"""
+                #self._trigger_update_from_scroll()
+
+    """def on_pos(self, *args):
+        vp = self._viewport()
+
+        if vp:
 
             if vp.height > self.height:
                 sh = vp.height - self.height
@@ -105,8 +141,13 @@ class Scroller(StencilLayout):
                 vp.top = self.top
 
     def on_height(self, *args):
-        if self._viewport:
-            self.effect_y.value = self.effect_y.min * self.scroll_y
+        if self._viewport():
+            self.effect_y.value = self.effect_y.min * self.scroll_y"""
+
+    def on_height(self, *args):
+        pass
+        """if self.effect_y:
+           self.effect_y.value = self.effect_y.min * self.scroll_y"""
 
     def on_touch_down(self, touch):        
         if self.collide_point(*touch.pos):
@@ -138,7 +179,7 @@ class Scroller(StencilLayout):
                     touch.ungrab(self)
                     self.effect_y.cancel()
                     return True
-                elif ((abs(touch.dy) > self.scroll_distance) and (self._viewport.height > self.height)):
+                elif ((abs(touch.dy) > self.scroll_distance) and (self._viewport().height > self.height)):
                     self.mode = 'scrolling'
                     grab_list = touch.grab_list
                     l = len(grab_list)
@@ -196,16 +237,18 @@ class Scroller(StencilLayout):
         Animation(bar_alpha=0., d=.5, t='out_quart').start(self)
 
     def add_widget(self, widget, index=0):
-        if self._viewport:
+        if self._viewport():
             raise Exception('Scroller accept only one widget')
         super(Scroller, self).add_widget(widget, index)
-        self._viewport = widget
+        self._viewport = ref(widget)
         widget.bind(height=self.on_height)
+        widget.unbind(pos=self._trigger_layout,
+                      pos_hint=self._trigger_layout)
 
     def remove_widget(self, widget):
         super(Scroller, self).remove_widget(widget)
-        if widget is self._viewport:
-            self._viewport = None
+        if widget is self._viewport():
+            self._viewport = lambda : None
 
 Builder.load_string("""
 <Scroller>:

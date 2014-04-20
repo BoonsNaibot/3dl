@@ -1,8 +1,8 @@
-import math
+from math import ceil, floor
 from kivy.clock import Clock
 from kivy.lang import Builder
 from datetimewidgets import Day
-import datetime, math, itertools
+import datetime, itertools
 from kivy.uix.widget import Widget
 from adapters import ListViewAdapter
 from weakref import WeakKeyDictionary
@@ -40,7 +40,7 @@ class ListContainerLayout(FloatLayout):
                 #y += c.height + spacing
                 spot -= (c.height + spacing)
 
-class DNDListView(FloatLayout, ListViewAdapter):
+class DNDListView(Widget, ListViewAdapter):
     container = ObjectProperty(None)
     row_height = NumericProperty(None)
     scrolling = BooleanProperty(False)
@@ -53,25 +53,19 @@ class DNDListView(FloatLayout, ListViewAdapter):
     placeholder = ObjectProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
-        self.register_event_type("on_scroll_complete")
         self.register_event_type("on_motion_over")
         self.register_event_type("on_motion_out")
         self.register_event_type("on_drag")
-        #self._trigger_populate = Clock.create_trigger(self._do_layout, -1)
+        self._trigger_populate = Clock.create_trigger(self._do_layout, -1)
         super(DNDListView, self).__init__(**kwargs)
-
-        #self.bind(size=self._trigger_populate, pos=self._trigger_populate)
-
-    def do_layout(self, *args, **kwargs):
-        super(DNDListView, self).do_layout(*args, **kwargs)
-        self._do_layout()
+        self.bind(pos=self._trigger_populate)
 
     def on_data(self, instance, value):
         super(DNDListView, self).on_data(instance, value)
         instance._sizes.clear()
         instance._reset_spopulate()
 
-    def _scroll(self, scroll_y, ceil=math.ceil, floor=math.floor):
+    def _scroll(self, scroll_y):
         if self.row_height:
             self._scroll_y = scroll_y
             scroll_y = 1 - min(1, max(scroll_y, 0))
@@ -154,9 +148,8 @@ class DNDListView(FloatLayout, ListViewAdapter):
                     container.add_widget(item_view)
         else:
             available_height = self.height
-            real_height = 0
+            real_height = count = 0
             index = self._index
-            count = 0
 
             while available_height > 0:
                 item_view = get_view(index)
@@ -171,17 +164,10 @@ class DNDListView(FloatLayout, ListViewAdapter):
                     available_height -= item_view.height
                     real_height += item_view.height
 
-        self._sizes = dict(sizes, **d) 
+        new_sizes = dict(sizes, **d)
 
-    def scroll_to(self, index=0):
-        if not self.scrolling:
-            self.scrolling = True
-            self._index = index
-            self.populate()
-            self.dispatch('on_scroll_complete')
-
-    def on_scroll_complete(self, *args):
-        self.scrolling = False
+        if new_sizes <> sizes:
+            self._sizes = new_sizes
 
     def deparent(self, widget):
         container = self.container
@@ -282,10 +268,13 @@ class AccordionListView(DNDListView):
         if value:
             sizes = set(value.itervalues()); _min = min(sizes); _max = max(sizes)
             count = instance.get_count() - 1
-            instance.container.height = real_height = _max + (_min * count)
-            instance.row_height = r_h = real_height / (count + 1)
-            numerator = instance._lcm(_min, r_h)
-            instance._i_offset = int((numerator/_min) - (numerator/r_h)) + 1
+            real_height = _max + (_min * count)
+
+            if real_height <> instance.container.height:
+                instance.container.height = real_height
+                instance.row_height = r_h = real_height / (count + 1)
+                numerator = instance._lcm(_min, r_h)
+                instance._i_offset = int((numerator/_min) - (numerator/r_h)) + 1
 
     def on_drag(self, instance, *args):
         instance = instance.parent
@@ -391,13 +380,16 @@ Builder.load_string("""
     container: container_id
 
     Scroller:
-        pos_hint: {'x': 0, 'y': 0}
+        pos: root.pos
+        size: root.size
         on_scroll_y: root._scroll(args[1])
 
         ListContainerLayout:
             id: container_id
-            pos_hint: {'x': 0}
-            size_hint: 1, None
+            #pos_hint: {'x': 0}
+            #size_hint: 1, None
+            x: root.x
+            width: root.width
             spacing: root.spacing
 
 <-ActionListView>:
@@ -407,16 +399,19 @@ Builder.load_string("""
 
     ListContainerLayout:
         id: container_id
-        size_hint: 1, None
+        x: root.x
+        top: root.top
+        size: root.size
         spacing: root.spacing
-        pos_hint: {'x': 0, 'top': 1}
 
 <-QuickListView@DNDListView>:
-    container: container
+    container: container_id
+    size: container_id.size
     selection_mode: 'None'
 
     GridLayout:
         cols: 1
-        id: container
-        size_hint: 1, 1
+        id: container_id
+        pos: root.pos
+        size: root.size
 """)
