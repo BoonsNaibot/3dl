@@ -2,11 +2,13 @@ from math import ceil, floor
 from kivy.clock import Clock
 from kivy.lang import Builder
 from datetimewidgets import Day
-import datetime, itertools
+from itertools import repeat, izip
 from kivy.uix.widget import Widget
 from kivy.uix.layout import Layout
 from adapters import ListViewAdapter
+from datetime import date, timedelta
 from weakref import WeakKeyDictionary
+from itertools.chain import from_iterable as ravel
 from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty
 
 class Placeholder(Widget):
@@ -344,9 +346,9 @@ class DatePickerListView(AccordionListView):
             
             if (year, month) <> (root.year, root.month):
                 root.year, root.month = year, month
-                timedelta = datetime.timedelta
-                today = datetime.date.today()
-                ravel = itertools.chain.from_iterable
+                _timedelta = timedelta
+                today = date.today()
+                _repeat = repeat
         
                 def _args_converter(date_cursor, delta):
                     date_label = Day(text=str(date_cursor.day))
@@ -355,20 +357,19 @@ class DatePickerListView(AccordionListView):
                         date_label.disabled = True
                     elif ((delta < 0) or (month <> date_cursor.month)):
                         date_label.in_month = False
-        
                     return date_label
     
-                date = datetime.date(year, month, 1)
-                dt = date.isoweekday()# - instance.type_of_calendar
+                _date = date(year, month, 1)
+                dt = _date.isoweekday()# - instance.type_of_calendar
         
                 for child in cached_views.itervalues():
                     child.title.clear_widgets()
         
-                these = ravel(itertools.repeat(i, 7) for i in sorted(cached_views.itervalues(), key=cached_views.get))
-                those = (_args_converter((date+timedelta(days=delta)), delta) for delta in xrange(-dt, ((7*6)-dt)))
+                these = ravel(_repeat(i, 7) for i in sorted(cached_views.itervalues(), key=cached_views.get))
+                those = (_args_converter((_date+timedelta(days=delta)), delta) for delta in xrange(-dt, ((7*6)-dt)))
                 _on_release = self.handle_selection
         
-                for this, that in itertools.izip(these, those):
+                for this, that in izip(these, those):
                     that.bind(on_release=_on_release)
                     that.week = this
                     this.title.add_widget(that)
