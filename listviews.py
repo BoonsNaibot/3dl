@@ -108,7 +108,7 @@ class DNDListView(Widget, ListViewAdapter):
         if value:
             container = instance.container
             instance.row_height = rh = next(value.itervalues(), 0) #since they're all the same
-            container.height = rh * instance.get_count()#), container.minimum_height)
+            container.height = (rh + instance.spacing) * instance.get_count()
 
     def _reset_spopulate(self, *args):
         self._wend = None
@@ -272,7 +272,8 @@ class AccordionListView(DNDListView):
 
     def on__sizes(self, instance, value):
         if value:
-            sizes = set(value.itervalues()); _min = min(sizes); _max = max(sizes)
+            spacing = instance.spacing
+            sizes = set(value.itervalues()); _min = min(sizes) + spacing; _max = max(sizes) + spacing
             count = instance.get_count() - 1
             real_height = _max + (_min * count)
 
