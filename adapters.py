@@ -38,14 +38,13 @@ class ListViewAdapter(object):
         cached_views = self.cached_views
 
         if index in cached_views:
-            return cached_views[index]
+            return cached_views[index].proxy_ref
         else:
             item_view = self.create_view(index)
 
             if item_view:
                 cached_views[index] = item_view
-
-            return item_view
+                return item_view.proxy_ref
 
     def create_view(self, index):
         item = self.get_data_item(index)

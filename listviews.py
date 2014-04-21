@@ -4,9 +4,9 @@ from kivy.lang import Builder
 from datetimewidgets import Day
 import datetime, itertools
 from kivy.uix.widget import Widget
+from kivy.uix.layout import Layout
 from adapters import ListViewAdapter
 from weakref import WeakKeyDictionary
-from kivy.uix.floatlayout import FloatLayout
 from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty
 
 class Placeholder(Widget):
@@ -18,27 +18,31 @@ class Placeholder(Widget):
     def on_touch_move(self, touch):
         return True
 
-class ListContainerLayout(FloatLayout):
+class ListContainerLayout(Layout):
     spacing = NumericProperty(0)
 
     def __init__(self, **kwargs):
         super(ListContainerLayout, self).__init__(**kwargs)
-        self.bind(parent=self._trigger_layout)
+        self.bind(children=self._trigger_layout,
+                  pos=self._trigger_layout,
+                  pos_hint=self._trigger_layout,
+                  size_hint=self._trigger_layout,
+                  size=self._trigger_layout)
 
     def do_layout(self, *args, **kwargs):
         if 1 not in self.size:
-            # Just like papa
+            # Just like `FloatLayout`
             w, h = kwargs.get('size', self.size)
             x, y = kwargs.get('pos', self.pos)
             spacing = self.spacing
-            spot = y + h
+            place = y + h
 
             for c in self.children[::-1]:
                 c.width = w
                 c.x = x
-                c.top = spot
+                c.top = place
                 #y += c.height + spacing
-                spot -= (c.height + spacing)
+                place -= (c.height + spacing)
 
 class DNDListView(Widget, ListViewAdapter):
     container = ObjectProperty(None)
