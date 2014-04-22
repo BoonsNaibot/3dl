@@ -76,6 +76,8 @@ class ThreeDoListApp(App):
             connection = Connection('db.db')
             cursor = connection.cursor()
             cursor.execute("""
+                           PRAGMA user_version = 1;
+
                            CREATE TABLE [table of contents](
                            page_number UNSIGNED INTEGER,
                            page TEXT PRIMARY KEY,
