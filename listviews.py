@@ -2,26 +2,26 @@ from math import ceil, floor
 from kivy.clock import Clock
 from kivy.lang import Builder
 from datetimewidgets import Day
-from itertools import repeat, izip
+from weakreflist import WeakList
 from kivy.uix.widget import Widget
 from kivy.uix.layout import Layout
 from adapters import ListViewAdapter
 from datetime import date, timedelta
 from weakref import WeakKeyDictionary
-from itertools import chain
+from itertools import repeat, izip, chain
 from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty
 
 class Placeholder(Widget):
     ix = NumericProperty(None)
     text = StringProperty('')
     index = NumericProperty(None)
-    placeholder = ListProperty([])
 
     def on_touch_move(self, touch):
         return True
 
 class ListContainerLayout(Layout):
     spacing = NumericProperty(0)
+    children = ListProperty(WeakList())
 
     def __init__(self, **kwargs):
         super(ListContainerLayout, self).__init__(**kwargs)
