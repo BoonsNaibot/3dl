@@ -57,15 +57,15 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
             Clock.schedule_once(_l, 0.25)
 
     def on_drag(self, instance, *args):
-        instance = instance.parent
+        instance = instance.parent.proxy_ref
         super(NoteItemTitle, self).on_drag(instance, *args)
         
     def on_drop(self, instance, *args):
-        instance = instance.parent
+        instance = instance.parent.proxy_ref
         super(NoteItemTitle, self).on_drop(instance, *args)
         
     def on_return(self, instance, *args):
-        instance = instance.parent
+        instance = instance.parent.proxy_ref
         super(NoteItemTitle, self).on_return(instance, *args)
 
 class ArchiveScreenItemTitle(Deletable, Clickable):
@@ -137,9 +137,9 @@ class QuickViewScreenItemTitle(Completable, Deletable):
 class QuickViewScreenItem(BoxLayout):
     ix = NumericProperty(None)
     text = StringProperty('')
-    when = StringProperty('', allownone=True)
+    when = StringProperty('')
     why = BooleanProperty(False)
-    how = StringProperty('', allownone=True)
+    how = StringProperty('')
     markup = BooleanProperty(False)
     screen = ObjectProperty(None)
 
