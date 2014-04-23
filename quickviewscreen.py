@@ -41,7 +41,7 @@ class QuickViewScreen(Screen_):
 
     def _args_converter(self, row_index, an_obj):
         _dict = {'size_hint_y': 0.3,
-                 'screen': self}
+                 'screen': self.proxy_ref}
         _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
         what = self.format_title(_dict['text'])
         
