@@ -33,7 +33,7 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
     listview = AliasProperty(_get_listview, None)
         
     def on_press(self, *args):
-        if ((self.state == 'down') and (not self.screen.polestar)):
+        if ((self.state == 'down') and (not self.screen.polestar())):
             self.hold_time = 0.0
             Clock.schedule_interval(self.on_hold_down, 0.05)
     
