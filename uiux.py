@@ -6,6 +6,7 @@ from weakref import ref, WeakKeyDictionary
 from kivy.uix.textinput import TextInput
 from kivy.animation import Animation
 from kivy.uix.widget import Widget
+from weakreflist import WeakList
 from kivy.vector import Vector
 from math import radians, ceil
 from kivy.lang import Builder
@@ -266,7 +267,7 @@ class DelayedClickable(Clickable):
 
 class Deletable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'delete'))
-    delete_button = ObjectProperty(None, allownone=True)
+    delete_button = ObjectProperty(lambda : None)
     _anim = ObjectProperty(lambda : None)
     screen = ObjectProperty(None)
 
@@ -275,15 +276,16 @@ class Deletable(ButtonRoot):
         super(Deletable, self).__init__(**kwargs)
 
     def on_state(self, instance, value):
-        if ((value <> 'delete') and instance.delete_button):
+        if ((value <> 'delete') and instance.delete_button()):
             #instance.unbind(right=instance.delete_button.right, y=instance.delete_button.y)
             instance.dispatch('on_delete_out', instance.layout)
             instance.screen.polestar = None
         elif value == 'delete':
-            instance.delete_button = deletebutton = DeleteButton(size=(instance.size[1], instance.size[1]),
-                                                                 pos=((instance.right-instance.size[1]), instance.pos[1]),
-                                                                 button=instance)
+            deletebutton = DeleteButton(size=(instance.size[1], instance.size[1]),
+                                        pos=((instance.right-instance.size[1]), instance.pos[1]),
+                                        button=instance)
             instance.add_widget(deletebutton, 1)
+            instance.delete_button = ref(deletebutton)
             #instance.bind(right=deletebutton.right, y=deletebutton.y)
             instance.screen.polestar = instance
         super(Deletable, self).on_state(instance, value)
@@ -312,15 +314,15 @@ class Deletable(ButtonRoot):
                 if sup:
                     touch.ungrab(self)
                     return sup
-                elif ((touch.dx < -20) and not self.delete_button):
+                elif ((touch.dx < -20) and not self.delete_button()):
                     self.state = 'delete'
 
             if self.state == 'delete':
-                new_pos = max(self.delete_button.x, min((self.layout.right+touch.dx), self.right))
+                new_pos = max(self.delete_button().x, min((self.layout.right+touch.dx), self.right))
                 self.layout.right = new_pos
                 return True
         
-        elif ((self.state == 'delete') or (self.state in ('down', 'normal') and self.collide_point(*touch.pos) and ((touch.dx < -20) and not self.delete_button))):
+        elif ((self.state == 'delete') or (self.state in ('down', 'normal') and self.collide_point(*touch.pos) and ((touch.dx < -20) and not self.delete_button()))):
             return True
         return super(Deletable, self).on_touch_move(touch)
 
@@ -337,12 +339,12 @@ class Deletable(ButtonRoot):
                 else:
                     touch.ungrab(self)
                     layout = self.layout
+                    db = self.delete_button()
 
-                    if (layout.right < self.delete_button.center_x):
-                        _anim = Animation(right=self.delete_button.x, t='out_quad', d=0.2)
+                    if (layout.right < db.center_x):
+                        _anim = Animation(right=db.x, t='out_quad', d=0.2)
                         self._anim = ref(_anim)
                         _anim.start(layout)
-
                     else:
                         self.state = 'normal'
                     return True
@@ -353,8 +355,8 @@ class Deletable(ButtonRoot):
 
         def _do_release(a, widget):
             parent = widget.parent
-            parent.remove_widget(parent.delete_button)
-            parent.delete_button = None
+            parent.remove_widget(parent.delete_button())
+            parent.delete_button = lambda : None
         
         _anim = Animation(right=self.right, t='out_quad', d=0.2)
         _anim.bind(on_complete=_do_release)
@@ -364,7 +366,7 @@ class Deletable(ButtonRoot):
 class Completable(ButtonRoot):
     screen = ObjectProperty(None)
     _anim = ObjectProperty(lambda : None)
-    complete_button = ObjectProperty(None, allownone=True)
+    complete_button = ObjectProperty(lambda : None)
     state = OptionProperty('normal', options=('normal', 'complete'))
 
     def __init__(self, **kwargs):
@@ -372,13 +374,14 @@ class Completable(ButtonRoot):
         super(Completable, self).__init__(**kwargs)
 
     def on_state(self, instance, value):
-        if ((value <> 'complete') and instance.complete_button):
+        if ((value <> 'complete') and instance.complete_button()):
             #instance.unbind(pos=instance.complete_button.pos)
             instance.dispatch('on_complete_out', instance.layout)
             instance.screen.polestar = None
         elif value == 'complete':
-            instance.complete_button = completebutton = CompleteButton(size=(instance.size[1], instance.size[1]), pos=instance.pos, button=self)
+            completebutton = CompleteButton(size=(instance.size[1], instance.size[1]), pos=instance.pos, button=self)
             instance.add_widget(completebutton, 1)
+            instance.complete_button = ref(completebutton)
             #instance.bind(pos=completebutton.pos)
             instance.screen.polestar = instance
         super(Completable, self).on_state(instance, value)
@@ -406,15 +409,15 @@ class Completable(ButtonRoot):
                 if sup:
                     touch.ungrab(self)
                     return sup
-                elif ((touch.dx > 20) and not self.complete_button):
+                elif ((touch.dx > 20) and not self.complete_button()):
                     self.state = 'complete'
 
             if self.state == 'complete':
-                new_pos = max(self.x, min((self.layout.x+touch.dx), self.complete_button.right))
+                new_pos = max(self.x, min((self.layout.x+touch.dx), self.complete_button().right))
                 self.layout.x = new_pos
                 return True
-        
-        elif ((self.state == 'complete') or (self.state in ('down', 'normal') and self.collide_point(*touch.pos) and ((touch.dx > 20) and not self.complete_button))):
+
+        elif ((self.state == 'complete') or (self.state in ('down', 'normal') and self.collide_point(*touch.pos) and ((touch.dx > 20) and not self.complete_button()))):
             return True
         return super(Completable, self).on_touch_move(touch)
 
@@ -431,9 +434,10 @@ class Completable(ButtonRoot):
                 else:
                     touch.ungrab(self)
                     layout = self.layout
+                    cb = self.complete_button()
 
-                    if (layout.x > self.complete_button.center_x):
-                        _anim = Animation(x=self.complete_button.right, t='out_quad', d=0.2)
+                    if (layout.x > cb.center_x):
+                        _anim = Animation(x=cb.right, t='out_quad', d=0.2)
                         self._anim = ref(_anim)
                         _anim.start(layout)
                     else:
@@ -446,8 +450,8 @@ class Completable(ButtonRoot):
 
         def _do_release(a, widget):
             parent = widget.parent
-            parent.remove_widget(parent.complete_button)
-            parent.complete_button = None
+            parent.remove_widget(parent.complete_button())
+            parent.complete_button = lambda : None
         
         _anim = Animation(x=self.x, t='out_quad', d=0.2)
         _anim.bind(on_complete=_do_release)
@@ -456,7 +460,7 @@ class Completable(ButtonRoot):
 
 class Editable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'edit'))
-    textinput = ObjectProperty(None, allownone=True)
+    textinput = ObjectProperty(lambda : None)
     _double_tap_time = NumericProperty(0.0)
     _switch = BooleanProperty(False)
     max_chars = NumericProperty(31)
@@ -469,7 +473,7 @@ class Editable(ButtonRoot):
     def on__switch(self, instance, value):
         if value:
             Clock.schedule_interval(instance._double_tap_interval, 0.1)
-        
+
     def _double_tap_interval(self, dt):
         if (self._switch and not self.disabled):
             self._double_tap_time += dt
@@ -506,21 +510,22 @@ class Editable(ButtonRoot):
     def on_state(self, instance, value):
         if value not in ('normal', 'down'):
             instance._switch = False
-        if ((value <> 'edit') and instance.textinput):
+        if ((value <> 'edit') and instance.textinput()):
             #instance.unbind(pos=instance.textinput.pos, size=instance.textinput.size)
-            instance.remove_widget(instance.textinput)
-            instance.textinput = None
+            instance.remove_widget(instance.textinput())
+            instance.textinput = lambda : None
             instance.screen.polestar = None
         elif value == 'edit':
-            instance.textinput = t = BoundedTextInput(text=instance.text,
-                                                      size_hint=(None, None),
-                                                      max_chars=instance.max_chars,
-                                                      font_size=instance.label.font_size,
-                                                      font_name=instance.label.font_name,
-                                                      pos=instance.pos,
-                                                      size=instance.size,
-                                                      multiline=False)
-            instance.add_widget(instance.textinput)
+            t = BoundedTextInput(text=instance.text,
+                                 size_hint=(None, None),
+                                 max_chars=instance.max_chars,
+                                 font_size=instance.label.font_size,
+                                 font_name=instance.label.font_name,
+                                 pos=instance.pos,
+                                 size=instance.size,
+                                 multiline=False)
+            instance.add_widget(t)
+            instance.textinput = ref(t)
             #instance.bind(pos=t.pos, size=t.size)
             t.bind(on_text_validate=instance.on_text_validate, focus=instance.on_text_focus)
             t.focus = True
@@ -566,7 +571,7 @@ class DropAnimation(Animation):
 class DragNDroppable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'down', 'dragged'))
     hold_time = NumericProperty(0.0)
-    drop_zones = ListProperty([])
+    drop_zones = ListProperty(WeakList())
     
     def __init__(self, **kwargs):
         self.register_event_type('on_drag')
