@@ -38,13 +38,13 @@ class ListViewAdapter(object):
         cached_views = self.cached_views
 
         if index in cached_views:
-            return cached_views[index].proxy_ref
+            return cached_views[index]
         else:
             item_view = self.create_view(index)
 
             if item_view:
                 cached_views[index] = item_view
-                return item_view.proxy_ref
+                return item_view
 
     def create_view(self, index):
         item = self.get_data_item(index)
@@ -56,7 +56,7 @@ class ListViewAdapter(object):
             view_instance = self.list_item(**item_args)
 
             if self.selection_mode <> 'None':
-                view_instance.bind(on_release=self.handle_selection)
+                view_instance.bind(on_release=self.proxy_ref.handle_selection)
 
             return view_instance
 
