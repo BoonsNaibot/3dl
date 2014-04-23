@@ -20,7 +20,7 @@ class ListScreen(Screen_):
     list_items = ListProperty([])
     page = StringProperty('')
     page_number = NumericProperty(None)
-    selection = ListProperty([])
+    selection = ListProperty(WeakList())
     action_view_item = ObjectProperty(ActionListItem)
     accordion_view_item = ObjectProperty(ListScreenItem)
     
