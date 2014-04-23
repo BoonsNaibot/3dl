@@ -47,7 +47,7 @@ class ScrollerEffect(DampedScrollEffect):
                 vp.top = parent.top
                 parent.scroll_y = 1.0
             if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not value))):
-                self._parent.mode = 'normal'
+                instance._parent.mode = 'normal'
 
     def cancel(self):
         self.is_manual = False
@@ -85,8 +85,8 @@ class Scroller(StencilLayout):
     vbar = AliasProperty(_get_vbar, None, bind=('scroll_y', '_viewport'))
 
     def __init__(self, **kwargs):
-        super(Scroller, self).__init__(**kwargs)
         self.effect_y = ScrollerEffect(_parent=self.proxy_ref, round_value=False)
+        super(Scroller, self).__init__(**kwargs)
 
     def do_layout(self, *args, **kwargs):
         if 1 not in self.size:
@@ -138,12 +138,11 @@ class Scroller(StencilLayout):
                     return True
                 elif ((abs(touch.dy) > self.scroll_distance) and (self._viewport().height > self.height)):
                     self.mode = 'scrolling'
-                    grab_list = touch.grab_list
-                    l = len(grab_list)
+                    l = len(touch.grab_list)
     
                     if l > 1:
                         for x in xrange(l):
-                            item = grab_list[x]()
+                            item = touch.grab_list[x]()
     
                             if type(item) is not Scroller:
                                 touch.ungrab(item)
