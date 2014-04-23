@@ -283,7 +283,7 @@ class Deletable(ButtonRoot):
         elif value == 'delete':
             deletebutton = DeleteButton(size=(instance.size[1], instance.size[1]),
                                         pos=((instance.right-instance.size[1]), instance.pos[1]),
-                                        button=instance)
+                                        button=instance.proxy_ref)
             instance.add_widget(deletebutton, 1)
             instance.delete_button = ref(deletebutton)
             #instance.bind(right=deletebutton.right, y=deletebutton.y)
@@ -379,7 +379,7 @@ class Completable(ButtonRoot):
             instance.dispatch('on_complete_out', instance.layout)
             instance.screen.polestar = None
         elif value == 'complete':
-            completebutton = CompleteButton(size=(instance.size[1], instance.size[1]), pos=instance.pos, button=self)
+            completebutton = CompleteButton(size=(instance.size[1], instance.size[1]), pos=instance.pos, button=instance.proxy_ref)
             instance.add_widget(completebutton, 1)
             instance.complete_button = ref(completebutton)
             #instance.bind(pos=completebutton.pos)
