@@ -7,6 +7,7 @@ from kivy.properties import ObjectProperty, ListProperty, StringProperty, Numeri
 from listitems import ActionListItem, ListScreenItem
 from kivy.uix.screenmanager import RiseInTransition
 from kivy.animation import Animation
+from weakreflist import WeakList
 from kivy.lang import Builder
 from kivy.clock import Clock
 from uiux import Screen_
@@ -57,15 +58,15 @@ class ListScreen(Screen_):
             self.list_items, self.action_items = list_items, action_items
 
     def _args_converter(self, row_index, an_obj):
-        _dict = {'drop_zones': [self.action_view.proxy_ref,],
-                 'screen': self}
+        _dict = {'drop_zones': WeakList([self.action_view,]),
+                 'screen': self.proxy_ref}
         _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
         _dict['why'] = bool(_dict['why'])
 
         if _dict['ix'] < 4:
             _dict['title_height_hint'] = (2.0/15.0)
             _dict['content_height_hint'] = (322./1136.)
-            _dict['listview'] = self.action_view.proxy_ref
+            #_dict['listview'] = self.action_view.proxy_ref
             _dict['aleft'] = True
 
             if not _dict['text']:
@@ -74,8 +75,8 @@ class ListScreen(Screen_):
         else:
             _dict['title_height_hint'] = 0.088
             _dict['content_height_hint'] = (190./1136.)
-            _dict['drop_zones'].append(self.accordion_view.proxy_ref)
-            _dict['listview'] = self.accordion_view.proxy_ref
+            _dict['drop_zones'].append(self.accordion_view)
+            #_dict['listview'] = self.accordion_view.proxy_ref
             _dict['aleft'] = False
 
         return _dict
