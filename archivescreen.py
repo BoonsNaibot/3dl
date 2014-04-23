@@ -5,13 +5,14 @@ Created on Jul 23, 2013
 '''
 from uiux import Screen_
 from kivy.lang import Builder
+from weakreflist import WeakList
 from listitems import ArchiveScreenItem
 from kivy.properties import ObjectProperty, ListProperty
 
 class ArchiveScreen(Screen_):
-    selection = ListProperty([])
     list_items = ListProperty([])
     list_view = ObjectProperty(None)
+    selection = ListProperty(WeakList())
     _item = ObjectProperty(ArchiveScreenItem)
 
     def on_pre_enter(self):
