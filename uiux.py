@@ -48,12 +48,12 @@ class NewItemWidget(FloatLayout):
         super(NewItemWidget, self).__init__(**kwargs)
 
     def on_state(self, instance, value):
-        screen = instance.parent
+        screen = instance.parent.proxy_ref
 
         if value == 'edit':
-            screen.polestar = instance
-        elif screen.polestar:
-            screen.polestar = None
+            screen.polestar = ref(instance)
+        elif screen.polestar():
+            screen.polestar = lambda : None
 
     def on_text_validate(self, *args):
         pass
@@ -64,7 +64,7 @@ class StencilLayout(FloatLayout):
 class Screen_(Screen):
     root_directory = ObjectProperty(None)
     keyboard_height = NumericProperty(None)
-    polestar = ObjectProperty(None, allownone=True)
+    polestar = ObjectProperty(lambda : None)
     _anim = ObjectProperty(lambda : None)
 
     def __init__(self, **kwargs):
@@ -75,6 +75,8 @@ class Screen_(Screen):
         super(Screen_, self).__init__(**kwargs)
 
     def on_polestar(self, instance, value):
+        value = value()
+
         if (value and (value.state == 'edit')):
             y = instance.to_window(*value.pos)[1]
             kh = instance.keyboard_height
@@ -83,7 +85,7 @@ class Screen_(Screen):
             if y < kh:
                 _anim = Animation(y=(kh-y), t='out_expo', d=0.3)
                 instance._anim = ref(_anim)
-                instance._anim().start(instance)
+                _anim.start(instance)
 
         elif instance.y <> 0:
             _anim = Animation(y=0, t='out_expo', d=0.3)
@@ -92,7 +94,7 @@ class Screen_(Screen):
 
     def on_touch_down(self, touch):
         if self._anim() is None:
-            polestar = self.polestar
+            polestar = self.polestar()
 
             if polestar:
                 touch.push()
@@ -101,7 +103,7 @@ class Screen_(Screen):
                 touch.pop()
 
                 if not ret:
-                    self.polestar = None
+                    self.polestar = lambda : None
                 return ret
 
             else:
@@ -279,7 +281,7 @@ class Deletable(ButtonRoot):
         if ((value <> 'delete') and instance.delete_button()):
             #instance.unbind(right=instance.delete_button.right, y=instance.delete_button.y)
             instance.dispatch('on_delete_out', instance.layout)
-            instance.screen.polestar = None
+            instance.screen.polestar = lambda : None
         elif value == 'delete':
             deletebutton = DeleteButton(size=(instance.size[1], instance.size[1]),
                                         pos=((instance.right-instance.size[1]), instance.pos[1]),
@@ -287,7 +289,7 @@ class Deletable(ButtonRoot):
             instance.add_widget(deletebutton, 1)
             instance.delete_button = ref(deletebutton)
             #instance.bind(right=deletebutton.right, y=deletebutton.y)
-            instance.screen.polestar = instance
+            instance.screen.polestar = ref(instance)
         super(Deletable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
@@ -377,13 +379,13 @@ class Completable(ButtonRoot):
         if ((value <> 'complete') and instance.complete_button()):
             #instance.unbind(pos=instance.complete_button.pos)
             instance.dispatch('on_complete_out', instance.layout)
-            instance.screen.polestar = None
+            instance.screen.polestar = lambda : None
         elif value == 'complete':
             completebutton = CompleteButton(size=(instance.size[1], instance.size[1]), pos=instance.pos, button=instance.proxy_ref)
             instance.add_widget(completebutton, 1)
             instance.complete_button = ref(completebutton)
             #instance.bind(pos=completebutton.pos)
-            instance.screen.polestar = instance
+            instance.screen.polestar = ref(instance)
         super(Completable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
@@ -514,7 +516,7 @@ class Editable(ButtonRoot):
             #instance.unbind(pos=instance.textinput.pos, size=instance.textinput.size)
             instance.remove_widget(instance.textinput())
             instance.textinput = lambda : None
-            instance.screen.polestar = None
+            instance.screen.polestar = lambda : None
         elif value == 'edit':
             t = BoundedTextInput(text=instance.text,
                                  size_hint=(None, None),
@@ -529,7 +531,7 @@ class Editable(ButtonRoot):
             #instance.bind(pos=t.pos, size=t.size)
             t.bind(on_text_validate=instance.on_text_validate, focus=instance.on_text_focus)
             t.focus = True
-            instance.screen.polestar = instance
+            instance.screen.polestar = ref(instance)
         super(Editable, self).on_state(instance, value)
 
     def on_text_validate(self, instance, value):
@@ -594,10 +596,10 @@ class DragNDroppable(ButtonRoot):
 
         if ((value <> 'dragged') and listview.placeholder):
             listview.placeholder = None
-            listview.parent.polestar = None
+            listview.parent.polestar = lambda : None
         elif value == 'dragged':
             listview.deparent(instance)
-            listview.parent.polestar = instance
+            listview.parent.polestar = ref(instance)
         super(DragNDroppable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
