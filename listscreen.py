@@ -136,7 +136,7 @@ class ListScreen(Screen_):
                        WHERE ix=? AND page=?;
                        """,
                        (ix, self.page))
-        self.polestar = None
+        self.polestar = lambda : None
         self.dispatch('on_pre_enter')
 
     def on_complete(self, instance):
@@ -148,7 +148,7 @@ class ListScreen(Screen_):
                        SELECT * FROM [notebook] WHERE ix=? and page=?;
                        """,
                        (ix, self.page))
-        self.polestar = None
+        self.polestar = lambda : None
         self.dispatch('on_pre_enter')
 
     def on_importance(self, instance, value):
