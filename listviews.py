@@ -137,13 +137,14 @@ class DNDListView(Widget, ListViewAdapter):
 
         # guess only ?
         if iend is not None:
+            spacing = self.spacing
             fh = 0
 
             # fill with a "padding"
             for x in xrange(istart):
-                fh += sizes[x] if x in sizes else rh
+                fh += sizes[x]+spacing if x in sizes else rh+spacing
             #container.add_widget(Widget(size_hint_y=None, height=fh))
-            container.padding = fh + self.spacing
+            container.padding = fh
 
             # now fill with real item_view
             index = istart
