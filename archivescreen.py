@@ -30,7 +30,7 @@ class ArchiveScreen(Screen_):
         _dict = {'title_height_hint': (153./1136.),
                  'content_height_hint': (322./1136.),
                  'aleft': True,
-                 'screen': self}
+                 'screen': self.proxy_ref}
         _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
         _dict['why'] = bool(_dict['why'])
         return _dict
