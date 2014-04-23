@@ -315,9 +315,8 @@ class ActionListView(AccordionListView):
 
     def on_motion_over(self, instance, indices):
         d = WeakKeyDictionary({instance: instance.listview.placeholder.ix})
-        children = self.container.children
 
-        for child in children:
+        for child in self.container.children:
             collision = child.collide_point(*instance.center)
 
             if collision:
