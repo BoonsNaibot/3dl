@@ -87,7 +87,7 @@ class Screen_(Screen):
         elif instance.y <> 0:
             _anim = Animation(y=0, t='out_expo', d=0.3)
             instance._anim = ref(_anim)
-            instance._anim().start(instance)
+            _anim.start(instance)
 
     def on_touch_down(self, touch):
         if self._anim() is None:
@@ -187,8 +187,6 @@ class Clickable(ButtonRoot):
 
     def _trigger_press(self, dt):
         if ((self.state == 'normal') and not self.disabled):
-            #self._do_press()
-            #self.dispatch('on_press')
             self.state = 'down'
         else:
             return False
@@ -239,6 +237,7 @@ class Clickable(ButtonRoot):
     
     def cancel(self):
         Clock.unschedule(self._trigger_press)
+        self._press_ = Clock.create_trigger(self._trigger_press, 0.0625)
         super(Clickable, self).cancel()
 
 class DelayedClickable(Clickable):
@@ -495,7 +494,6 @@ class Editable(ButtonRoot):
                 self._switch = True
             else:
                 self.state = 'edit'
-                touch.ungrab(self)
                 return True
 
         return super(Editable, self).on_touch_down(touch)
@@ -605,7 +603,6 @@ class DragNDroppable(ButtonRoot):
             sup = super(ButtonRoot, self).on_touch_down(touch)
 
             if not sup:
-                self.hold_time = 0.0
                 touch.ud['indices'] = WeakKeyDictionary()
             else:
                 return sup
@@ -756,9 +753,9 @@ class AccordionListItem(Selectable, StencilLayout):
         else:
             return False
 
-    state = AliasProperty(_get_state, _set_state)
+    state = AliasProperty(_get_state, _set_state, bind=('title',))
 
-    def _select(self, alpha):
+    def _do_select(self, alpha):
         """if self._anim():
             self._anim().stop()
             self._anim = None"""
@@ -772,10 +769,10 @@ class AccordionListItem(Selectable, StencilLayout):
         instance.listview._sizes[instance.index] = instance.height
 
     def select(self, *args):
-        self._select(0.0)
+        self._do_select(0.0)
 
     def deselect(self, *args):
-        self._select(1.0)
+        self._do_select(1.0)
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):

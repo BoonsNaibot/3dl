@@ -8,7 +8,7 @@ from kivy.uix.layout import Layout
 from adapters import ListViewAdapter
 from datetime import date, timedelta
 from weakref import WeakKeyDictionary
-from itertools.chain import from_iterable as ravel
+from itertools import chain
 from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty
 
 class Placeholder(Widget):
@@ -350,6 +350,7 @@ class DatePickerListView(AccordionListView):
                 _timedelta = timedelta
                 today = date.today()
                 _repeat = repeat
+                ravel = chain.from_iterable
         
                 def _args_converter(date_cursor, delta):
                     date_label = Day(text=str(date_cursor.day))
