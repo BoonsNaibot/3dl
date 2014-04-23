@@ -50,7 +50,7 @@ class PagesScreen(Screen_):
         dict = {'page_number': an_obj[0],
                 'text': an_obj[1],
                 'size_hint_y': None,
-                'screen': self}
+                'screen': self.proxy_ref}
         return dict
 
     def on_root_directory(self, *args):
