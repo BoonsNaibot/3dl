@@ -1,4 +1,4 @@
-# Provided courtesy of Grégory Salvan at https://github.com/apieum/weakreflist.
+# Provided courtesy of Grégory Salvan at https://github.com/apieum/weakreflist/ .
 # Copy-pasted for the sake of simplifying the build processs later on (hope that's ok...)
 
 # -*- coding: utf8 -*-
