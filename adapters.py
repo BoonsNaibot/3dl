@@ -1,12 +1,13 @@
-from kivy.properties import ObjectProperty, NumericProperty, ListProperty, OptionProperty, DictProperty, BooleanProperty
+from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty
+from weakreflist import WeakList
 
 class ListViewAdapter(object):
     data = ListProperty([])
-    list_item = ObjectProperty(None)
-    args_converter = ObjectProperty(None)
-    selection = ListProperty([])
-    selection_mode = OptionProperty('single', options=('None', 'single'))
     cached_views = DictProperty({})
+    list_item = ObjectProperty(None)
+    selection = ListProperty(WeakList())
+    args_converter = ObjectProperty(None)
+    selection_mode = OptionProperty('single', options=('None', 'single'))
 
     def __init__(self, **kwargs):
         self.register_event_type('on_selection_change')
@@ -17,7 +18,7 @@ class ListViewAdapter(object):
         selection = instance.selection
 
         if len(selection) > 0:
-            selection[:] = []
+            selection[:] = WeakList()
 
     def on_selection(self, instance, value):
         instance.dispatch('on_selection_change')
