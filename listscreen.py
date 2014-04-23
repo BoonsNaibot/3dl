@@ -57,7 +57,7 @@ class ListScreen(Screen_):
             self.list_items, self.action_items = list_items, action_items
 
     def _args_converter(self, row_index, an_obj):
-        _dict = {'drop_zones': [self.action_view,],
+        _dict = {'drop_zones': [self.action_view.proxy_ref,],
                  'screen': self}
         _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
         _dict['why'] = bool(_dict['why'])
@@ -65,7 +65,7 @@ class ListScreen(Screen_):
         if _dict['ix'] < 4:
             _dict['title_height_hint'] = (2.0/15.0)
             _dict['content_height_hint'] = (322./1136.)
-            _dict['listview'] = self.action_view
+            _dict['listview'] = self.action_view.proxy_ref
             _dict['aleft'] = True
 
             if not _dict['text']:
@@ -74,8 +74,8 @@ class ListScreen(Screen_):
         else:
             _dict['title_height_hint'] = 0.088
             _dict['content_height_hint'] = (190./1136.)
-            _dict['drop_zones'].append(self.accordion_view)
-            _dict['listview'] = self.accordion_view
+            _dict['drop_zones'].append(self.accordion_view.proxy_ref)
+            _dict['listview'] = self.accordion_view.proxy_ref
             _dict['aleft'] = False
 
         return _dict
@@ -85,7 +85,7 @@ class ListScreen(Screen_):
 
         if text:
             #Mimic `ListAdapter.create_view`
-            listview = self.accordion_view
+            listview = self.accordion_view.proxy_ref
             data = (9e9, text, u"", 0, u"")
             index = len(self.list_items)
             item_args = self._args_converter(index, data)
