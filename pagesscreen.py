@@ -3,6 +3,7 @@ Created on Jul 23, 2013
 
 @author: Divine
 '''
+from weakref import ref
 from uiux import Screen_
 from kivy.lang import Builder
 from kivy.uix.widget import Widget
@@ -22,7 +23,7 @@ class ConfigPanel(Widget):
             widget._anim = Animation(x=0, y=0, duration=0.2)
             widget._anim.bind(on_complete=lambda *_: widget.remove_widget(self))
             widget._anim.start(widget)
-            widget.polestar = None
+            widget.polestar = lambda : None
             return True
 
 class PagesScreen(Screen_):
@@ -88,9 +89,12 @@ class PagesScreen(Screen_):
         self.list_view.scroll_to()
 
     def on_settings(self, *args):
-        if not self.polestar:
-            self.polestar = ConfigPanel()
-            self.add_widget(self.polestar)
+        polestar = self.polestar()
+
+        if not polestar:
+            polestar = ConfigPanel()
+            self.add_widget(polestar)
+            self.polestar = ref(polestar)
             self._anim = Animation(x=self.size[0]*0.75, duration=0.2)
             self._anim.start(self)
 
@@ -127,7 +131,7 @@ class PagesScreen(Screen_):
                        """,
                        (instance.page_number, instance.text))
         self.dispatch('on_root_directory')
-        self.polestar = None
+        self.polestar = lambda : None
 
     def on_leave(self, *args):
         cursor = self.root_directory.cursor()
