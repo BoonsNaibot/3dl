@@ -65,7 +65,7 @@ class QuickViewScreen(Screen_):
                        WHERE ix=? AND page=?;
                        """,
                        (ix, self.page))
-        self.polestar = None
+        self.polestar = lambda : None
         self.dispatch('on_pre_enter')
 
     def on_complete(self, instance):
@@ -77,7 +77,7 @@ class QuickViewScreen(Screen_):
                        SELECT * FROM [notebook] WHERE ix=? AND page=?;
                        """,
                        (ix, self.page))
-        self.polestar = None
+        self.polestar = lambda : None
         self.dispatch('on_pre_enter')
 
 Builder.load_string("""
