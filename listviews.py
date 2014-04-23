@@ -21,6 +21,7 @@ class Placeholder(Widget):
 
 class ListContainerLayout(Layout):
     spacing = NumericProperty(0)
+    padding = NumericProperty(0)
     children = ListProperty(WeakList())
 
     def __init__(self, **kwargs):
@@ -37,7 +38,7 @@ class ListContainerLayout(Layout):
             w, h = kwargs.get('size', self.size)
             x, y = kwargs.get('pos', self.pos)
             spacing = self.spacing
-            place = y + h
+            place = (y + h) - self.padding
 
             for c in self.children[::-1]:
                 c.width = w
@@ -141,7 +142,8 @@ class DNDListView(Widget, ListViewAdapter):
             # fill with a "padding"
             for x in xrange(istart):
                 fh += sizes[x] if x in sizes else rh
-            container.add_widget(Widget(size_hint_y=None, height=fh))
+            #container.add_widget(Widget(size_hint_y=None, height=fh))
+            container.padding = fh + self.spacing
 
             # now fill with real item_view
             index = istart
