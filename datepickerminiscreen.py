@@ -1,4 +1,5 @@
 from kivy.properties import ObjectProperty, AliasProperty, ListProperty, NumericProperty, StringProperty
+from weakreflist import WeakList
 from kivy.lang import Builder
 from uiux import Screen_
 import datetime
@@ -12,7 +13,7 @@ class DateTimeMiniScreen(Screen_):
     #date = ObjectProperty(datetime.date.today())
     date = ObjectProperty(None)
     time = ObjectProperty(datetime.time(12, 00))
-    selection = ListProperty([])
+    selection = ListProperty(WeakList())
     month_names = ListProperty(('January ', 'February ', 'March ', 'April ', 'May ', 'June ', 'July ', 'August ', 'September ', 'October ', 'November ', 'December '))
 
     def _get_day(self):
@@ -62,10 +63,9 @@ class DateTimeMiniScreen(Screen_):
 
     def _args_converter(self, i, _):
         return {'index': i,
-                'screen': self,
                 'text': self.text,
                 'size_hint_y': None,
-                'listview': self.body,
+                'screen': self.proxy_ref,
                 'title_height_hint': 1.0/15.0,
                 'content_height_hint': self.height/6.0}
 
