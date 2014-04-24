@@ -284,7 +284,7 @@ class AccordionListView(DNDListView):
     def on__sizes(self, instance, value):
         if value:
             spacing = instance.spacing
-            sizes = set(value.itervalues()); _min = min(sizes) + spacing; _max = max(sizes) + spacing
+            sizes = frozenset(value.itervalues()); _min = min(sizes) + spacing; _max = max(sizes) + spacing
             count = instance.get_count() - 1
             real_height = _max + (_min * count)
 
