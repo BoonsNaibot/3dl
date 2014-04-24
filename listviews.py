@@ -28,8 +28,8 @@ class ListContainerLayout(Layout):
         return self._children
         
     def _set_children(self, children):
-        children = WeakList(children)
-        
+        if type(children) is list:
+            children = WeakList(children)
         if self._children <> children:
             self._children = children
         else:
