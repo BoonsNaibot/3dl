@@ -39,9 +39,8 @@ class ListContainerLayout(Layout):
             x, y = kwargs.get('pos', self.pos)
             spacing = self.spacing
             place = (y + h) - self.padding
-            children = self.children[:]
 
-            for c in children[::-1]:
+            for c in reversed(self.children):
                 c.width = w
                 c.x = x
                 c.top = place
