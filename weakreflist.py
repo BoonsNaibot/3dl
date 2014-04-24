@@ -1,10 +1,11 @@
-# Provided courtesy of Grégory Salvan at https://github.com/apieum/weakreflist/ .
+# Provided courtesy of Gregory Salvan at https://github.com/apieum/weakreflist/ .
 # Copy-pasted for the sake of simplifying the build processs later on (hope that's ok...)
 
 # -*- coding: utf8 -*-
 import weakref
 
 class WeakList(list):
+
     def _getRef(self, value):
         value = self._makeRef(value)
         if list.__contains__(self, value):
@@ -31,6 +32,9 @@ class WeakList(list):
 
     def __iter__(self, *args, **kwargs):
         return list.__iter__(self, *map(self._getValue, args), **kwargs)
+
+    def __repr__(self):
+        return "WeakList(%r)" % list(self)
 
     def append(self, observer):
         list.append(self, self._getRef(observer))

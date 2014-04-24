@@ -68,15 +68,11 @@ class ListViewAdapter(object):
             selection.pop().is_selected = False
 
     def handle_selection(self, view, hold_dispatch=False, *args):
-        if view not in self.selection:
-            
-            if self.selection_mode == 'single':
-                self.deselect_all()
-                self.select_item_view(view)
-
-        else:
-            self.deselect_item_view(view)
-
+        if view in self.selection:
+            self.deselect_item_view(view)            
+        elif self.selection_mode == 'single':
+            self.deselect_all()
+            self.select_item_view(view)
         if not hold_dispatch:
             self.dispatch('on_selection_change')
 

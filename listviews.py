@@ -22,7 +22,7 @@ class Placeholder(Widget):
 class ListContainerLayout(Layout):
     spacing = NumericProperty(0)
     padding = NumericProperty(0)
-    children = ListProperty(WeakList())
+    children = ObjectProperty(WeakList())
 
     def __init__(self, **kwargs):
         super(ListContainerLayout, self).__init__(**kwargs)
@@ -39,13 +39,20 @@ class ListContainerLayout(Layout):
             x, y = kwargs.get('pos', self.pos)
             spacing = self.spacing
             place = (y + h) - self.padding
+            children = self.children[:]
 
-            for c in self.children[::-1]:
+            for c in children[::-1]:
                 c.width = w
                 c.x = x
                 c.top = place
                 #y += c.height + spacing
                 place -= (c.height + spacing)
+
+    def clear_widgets(self, *args):
+        for _ in xrange(len(self.children)):
+            child = self.children.pop(-1)
+            self.canvas.remove(child.canvas)
+            child.parent = None
 
 class DNDListView(Widget, ListViewAdapter):
     container = ObjectProperty(None)
@@ -134,6 +141,7 @@ class DNDListView(Widget, ListViewAdapter):
 
         # clear the view
         container.clear_widgets()
+        container.padding = 0
 
         # guess only ?
         if iend is not None:

@@ -95,8 +95,9 @@ class PagesScreen(Screen_):
             polestar = ConfigPanel()
             self.add_widget(polestar)
             self.polestar = ref(polestar)
-            self._anim = Animation(x=self.size[0]*0.75, duration=0.2)
-            self._anim.start(self)
+            _anim = Animation(x=self.size[0]*0.75, duration=0.2)
+            self._anim = ref(_anim)
+            _anim.start(self)
 
     def on_new_item(self, instance, text):
         text = text.lstrip()
