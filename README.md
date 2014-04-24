@@ -1,3 +1,3 @@
 3dl
 ===
-hjjkl;j
+Cool Idea - Programming Knowledge = This
