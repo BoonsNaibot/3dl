@@ -35,7 +35,7 @@ class ListContainerLayout(Layout):
         else:
             return False
         
-    children = AliasProperty(_get_children, _set_children)
+    children = AliasProperty(_get_children, _set_children, bind=('_children',))
 
     def __init__(self, **kwargs):
         super(ListContainerLayout, self).__init__(**kwargs)
