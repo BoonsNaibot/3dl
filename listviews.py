@@ -83,13 +83,14 @@ class DNDListView(Widget, ListViewAdapter):
         self.register_event_type("on_motion_out")
         self.register_event_type("on_drag")
         self._trigger_populate = Clock.create_trigger(self._do_layout, -1)
+        self._trigger_reset_populate = Clock.create_trigger(self._reset_spopulate, -1)
         super(DNDListView, self).__init__(**kwargs)
-        self.bind(pos=self._trigger_populate)
+        self.bind(pos=self._trigger_populate, size=self._trigger_populate)
 
     def on_data(self, instance, value):
         super(DNDListView, self).on_data(instance, value)
         instance._sizes.clear()
-        instance._reset_spopulate()
+        instance._trigger_reset_populate()
 
     def _scroll(self, scroll_y):
         if self.row_height:
