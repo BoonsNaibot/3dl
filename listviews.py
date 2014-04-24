@@ -22,7 +22,20 @@ class Placeholder(Widget):
 class ListContainerLayout(Layout):
     spacing = NumericProperty(0)
     padding = NumericProperty(0)
-    children = ObjectProperty(WeakList())
+    _children = ListProperty(WeakList())
+    
+    def _get_children(self):
+        return self._children
+        
+    def _set_children(self, children):
+        children = WeakList(children)
+        
+        if self._children <> children:
+            self._children = children
+        else:
+            return False
+        
+    children = AliasProperty(_get_children, _set_children)
 
     def __init__(self, **kwargs):
         super(ListContainerLayout, self).__init__(**kwargs)
