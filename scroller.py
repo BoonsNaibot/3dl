@@ -38,7 +38,7 @@ class ScrollerEffect(DampedScrollEffect):
                 sy = value/float(sh)
                 
                 if parent.scroll_y == -sy:
-                    parent._trigger_update_from_scroll()
+                    parent._trigger_layout()
                 else:
                     parent.scroll_y = -sy
 
@@ -50,7 +50,7 @@ class ScrollerEffect(DampedScrollEffect):
         self.velocity = 0
         self._parent.mode = 'normal'
 
-class Scroller(StencilView):
+class Scroller(StencilLayout):
     scroll_distance = NumericProperty('10dp')
     scroll_y = NumericProperty(1.0)
     bar_color = ListProperty([0.7, 0.7, 0.7, 0.9])
@@ -58,7 +58,7 @@ class Scroller(StencilView):
     bar_margin = NumericProperty(0)
     bar_anim = ObjectProperty(None, allownone=True)
     effect_y = ObjectProperty(None)
-    _viewport = ObjectProperty(None)
+    _viewport = ObjectProperty(lambda : None)
     bar_alpha = NumericProperty(1.0)
     mode = OptionProperty('normal', options=('down', 'normal', 'scrolling'))
 
@@ -142,7 +142,7 @@ class Scroller(StencilView):
 
                         for i, j in enumerate(touch.grab_list[:]):
                             item = j()
-    
+
                             if type(item) not in (NoneType, Scroller):
                                 touch.ungrab(item)
                                 item.cancel()

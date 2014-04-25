@@ -1,6 +1,6 @@
+from kivy.uix.widget import Widget
 from kivy.app import App
 from kivy.lang import Builder
-from kivy.uix.widget import Widget
 from kivy.uix.screenmanager import NoTransition
 from kivy.properties import ListProperty, ObjectProperty
 from apsw import Connection, SQLITE_OPEN_READWRITE, CantOpenError
@@ -14,6 +14,7 @@ class Widget(Widget):
     def add_widget(self, widget, *args):
         super(Widget, self).add_widget(widget, *args)
         widget.parent = self.proxy_ref
+        print type(widget.parent)
 
 kv = """
 #:import ListScreen listscreen.ListScreen
@@ -87,8 +88,7 @@ class ThreeDoListApp(App):
                            CREATE TABLE [table of contents](
                            page_number UNSIGNED INTEGER,
                            page TEXT PRIMARY KEY,
-                           bookmark UNSIGNED SHORT INTEGER DEFAULT 0,
-                           UNIQUE(page_number, page));
+                           bookmark UNSIGNED SHORT INTEGER DEFAULT 0;
 
                            CREATE TABLE [notebook](
                            ix UNSIGNED INTEGER,
@@ -175,7 +175,7 @@ class ThreeDoListApp(App):
         app.manager.transition = NoTransition()
         cursor = self.db.cursor()
         cursor.execute("""
-                       SELECT note.page, contents.page_number, (SELECT COUNT(*) FROM [notebook] WHERE ix<4 AND what<>'' AND page=note.page)
+                       SELECT DISTINCT note.page, contents.page_number, (SELECT COUNT(*) FROM [notebook] WHERE ix<4 AND what<>'' AND page=note.page)
                        FROM [table of contents] AS contents, [notebook] AS note
                        WHERE contents.page=note.page
                        AND contents.bookmark=1;
@@ -184,9 +184,9 @@ class ThreeDoListApp(App):
 
         if result:
             #assert(len(set(result)) == 1)
-            page, page_number = result[0]
+            page, page_number, l = result[0]
 
-            if len(result) < 3:
+            if l < 3:
                 list_screen = app.manager.get_screen('List Screen')
                 list_screen.page = page
                 list_screen.page_number = page_number
