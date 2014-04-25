@@ -48,7 +48,7 @@ class NewItemWidget(FloatLayout):
         super(NewItemWidget, self).__init__(**kwargs)
 
     def on_state(self, instance, value):
-        screen = instance.parent.proxy_ref
+        screen = instance.parent
 
         if value == 'edit':
             screen.polestar = ref(instance)
