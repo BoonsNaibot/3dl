@@ -175,10 +175,10 @@ class ThreeDoListApp(App):
         app.manager.transition = NoTransition()
         cursor = self.db.cursor()
         cursor.execute("""
-                       SELECT note.page, contents.page_number
+                       SELECT note.page, contents.page_number, (SELECT COUNT(*) FROM [notebook] WHERE ix<4 AND what<>'' AND page=note.page)
                        FROM [table of contents] AS contents, [notebook] AS note
                        WHERE contents.page=note.page
-                       AND contents.bookmark=1 AND note.ix<4 AND note.what<>'';
+                       AND contents.bookmark=1;
                        """)
         result = cursor.fetchall()
 
