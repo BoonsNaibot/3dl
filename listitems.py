@@ -57,15 +57,15 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
             Clock.schedule_once(_l, 0.25)
 
     def on_drag(self, instance, *args):
-        instance = instance.parent.proxy_ref
+        instance = instance.parent
         super(NoteItemTitle, self).on_drag(instance, *args)
         
     def on_drop(self, instance, *args):
-        instance = instance.parent.proxy_ref
+        instance = instance.parent
         super(NoteItemTitle, self).on_drop(instance, *args)
         
     def on_return(self, instance, *args):
-        instance = instance.parent.proxy_ref
+        instance = instance.parent
         super(NoteItemTitle, self).on_return(instance, *args)
 
 class ArchiveScreenItemTitle(Deletable, Clickable):
@@ -249,7 +249,7 @@ Builder.load_string("""
         pos_hint: {'center_x': 0.5, 'center_y': 0.8333}
         icon_text: '!'
         text: 'IMPORTANT'
-        font_size: self.width*0.05
+        font_size: self.width*0.07
         text_color: app.blue if self.double_click_switch else app.dark_gray
         double_click_switch: root.why
         on_double_click_switch: root.dispatch('on_importance', *args)
@@ -258,7 +258,7 @@ Builder.load_string("""
         pos_hint: {'center_x': 0.5, 'center_y': 0.6}
         icon_text: 'T'
         text: root.when
-        font_size: self.width*0.05
+        font_size: self.width*0.07
         text_color: root.text_color
         on_double_click_switch: root.screen.dispatch('on_due_date', root.parent, args[1])
     Label:
@@ -278,7 +278,8 @@ Builder.load_string("""
         top: icon_id.top
         x: icon_id.right
         font_name: 'Walkway Bold.ttf'
-        font_size: self.width*0.053
+        #font_size: self.width*0.053
+        font_size: self.width*0.07
         text_color: root.text_color
         screen: root.screen
 
@@ -291,11 +292,11 @@ Builder.load_string("""
             pos: self.pos
 
     DoubleClickButton:
-        size_hint: 0.5, 0.3
+        size_hint: 0.75, 0.3
         pos_hint: {'x': 0.05, 'top': 1}
         icon_text: 'Due:'
         icon_font_name: 'Walkway Bold.ttf'
-        font_size: root.width*0.04
+        font_size: root.width*0.05
         text: root.when
         text_color: root.text_color
         on_double_click_switch: root.screen.dispatch('on_due_date', root.parent, args[1])
@@ -304,7 +305,7 @@ Builder.load_string("""
         pos_hint: {'x': 0.85, 'top': 1}
         icon_text: '!'
         text: ''
-        font_size: root.width*0.05
+        font_size: root.width*0.07
         #font_size: self.height*0.421875
         text_color: app.blue if self.double_click_switch else app.dark_gray
         double_click_switch: root.why
@@ -314,9 +315,9 @@ Builder.load_string("""
         text: 'Notes:'
         font_name: 'Walkway Bold.ttf'
         #font_size: self.height*0.421875
-        font_size: root.width*0.035
+        font_size: root.width*0.05
         color: root.text_color
-        size_hint: 0.11, 0.3
+        size_hint: 0.17, 0.3
         disabled_color: self.color
         pos_hint: {'x': 0.05, 'top': 0.5}
         text_size: self.size
@@ -324,11 +325,11 @@ Builder.load_string("""
     EditButton:
         text: root.how
         max_chars: 70
-        size_hint: 0.8, 0.5
+        size_hint: 0.72, 0.5
         top: icon_id.top
         x: icon_id.right
         font_name: 'Walkway Bold.ttf'
-        font_size: root.width*0.035
+        font_size: root.width*0.05
         text_color: root.text_color
         screen: root.screen
 

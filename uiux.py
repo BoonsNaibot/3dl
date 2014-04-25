@@ -565,8 +565,6 @@ class DoubleClickable(Editable):
             self.double_click_switch = not self.double_click_switch
             instance.state = 'normal'
 
-        super(DoubleClickable, self).on_state(instance, value)
-
 class DropAnimation(Animation):
     indices = ListProperty(None)
 

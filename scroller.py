@@ -96,7 +96,7 @@ class Scroller(StencilLayout):
                 # Just like papa
                 w, h = kwargs.get('size', self.size)
                 x, y = kwargs.get('pos', self.pos)
-                #vp.w, vp.x = w, x
+                vp.w, vp.x = w, x
 
                 if vp.height > h:
                     sh = vp.height - h
@@ -105,7 +105,7 @@ class Scroller(StencilLayout):
                     vp.top = y + h
                 if not (self.effect_y.min <= self.effect_y.value <= self.effect_y.max):
                     self.effect_y.value = self.effect_y.min * self.scroll_y
-                    #self.effecy_y.value = vp.y
+                    #self.effect_y.value = vp.y
 
     def on_touch_down(self, touch):
         if self.collide_point(*touch.pos):

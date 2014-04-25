@@ -22,7 +22,8 @@ class Placeholder(Widget):
 class ListContainerLayout(Layout):
     spacing = NumericProperty(0)
     padding = NumericProperty(0)
-    _children = ListProperty(WeakList())
+    children = ListProperty(WeakList())
+    """_children = ListProperty(WeakList())
     
     def _get_children(self):
         return self._children
@@ -35,7 +36,7 @@ class ListContainerLayout(Layout):
         else:
             return False
         
-    children = AliasProperty(_get_children, _set_children, bind=('_children',))
+    children = AliasProperty(_get_children, _set_children, bind=('_children',))"""
 
     def __init__(self, **kwargs):
         super(ListContainerLayout, self).__init__(**kwargs)
@@ -85,12 +86,14 @@ class DNDListView(Widget, ListViewAdapter):
         self._trigger_populate = Clock.create_trigger(self._do_layout, -1)
         self._trigger_reset_populate = Clock.create_trigger(self._reset_spopulate, -1)
         super(DNDListView, self).__init__(**kwargs)
-        self.bind(pos=self._trigger_populate, size=self._trigger_populate)
+        self.bind(pos=self._trigger_populate,
+                  size=self._trigger_populate,
+                  data=self._trigger_reset_populate)
 
-    def on_data(self, instance, value):
+    """def on_data(self, instance, value):
         super(DNDListView, self).on_data(instance, value)
-        instance._sizes.clear()
-        instance._trigger_reset_populate()
+        #instance._sizes.clear()
+        #instance._trigger_reset_populate()"""
 
     def _scroll(self, scroll_y):
         if self.row_height:
@@ -132,6 +135,7 @@ class DNDListView(Widget, ListViewAdapter):
             container.height = (rh + instance.spacing) * instance.get_count()
 
     def _reset_spopulate(self, *args):
+        self._sizes.clear()
         self._wend = None
         self.populate()
         # simulate the scroll again, only if we already scrolled before
@@ -142,9 +146,9 @@ class DNDListView(Widget, ListViewAdapter):
 
     def populate(self, istart=None, iend=None):
         container = self.container
-        sizes = self._sizes
-        rh = self.row_height
         get_view = self.get_view
+        rh = self.row_height
+        sizes = self._sizes
         d = {}
 
         # ensure we know what we want to show
@@ -176,6 +180,7 @@ class DNDListView(Widget, ListViewAdapter):
                 if item_view is not None:
                     d[index] = item_view.height
                     container.add_widget(item_view)
+
         else:
             available_height = self.height
             real_height = count = 0
@@ -416,8 +421,6 @@ Builder.load_string("""
 
         ListContainerLayout:
             id: container_id
-            #pos_hint: {'x': 0}
-            #size_hint: 1, None
             x: root.x
             width: root.width
             spacing: root.spacing
@@ -436,11 +439,10 @@ Builder.load_string("""
 
 <-QuickListView@DNDListView>:
     container: container_id
-    size: container_id.size
     selection_mode: 'None'
+    spacing: 0
 
-    GridLayout:
-        cols: 1
+    ListContainerLayout:
         id: container_id
         pos: root.pos
         size: root.size
