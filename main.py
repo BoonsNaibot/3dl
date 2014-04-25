@@ -3,11 +3,17 @@ from kivy.lang import Builder
 from kivy.uix.widget import Widget
 from kivy.uix.screenmanager import NoTransition
 from kivy.properties import ListProperty, ObjectProperty
-
 from apsw import Connection, SQLITE_OPEN_READWRITE, CantOpenError
+
 from kivy.modules import inspector
 from kivy.core.window import Window
 #import cProfile
+
+class Widget(Widget):
+    
+    def add_widget(self, widget, *args):
+        super(Widget, self).add_widget(widget, *args)
+        widget.parent = self.proxy_ref
 
 kv = """
 #:import ListScreen listscreen.ListScreen
