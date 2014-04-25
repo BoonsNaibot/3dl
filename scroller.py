@@ -9,71 +9,68 @@ from kivy.properties import AliasProperty, ListProperty, NumericProperty, Object
 class ScrollerEffect(DampedScrollEffect):
     min_velocity = NumericProperty(10)
     _parent = ObjectProperty(None)
+    max = NumericProperty(0)
     
     def _get_target_widget(self):
         if self._parent:
             return self._parent._viewport()
 
-    target_widget = AliasProperty(_get_target_widget, None, bind=('_parent',))
-
-    def _get_max(self):
-        return self._parent.y
-
-    max = AliasProperty(_get_max, None, bind=('_parent',))
-
+    target_widget = AliasProperty(_get_target_widget, None)
+    
     def _get_min(self):
         tw = self.target_widget
 
         if tw:
-            #return -(tw.size[1] - tw.parent.height)
-            return self._parent.top - tw.height
+            return -(tw.size[1] - self._parent.height)
         else:
             return 0
-
-    min = AliasProperty(_get_min, None, bind=('_parent', 'target_widget'))
+        
+    min = AliasProperty(_get_min, None)
     
     def on_scroll(self, instance, value):
+        parent = instance._parent
         vp = instance.target_widget
 
         if vp:
-            parent = instance._parent
             sh = vp.height - parent.height
 
             if sh >= 1:
-                vp.y = value
                 sy = value/float(sh)
-                parent.scroll_y = -sy
-            else:
-                vp.top = parent.top
-                parent.scroll_y = 1.0
-            if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not value))):
-                instance._parent.mode = 'normal'
+                
+                if parent.scroll_y == -sy:
+                    parent._trigger_update_from_scroll()
+                else:
+                    parent.scroll_y = -sy
 
+            if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not value))):
+                parent.mode = 'normal'
+                
     def cancel(self):
         self.is_manual = False
         self.velocity = 0
         self._parent.mode = 'normal'
 
-class Scroller(StencilLayout):
+class Scroller(StencilView):
     scroll_distance = NumericProperty('10dp')
     scroll_y = NumericProperty(1.0)
     bar_color = ListProperty([0.7, 0.7, 0.7, 0.9])
     bar_width = NumericProperty('2dp')
     bar_margin = NumericProperty(0)
+    bar_anim = ObjectProperty(None, allownone=True)
     effect_y = ObjectProperty(None)
-    _viewport = ObjectProperty(lambda : None)
+    _viewport = ObjectProperty(None)
     bar_alpha = NumericProperty(1.0)
     mode = OptionProperty('normal', options=('down', 'normal', 'scrolling'))
 
     def _get_vbar(self):
         # must return (y, height) in %
         # calculate the viewport size / Scroller size %
-        ret = (0, 1.0)
+        ret = (0, 1.)
 
         if self._viewport():
             vh = self._viewport().height
             h = self.height
-
+            
             if vh > h:
                 ph = max(0.01, h / float(vh))
                 sy = min(1.0, max(0.0, self.scroll_y))
@@ -88,6 +85,8 @@ class Scroller(StencilLayout):
         self.effect_y = ScrollerEffect(_parent=self.proxy_ref, round_value=False)
         super(Scroller, self).__init__(**kwargs)
 
+        self.bind(scroll_y=self._trigger_layout)
+
     def do_layout(self, *args, **kwargs):
         if 1 not in self.size:
             vp = self._viewport()
@@ -97,29 +96,30 @@ class Scroller(StencilLayout):
                 w, h = kwargs.get('size', self.size)
                 x, y = kwargs.get('pos', self.pos)
                 vp.w, vp.x = w, x
-
-                if vp.height > h:
+    
+                if vp.height > self.height:
                     sh = vp.height - h
                     vp.y = y - self.scroll_y * sh
                 else:
-                    vp.top = y + h
-                if not (self.effect_y.min <= self.effect_y.value <= self.effect_y.max):
-                    self.effect_y.value = self.effect_y.min * self.scroll_y
-                    #self.effect_y.value = vp.y
+                    vp.y = (y + h) - vp.height
+                self.bar_alpha = 1.
+                
+                if self.bar_anim:
+                    self.bar_anim.stop()
+                    Clock.unschedule(self._start_decrease_alpha)
+                Clock.schedule_once(self._start_decrease_alpha, .5)
+                  
+    def on_height(self, instance, *args):
+        self.effect_y.value = self.effect_y.min * self.scroll_y
 
-    def on_touch_down(self, touch):
+    def on_touch_down(self, touch):        
         if self.collide_point(*touch.pos):
             touch.grab(self)
             self.effect_y.start(touch.y)
 
             if self.mode == 'normal':
                 self.mode = 'down'
-                touch.push()
-                touch.apply_transform_2d(self.to_widget)
-                touch.apply_transform_2d(self.to_parent)
-                ret = super(Scroller, self).on_touch_down(touch)
-                touch.pop()
-                return ret
+                return super(Scroller, self).on_touch_down(touch)
             elif self.mode == 'scrolling':
                 return True
 
@@ -127,11 +127,7 @@ class Scroller(StencilLayout):
         if touch.grab_current is self:
             
             if self.mode == 'down':
-                touch.push()
-                touch.apply_transform_2d(self.to_widget)
-                touch.apply_transform_2d(self.to_parent)
                 ret = super(Scroller, self).on_touch_move(touch)
-                touch.pop()
                 
                 if ret:
                     touch.ungrab(self)
@@ -166,15 +162,7 @@ class Scroller(StencilLayout):
                 effect.on_scroll(effect, effect.scroll)
             return True
 
-        touch.push()
-        touch.apply_transform_2d(self.to_widget)
-        touch.apply_transform_2d(self.to_parent)
-        ret = super(Scroller, self).on_touch_up(touch)
-        touch.pop() 
-        return ret
-
-    def update_from_scroll(self, *largs):
-        Clock.schedule_once(self._start_decrease_alpha, .5)
+        return super(Scroller, self).on_touch_up(touch)
 
     def _start_decrease_alpha(self, *l):
         self.bar_alpha = 1.
@@ -185,8 +173,10 @@ class Scroller(StencilLayout):
             raise Exception('Scroller accept only one widget')
         super(Scroller, self).add_widget(widget, index)
         self._viewport = ref(widget)
+        widget.bind(height=self.on_height)
         widget.unbind(pos=self._trigger_layout,
                       pos_hint=self._trigger_layout)
+        self._trigger_layout()
 
     def remove_widget(self, widget):
         super(Scroller, self).remove_widget(widget)
