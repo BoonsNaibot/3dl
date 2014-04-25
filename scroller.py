@@ -138,12 +138,15 @@ class Scroller(StencilView):
                     l = len(touch.grab_list)
     
                     if l > 1:
-                        for x in xrange(l):
-                            item = touch.grab_list[x]()
+                        NoneType = type(None)
+
+                        for i, j in enumerate(touch.grab_list):
+                            item = j()
     
-                            if type(item) is not Scroller:
+                            if type(item) not in (NoneType, Scroller):
                                 touch.ungrab(item)
                                 item.cancel()
+                                touch.grab_list.insert(i, lambda : None)
 
             if self.mode == 'scrolling':
                 self.effect_y.update(touch.y)
