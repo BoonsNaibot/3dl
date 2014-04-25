@@ -145,7 +145,7 @@ class Scroller(StencilView):
                                 touch.ungrab(item)
                                 item.cancel()
 
-            elif self.mode == 'scrolling':
+            if self.mode == 'scrolling':
                 self.effect_y.update(touch.y)
 
             return True
