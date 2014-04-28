@@ -285,7 +285,7 @@ class AccordionListView(DNDListView):
     def _get_selection(self):
         return self.parent.selection
 
-    selection = AliasProperty(_get_selection, None)
+    selection = AliasProperty(_get_selection, None, bind=('parent',))
 
     def _lcm(self, a, b):
         a, b = int(a), int(b)
