@@ -1,11 +1,10 @@
 from kivy.properties import ObjectProperty, NumericProperty, ListProperty, OptionProperty, StringProperty, BooleanProperty, DictProperty, AliasProperty
 from kivy.uix.screenmanager import SlideTransition, Screen
 from kivy.graphics.transformation import Matrix
-from kivy.uix.floatlayout import FloatLayout
 from weakref import ref, WeakKeyDictionary
 from kivy.uix.textinput import TextInput
+from parents import Widget, FloatLayout
 from kivy.animation import Animation
-from kivy.uix.widget import Widget
 from weakreflist import WeakList
 from kivy.vector import Vector
 from math import radians, ceil
@@ -31,6 +30,8 @@ class BoundedTextInput(TextInput):
     inactive_color = ListProperty([])
 
     def insert_text(self, substring, from_undo=False):
+        #substring = unicode(substring, encoding=chardetect(substring)["encoding"])
+
         if not from_undo and (len(self.text) + len(substring) > self.max_chars):
             return
         super(BoundedTextInput, self).insert_text(substring, from_undo)
@@ -65,9 +66,9 @@ class Screen_(Screen):
     root_directory = ObjectProperty(None)
     keyboard_height = NumericProperty(None)
     polestar = ObjectProperty(lambda : None)
-    _anim = ObjectProperty(lambda : None)
 
     def __init__(self, **kwargs):
+        self._anim = lambda : None
         self.register_event_type('on_delete')
         self.register_event_type('on_complete')
         self.register_event_type('on_status_bar')
@@ -114,6 +115,10 @@ class Screen_(Screen):
         transition = transition(**kwargs)
         manager.transition = transition
         manager.current = destination
+
+    def add_widget(self, *args):
+        super(Screen_, self).add_widget(*args)
+        args[0].parent = self.proxy_ref
 
     def on_delete(self, *args):
         pass
@@ -191,6 +196,7 @@ class Clickable(ButtonRoot):
     def _trigger_press(self, dt):
         if ((self.state == 'normal') and not self.disabled):
             self.state = 'down'
+            self.dispatch('on_press')
         else:
             return False
 
@@ -199,11 +205,6 @@ class Clickable(ButtonRoot):
             self.dispatch('on_release')
         else:
             return False
-        
-    def on_state(self, instance, value):
-        if value == 'down':
-            instance.dispatch('on_press')
-        super(Clickable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
         if self.state == 'normal':
@@ -264,16 +265,15 @@ class DelayedClickable(Clickable):
                     return sup
                 else:
                     self._release_()
-
-        return super(Clickable, self).on_touch_up(touch)
+            return super(Clickable, self).on_touch_up(touch)
 
 class Deletable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'delete'))
     delete_button = ObjectProperty(lambda : None)
-    _anim = ObjectProperty(lambda : None)
     screen = ObjectProperty(None)
 
     def __init__(self, **kwargs):
+        self._anim = lambda : None
         self.register_event_type('on_delete_out')
         super(Deletable, self).__init__(**kwargs)
 
@@ -367,11 +367,11 @@ class Deletable(ButtonRoot):
 
 class Completable(ButtonRoot):
     screen = ObjectProperty(None)
-    _anim = ObjectProperty(lambda : None)
     complete_button = ObjectProperty(lambda : None)
     state = OptionProperty('normal', options=('normal', 'complete'))
 
     def __init__(self, **kwargs):
+        self._anim = lambda : None
         self.register_event_type('on_complete_out')
         super(Completable, self).__init__(**kwargs)
 
@@ -642,7 +642,7 @@ class DragNDroppable(ButtonRoot):
                     if viewer.collide_point(*self.center):
                         break
                 else:
-                    viewer = None# self.listview
+                    viewer = None
 
                 self.dispatch('on_drop', self, viewer, indices)
                 return True
@@ -660,7 +660,7 @@ class DragNDroppable(ButtonRoot):
 
             if not child:
                 for child in viewer.container.children:
-                    if (child.collide_point(*point) and (child is not Widget)):
+                    if child.collide_point(*point):
                         break
 
             _anim = DropAnimation(y=child.y, d=0.1)
@@ -728,7 +728,6 @@ class DoubleClickButton(DoubleClickable):
             return super(DoubleClickButton, self).on_touch_down(touch)
 
 class AccordionListItem(Selectable, StencilLayout):
-    _anim = ObjectProperty(lambda : None)
     title = ObjectProperty(None)
     content = ObjectProperty(None)
     listview = ObjectProperty(None)
@@ -759,6 +758,10 @@ class AccordionListItem(Selectable, StencilLayout):
             return False
 
     state = AliasProperty(_get_state, _set_state, bind=('title',))
+
+    def __init__(self, **kwargs):
+        self._anim = lambda : None
+        super(AccordionListItem, self).__init__(**kwargs)
 
     def _do_select(self, alpha):
         """if self._anim():
@@ -964,6 +967,8 @@ class FreeRotateLayout(Widget):
 
 
 Builder.load_string("""
+#:import BoxLayout parents.BoxLayout
+
 <NavBar>:
     size_hint: 1, 0.1127
     pos_hint:{'top': 1, 'x': 0}

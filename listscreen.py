@@ -77,7 +77,7 @@ class ListScreen(Screen_):
             _dict['content_height_hint'] = (190./1136.)
             _dict['drop_zones'].append(self.accordion_view)
             #_dict['listview'] = self.accordion_view.proxy_ref
-            _dict['aleft'] = False
+            _dict['aleft'] = True
 
         return _dict
 

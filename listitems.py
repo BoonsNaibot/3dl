@@ -1,7 +1,6 @@
 from kivy.properties import AliasProperty, BooleanProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
 from uiux import Selectable, Clickable, Editable, Completable, Deletable, DragNDroppable, AccordionListItem
-from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.boxlayout import BoxLayout
+from parents import BoxLayout, FloatLayout, GridLayout
 from kivy.animation import Animation
 from kivy.utils import escape_markup
 from kivy.lang import Builder
@@ -33,8 +32,7 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
     listview = AliasProperty(_get_listview, None)
         
     def on_press(self, *args):
-        if ((self.state == 'down') and (not self.screen.polestar())):
-            self.hold_time = 0.0
+        if (self.state == 'down'):
             Clock.schedule_interval(self.on_hold_down, 0.05)
     
     def on_hold_down(self, *args):
@@ -296,7 +294,7 @@ Builder.load_string("""
         pos_hint: {'x': 0.05, 'top': 1}
         icon_text: 'Due:'
         icon_font_name: 'Walkway Bold.ttf'
-        font_size: root.width*0.05
+        font_size: root.width*0.043
         text: root.when
         text_color: root.text_color
         on_double_click_switch: root.screen.dispatch('on_due_date', root.parent, args[1])
@@ -344,8 +342,8 @@ Builder.load_string("""
 <ListScreenItem>:
     title: title_id
     content: content_id
-    shadow_color: app.dark_blue if title_id.state=='down' else (app.blue if title_id.state=='dragged' else app.no_color)
-    text_color: app.dark_blue if (self.collapse_alpha==0.0 or title_id.state=='dragged') else (app.blue if title_id.state=='down' else app.dark_gray)
+    shadow_color: app.dark_blue if title_id.state=='dragged' else (app.blue if title_id.state=='down' else app.no_color)
+    text_color: app.dark_blue if (self.collapse_alpha==0.0 or title_id.state=='down') else (app.blue if title_id.state=='dragged' else app.dark_gray)
     state_color: app.no_color if title_id.state=='dragged' else app.smoke_white
 
     NoteItemTitle:
@@ -484,6 +482,7 @@ Builder.load_string("""
     padding: 10
     spacing: 5
     state: title_id.state
+    height: self.screen.height*0.2958
 
     QuickViewScreenItemTitle:
         id: title_id

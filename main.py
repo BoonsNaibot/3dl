@@ -1,5 +1,6 @@
-from kivy.uix.widget import Widget
+#import os
 from kivy.app import App
+from parents import Widget
 from kivy.lang import Builder
 from kivy.uix.screenmanager import NoTransition
 from kivy.properties import ListProperty, ObjectProperty
@@ -8,13 +9,6 @@ from apsw import Connection, SQLITE_OPEN_READWRITE, CantOpenError
 from kivy.modules import inspector
 from kivy.core.window import Window
 #import cProfile
-
-class Widget(Widget):
-    
-    def add_widget(self, widget, *args):
-        super(Widget, self).add_widget(widget, *args)
-        widget.parent = self.proxy_ref
-        print type(widget.parent)
 
 kv = """
 #:import ListScreen listscreen.ListScreen
@@ -72,6 +66,7 @@ class ThreeDoListApp(App):
     
     try:
         db = ObjectProperty(Connection('db.db', flags=SQLITE_OPEN_READWRITE))
+        #db = ObjectProperty(Connection(os.path.expanduser('~/Documents/threedolist/db.db'), flags=SQLITE_OPEN_READWRITE))
     except CantOpenError:
         db = ObjectProperty(None)
 
@@ -81,6 +76,7 @@ class ThreeDoListApp(App):
 
         if not self.db:
             connection = Connection('db.db')
+            #connection = Connection(self.user_data_dir + '/db.db')
             cursor = connection.cursor()
             cursor.execute("""
                            PRAGMA user_version=1;

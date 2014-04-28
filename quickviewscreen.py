@@ -92,7 +92,7 @@ Builder.load_string("""
         id: navbar_id
         text: root.page
         size_hint: 1, 0.1127
-        font_size: root.width*0.3
+        font_size: root.width*0.1
         pos_hint:{'top': 1, 'x': 0}
 
         Button_:

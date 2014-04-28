@@ -3,8 +3,7 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 from datetimewidgets import Day
 from weakreflist import WeakList
-from kivy.uix.widget import Widget
-from kivy.uix.layout import Layout
+from parents import Widget, Layout
 from adapters import ListViewAdapter
 from datetime import date, timedelta
 from weakref import WeakKeyDictionary
@@ -225,6 +224,7 @@ class DNDListView(Widget, ListViewAdapter):
         data = ((widget.ix,) + instance.listview.get_data_item(instance.index)[1:])
         item_args = self.args_converter(widget.index, data)
         item_args['index'] = widget.index
+        item_args['listview'] = self.proxy_ref
         new_item = self.list_item(**item_args)
 
         if self.selection_mode <> 'None':
@@ -253,7 +253,7 @@ class DNDListView(Widget, ListViewAdapter):
         d = WeakKeyDictionary({widget: placeholder.ix})
 
         for child in children:
-            if (widget.collide_widget(child) and (child is not placeholder) and (type(child) is not Widget)):
+            if (widget.collide_widget(child) and (child is not placeholder)):
                 c_index = children.index(child)
 
                 if ((widget.center_y <= child.top) and (widget.center_y <= placeholder.y)) or ((widget.center_y >= child.y) and (widget.center_y >= placeholder.top)):
@@ -281,10 +281,10 @@ class DNDListView(Widget, ListViewAdapter):
             self.parent.dispatch('on_drop', l)
 
 class AccordionListView(DNDListView):
-    
+
     def _get_selection(self):
         return self.parent.selection
-        
+
     selection = AliasProperty(_get_selection, None)
 
     def _lcm(self, a, b):
