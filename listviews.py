@@ -21,10 +21,9 @@ class Placeholder(Widget):
 class ListContainerLayout(Layout):
     spacing = NumericProperty(0)
     padding = NumericProperty(0)
-    children = ListProperty(WeakList())
-    """_children = ListProperty(WeakList())
+    children = ObjectProperty(WeakList())
     
-    def _get_children(self):
+    """def _get_children(self):
         return self._children
         
     def _set_children(self, children):
@@ -54,15 +53,25 @@ class ListContainerLayout(Layout):
             place = (y + h) - self.padding
 
             for c in reversed(self.children):
+                c = c()
                 c.width = w
                 c.x = x
                 c.top = place
                 #y += c.height + spacing
                 place -= (c.height + spacing)
 
+    def add_widget(self, *args):
+        super(ListContainerLayout, self).add_widget(*args)
+        self._trigger_layout()
+
+    def remove_widget(self, *args):
+        super(ListContainerLayout, self).remove_widget(*args)
+        self._trigger_layout()
+
     def clear_widgets(self, *args):
         for _ in xrange(len(self.children)):
-            child = self.children.pop(-1)
+            child = self.children.pop(-1)()
+            self._trigger_layout()
             self.canvas.remove(child.canvas)
             child.parent = None
 

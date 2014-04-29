@@ -58,7 +58,7 @@ class ListScreen(Screen_):
             self.list_items, self.action_items = list_items, action_items
 
     def _args_converter(self, row_index, an_obj):
-        _dict = {'drop_zones': WeakList([self.action_view,]),
+        _dict = {'drop_zones': [self.action_view,],
                  'screen': self.proxy_ref}
         _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
         _dict['why'] = bool(_dict['why'])

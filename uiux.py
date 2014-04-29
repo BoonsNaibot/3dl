@@ -571,7 +571,7 @@ class DropAnimation(Animation):
 class DragNDroppable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'down', 'dragged'))
     hold_time = NumericProperty(0.0)
-    drop_zones = ListProperty(WeakList())
+    drop_zones = ListProperty([])#ListProperty(WeakList())
     
     def __init__(self, **kwargs):
         self.register_event_type('on_drag')

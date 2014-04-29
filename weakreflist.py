@@ -30,6 +30,10 @@ class WeakList(list):
     def __setitem__(self, key, value):
         return list.__setitem__(self, key, self._getRef(value))
 
+    def __getslice__(self, i, j):
+        gV = self._getValue
+        return [gV(x) for x in list.__getslice__(self, i, j)] #slow
+
     def __iter__(self, *args, **kwargs):
         return list.__iter__(self, *map(self._getValue, args), **kwargs)
 
@@ -38,6 +42,9 @@ class WeakList(list):
 
     def append(self, observer):
         list.append(self, self._getRef(observer))
+
+    def insert(self, i, x):
+        list.insert(self, i, self._getRef(x))
 
     def remove(self, value):
         value = self._makeRef(value)
@@ -48,4 +55,4 @@ class WeakList(list):
         return list.index(self, *map(self._makeRef, args), **kwargs)
 
     def pop(self, value):
-        return list.pop(self, self._makeRef(value))
+        return list.pop(self, value)
