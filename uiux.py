@@ -333,13 +333,12 @@ class Deletable(ButtonRoot):
             assert(ref(self) in touch.ud)
 
             if self.state == 'delete':
+                touch.ungrab(self)
                 sup = super(ButtonRoot, self).on_touch_up(touch)
 
                 if sup:
-                    touch.ungrab(self)
                     return sup
                 else:
-                    touch.ungrab(self)
                     layout = self.layout
                     db = self.delete_button()
 
@@ -428,13 +427,12 @@ class Completable(ButtonRoot):
             assert(ref(self) in touch.ud)
 
             if self.state == 'complete':
+                touch.ungrab(self)
                 sup = super(ButtonRoot, self).on_touch_up(touch)
 
                 if sup:
-                    touch.ungrab(self)
                     return sup
                 else:
-                    touch.ungrab(self)
                     layout = self.layout
                     cb = self.complete_button()
 
@@ -592,6 +590,8 @@ class DragNDroppable(ButtonRoot):
     def on_state(self, instance, value):
         listview = instance.listview
 
+        if value <> 'down':
+            self.hold_time = 0.0
         if ((value <> 'dragged') and listview.placeholder):
             listview.placeholder = None
             listview.parent.polestar = lambda : None
@@ -653,17 +653,22 @@ class DragNDroppable(ButtonRoot):
         instance.center_y = pos_y
         
     def on_drop(self, instance, viewer, indices):
-        point = instance.center
 
         if viewer:
             child = viewer.placeholder
 
             if not child:
                 for child in viewer.container.children:
-                    if child.collide_point(*point):
+                    if child.state == 'down':
+                        _anim = DropAnimation(y=child.y, d=0.1)
                         break
-
-            _anim = DropAnimation(y=child.y, d=0.1)
+                else:
+                    viewer = instance.listview
+                    child = viewer.placeholder
+                    _anim = DropAnimation(y=child.y, d=0.5, t='out_back')
+                    
+            else:
+                _anim = DropAnimation(y=child.y, d=0.1)
 
         else:
             viewer = instance.listview
@@ -678,7 +683,7 @@ class DragNDroppable(ButtonRoot):
 
         _anim.bind(on_start=_on_start, on_complete=_on_complete)
         instance._anim = ref(_anim)
-        instance._anim().start(instance)
+        _anim.start(instance)
 
     def cancel(self):
         Clock.unschedule(self.on_hold_down)
