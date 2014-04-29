@@ -168,7 +168,7 @@ class ButtonRoot(Widget):
     def on_touch_down(self, touch):
         if not self.disabled:
             touch.grab(self)
-            touch.ud[self] = True
+            touch.ud[self.proxy_ref] = True
         return True
 
     def on_touch_move(self, touch):
@@ -219,7 +219,7 @@ class Clickable(ButtonRoot):
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
-            assert(self in touch.ud)
+            assert(self.proxy_ref in touch.ud)
 
             if self.state == 'down':
                 sup = super(ButtonRoot, self).on_touch_up(touch)
@@ -255,7 +255,7 @@ class DelayedClickable(Clickable):
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
-            assert(self in touch.ud)
+            assert(self.proxy_ref in touch.ud)
 
             if self.state == 'down':
                 sup = super(ButtonRoot, self).on_touch_up(touch)
@@ -308,7 +308,7 @@ class Deletable(ButtonRoot):
     def on_touch_move(self, touch):
 
         if touch.grab_current is self:
-            assert(self in touch.ud)
+            assert(self.proxy_ref in touch.ud)
 
             if self.state in ('down', 'normal'):
                 sup = super(ButtonRoot, self).on_touch_move(touch)
@@ -330,7 +330,7 @@ class Deletable(ButtonRoot):
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
-            assert(self in touch.ud)
+            assert(self.proxy_ref in touch.ud)
 
             if self.state == 'delete':
                 sup = super(ButtonRoot, self).on_touch_up(touch)
@@ -403,7 +403,7 @@ class Completable(ButtonRoot):
 
     def on_touch_move(self, touch):
         if touch.grab_current is self:
-            assert(self in touch.ud)
+            assert(self.proxy_ref in touch.ud)
 
             if self.state in ('down', 'normal'):
                 sup = super(ButtonRoot, self).on_touch_move(touch)
@@ -425,7 +425,7 @@ class Completable(ButtonRoot):
 
     def on_touch_up(self, touch):
         if touch.grab_current is self:
-            assert(self in touch.ud)
+            assert(self.proxy_ref in touch.ud)
 
             if self.state == 'complete':
                 sup = super(ButtonRoot, self).on_touch_up(touch)
@@ -616,7 +616,7 @@ class DragNDroppable(ButtonRoot):
 
     def on_touch_move(self, touch):
         if touch.grab_current is self:
-            assert(self in touch.ud)
+            assert(self.proxy_ref in touch.ud)
 
             if self.state == 'dragged':
                 self.dispatch('on_drag', self, touch.y)
@@ -632,7 +632,7 @@ class DragNDroppable(ButtonRoot):
         #super(ButtonRoot, self).on_touch_up(touch)
 
         if touch.grab_current is self:
-            assert(self in touch.ud)
+            assert(self.proxy_ref in touch.ud)
 
             if self.state == 'dragged':
                 touch.ungrab(self)
