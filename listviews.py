@@ -53,7 +53,6 @@ class ListContainerLayout(Layout):
             place = (y + h) - self.padding
 
             for c in reversed(self.children):
-                c = c()
                 c.width = w
                 c.x = x
                 c.top = place
