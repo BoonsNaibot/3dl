@@ -15,10 +15,9 @@ class ListViewAdapter(object):
 
     def on_data(self, instance, value):
         instance.delete_cache()
-        selection = instance.selection
 
-        if len(selection) > 0:
-            selection[:] = WeakList()
+        if len(instance.selection) > 0:
+            instance.selection[:] = WeakList()
 
     def on_selection(self, instance, value):
         instance.dispatch('on_selection_change')
@@ -30,10 +29,8 @@ class ListViewAdapter(object):
         return len(self.data)
 
     def get_data_item(self, index):
-        data = self.data
-
         if (0 <= index < self.get_count()):
-            return data[index]
+            return self.data[index]
 
     def get_view(self, index):
         cached_views = self.cached_views
@@ -57,12 +54,12 @@ class ListViewAdapter(object):
             view_instance = self.list_item(**item_args)
 
             if self.selection_mode <> 'None':
-                view_instance.bind(on_release=self.proxy_ref.handle_selection)
+                view_instance.bind(on_release=item_args['listview'].handle_selection)
 
             return view_instance
 
     def deselect_all(self, *args):
-        selection = self.selection[:]
+        selection = self.selection
 
         for each_view in xrange(len(selection)):
             selection.pop().is_selected = False
