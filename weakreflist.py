@@ -4,9 +4,8 @@
 class WeakList(list):
 
     def _get_ref(self, value):
-        value = self._make_ref(value)
         if list.__contains__(self, value):
-            value = list.__getitem__(self, list.index(self, value))
+            value = list.__getitem__(self, list.index(self, self._make_ref(value)))
         return value
 
     def _get_value(self, ref):
@@ -28,15 +27,15 @@ class WeakList(list):
         return self._get_value(list.__getitem__(self, key))
 
     def __setitem__(self, key, value):
-        return list.__setitem__(self, key, self._get_ref(value))
+        return list.__setitem__(self, key, self._make_ref(value))
 
     def __getslice__(self, i, j):
         gV = self._get_value
-        return [gV(x) for x in list.__getslice__(self, i, j)] #slow
+        return [gV(x) for x in list.__getslice__(self, i, j)] #slow?
         
     def __setslice__(self, i, j, y):
-        gR = self._get_ref
-        return list.__setslice__(self, i, j, (gR(x) for x in y))
+        mR = self._make_ref
+        return list.__setslice__(self, i, j, (mR(x) for x in y))
 
     def __iter__(self, *args, **kwargs):
         for x in list.__iter__(self, *args, **kwargs):
@@ -45,19 +44,25 @@ class WeakList(list):
     def __repr__(self):
         return "WeakList(%r)" % list(self)
 
-    def append(self, observer):
-        list.append(self, self._get_ref(observer))
+    def append(self, x):
+        list.append(self, self._make_ref(x))
+        
+    def extend(self, l):
+        mR = self._make_ref
+        list.extend(self, (mR(x) for x in l))
 
     def insert(self, i, x):
-        list.insert(self, i, self._get_ref(x))
+        list.insert(self, i, self._make_ref(x))
+        
+    def count(self, value):
+        return list.count(self, self._make_ref(value))
 
     def remove(self, value):
-        value = self._make_ref(value)
         while list.__contains__(self, value):
-            list.remove(self, value)
+            list.remove(self, self._make_ref(value))
 
-    def index(self, *args, **kwargs):
-        return list.index(self, *map(self._make_ref, args), **kwargs)
+    def index(self, x):
+        return list.index(self, self._get_ref(x))
 
     def pop(self, value):
         return list.pop(self, value)
