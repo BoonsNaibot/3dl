@@ -67,6 +67,9 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
         instance = instance.parent
         super(NoteItemTitle, self).on_return(instance, *args)
 
+class ActionListItemTitle(NoteItemTitle):
+    pass
+
 class ArchiveScreenItemTitle(Deletable, Clickable):
     state = OptionProperty('normal', options=('delete', 'down', 'normal'))
 
@@ -179,6 +182,9 @@ class ContentMajor(FloatLayout):
     def on_comments(self, *args):
         pass
 
+class ContentMinor(ContentMajor):
+    pass
+
 Builder.load_string("""
 #:import EditButton uiux.EditButton
 #:import DoubleClickButton uiux.DoubleClickButton
@@ -198,7 +204,7 @@ Builder.load_string("""
             points: self.x, self.y, self.right, self.y
             width: 1.0
 
-<-ActionListItemTitle@NoteItemTitle, -ArchiveScreenItemTitle>:
+<-ActionListItemTitle>:
     label: label_id
     layout: layout_id
     font_size: self.width*0.062
@@ -282,7 +288,7 @@ Builder.load_string("""
         text_color: root.text_color
         screen: root.screen
 
-<-ContentMinor@ContentMajor>:
+<-ContentMinor>:
     canvas.before:
         Color:
             rgba: self.state_color

@@ -4,17 +4,17 @@ from weakref import ref
 
 class WeakList(list):
 
-    def _get_value(self, reference):
+    def _get_value(self, x):
         try:
-            value = reference()
+            x = x()
         finally:
-            return value
+            return x
 
-    def _get_ref(self, value):
+    def _get_ref(self, x):
         try:
-            reference = ref(value, self.remove)
+            x = ref(x, self.remove)
         finally:
-            return reference
+            return x
 
     def __contains__(self, item):
         return list.__contains__(self, self._get_ref(item))
@@ -35,6 +35,10 @@ class WeakList(list):
 
     def __iter__(self, *args, **kwargs):
         for x in list.__iter__(self, *args, **kwargs):
+            yield self._get_value(x)
+
+    def __reversed__(self, *args, **kwargs):
+        for x in list.__reversed__(self, *args, **kwargs):
             yield self._get_value(x)
 
     def __repr__(self):

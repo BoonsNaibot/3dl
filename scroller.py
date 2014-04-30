@@ -28,10 +28,10 @@ class ScrollerEffect(DampedScrollEffect):
     min = AliasProperty(_get_min, None)
     
     def on_scroll(self, instance, value):
-        parent = instance._parent
         vp = instance.target_widget
 
         if vp:
+            parent = instance._parent
             sh = vp.height - parent.height
 
             if sh >= 1:
@@ -56,7 +56,6 @@ class Scroller(StencilLayout):
     bar_color = ListProperty([0.7, 0.7, 0.7, 0.9])
     bar_width = NumericProperty('2dp')
     bar_margin = NumericProperty(0)
-    bar_anim = ObjectProperty(None, allownone=True)
     effect_y = ObjectProperty(None)
     _viewport = ObjectProperty(lambda : None)
     bar_alpha = NumericProperty(1.0)
@@ -96,18 +95,12 @@ class Scroller(StencilLayout):
                 w, h = kwargs.get('size', self.size)
                 x, y = kwargs.get('pos', self.pos)
                 vp.w, vp.x = w, x
-    
+
                 if vp.height > self.height:
                     sh = vp.height - h
                     vp.y = y - self.scroll_y * sh
                 else:
                     vp.y = (y + h) - vp.height
-                self.bar_alpha = 1.
-                
-                if self.bar_anim:
-                    self.bar_anim.stop()
-                    Clock.unschedule(self._start_decrease_alpha)
-                Clock.schedule_once(self._start_decrease_alpha, .5)
                   
     def on_height(self, instance, *args):
         self.effect_y.value = self.effect_y.min * self.scroll_y
@@ -165,10 +158,6 @@ class Scroller(StencilLayout):
             return True
 
         return super(Scroller, self).on_touch_up(touch)
-
-    def _start_decrease_alpha(self, *l):
-        self.bar_alpha = 1.
-        Animation(bar_alpha=0., d=.5, t='out_quart').start(self)
 
     def add_widget(self, widget, index=0):
         if self._viewport():

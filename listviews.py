@@ -21,7 +21,7 @@ class Placeholder(Widget):
 class ListContainerLayout(Layout):
     spacing = NumericProperty(0)
     padding = NumericProperty(0)
-    children = ObjectProperty(WeakList())
+    children = ListProperty(WeakList())
     
     """def _get_children(self):
         return self._children
@@ -67,12 +67,12 @@ class ListContainerLayout(Layout):
         super(ListContainerLayout, self).remove_widget(*args)
         self._trigger_layout()
 
-    def clear_widgets(self, *args):
+    """def clear_widgets(self, *args):
         for _ in xrange(len(self.children)):
             child = self.children.pop(-1)()
             self._trigger_layout()
             self.canvas.remove(child.canvas)
-            child.parent = None
+            child.parent = None"""
 
 class DNDListView(Widget, ListViewAdapter):
     container = ObjectProperty(None)
