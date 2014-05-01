@@ -64,16 +64,13 @@ class ListScreen(Screen_):
         _dict['why'] = bool(_dict['why'])
 
         if _dict['ix'] < 4:
-            _dict['title_height_hint'] = (2.0/15.0)
             _dict['content_height_hint'] = (322./1136.)
-            #_dict['listview'] = self.action_view.proxy_ref
             _dict['aleft'] = True
 
             if not _dict['text']:
                 _dict['text'] = 'Drag a Task here.'
                 _dict['disabled'] = True
         else:
-            _dict['title_height_hint'] = 0.088
             _dict['content_height_hint'] = (190./1136.)
             _dict['drop_zones'].append(self.accordion_view)
             #_dict['listview'] = self.accordion_view.proxy_ref
@@ -236,7 +233,7 @@ Builder.load_string("""
 
     ActionListView:
         id: action_view_id
-        #size_hint: 1, 0.4
+        height_hint: 2.0/15.0
         pos_hint: {'x': 0, 'top': 0.8873}
         height: 0.4*root.height
         #top: navbar_id.y
@@ -247,6 +244,7 @@ Builder.load_string("""
         id: accordion_view_id
         size_hint: 1, 0.4
         top: action_view_id.y
+        height_hint: 0.088
         list_item: root.accordion_view_item
         args_converter: root._args_converter
         data: root.list_items
