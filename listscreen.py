@@ -6,8 +6,8 @@ Created on Jul 27, 2013
 from kivy.properties import ObjectProperty, ListProperty, StringProperty, NumericProperty
 from listitems import ActionListItem, ListScreenItem
 from kivy.uix.screenmanager import RiseInTransition
+from kivy.weakreflist import WeakList
 from kivy.animation import Animation
-from weakreflist import WeakList
 from kivy.lang import Builder
 from kivy.clock import Clock
 from uiux import Screen_
