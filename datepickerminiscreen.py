@@ -1,5 +1,5 @@
 from kivy.properties import ObjectProperty, AliasProperty, ListProperty, NumericProperty, StringProperty
-from weakreflist import WeakList
+from kivy.weakreflist import WeakList
 from kivy.lang import Builder
 from uiux import Screen_
 import datetime
