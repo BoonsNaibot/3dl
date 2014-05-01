@@ -1,5 +1,5 @@
 from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty
-from weakreflist import WeakList
+from kivy.weakreflist import WeakList
 
 class ListViewAdapter(object):
     data = ListProperty([])
