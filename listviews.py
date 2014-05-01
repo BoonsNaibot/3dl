@@ -2,10 +2,10 @@ from math import ceil, floor
 from kivy.clock import Clock
 from kivy.lang import Builder
 from datetimewidgets import Day
-from weakreflist import WeakList
 from parents import Widget, Layout
 from adapters import ListViewAdapter
 from datetime import date, timedelta
+from kivy.weakreflist import WeakList
 from weakref import WeakKeyDictionary
 from itertools import repeat, izip, chain
 from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty
