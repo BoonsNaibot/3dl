@@ -28,8 +28,7 @@ class ArchiveScreen(Screen_):
             self.list_items = cursor.fetchall()
 
     def _args_converter(self, row_index, an_obj):
-        _dict = {'title_height_hint': (153./1136.),
-                 'content_height_hint': (322./1136.),
+        _dict = {'content_height_hint': (322./1136.),
                  'aleft': True,
                  'screen': self.proxy_ref}
         _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
@@ -76,6 +75,7 @@ Builder.load_string("""
     AccordionListView:
         id: list_view_id
         list_item: root._item
+        height_hint': (153.0/1136.0)
         args_converter: root._args_converter
         data: root.list_items
         size_hint: 1, 0.886
