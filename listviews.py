@@ -9,7 +9,7 @@ from datetime import date, timedelta
 from kivy.weakreflist import WeakList
 from weakref import WeakKeyDictionary
 from itertools import repeat, izip, chain
-from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty
+from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, WeakListProperty
 
 class Placeholder(Widget):
     ix = NumericProperty(None)
@@ -22,20 +22,7 @@ class Placeholder(Widget):
 class ListContainerLayout(Layout):
     spacing = NumericProperty(0)
     padding = NumericProperty(0)
-    children = ListProperty(WeakList())
-    
-    """def _get_children(self):
-        return self._children
-        
-    def _set_children(self, children):
-        if type(children) is list:
-            children = WeakList(children)
-        if self._children <> children:
-            self._children = children
-        else:
-            return False
-        
-    children = AliasProperty(_get_children, _set_children, bind=('_children',))"""
+    children = WeakListProperty(WeakList())
 
     def __init__(self, **kwargs):
         super(ListContainerLayout, self).__init__(**kwargs)
@@ -59,21 +46,6 @@ class ListContainerLayout(Layout):
                 c.top = place
                 #y += c.height + spacing
                 place -= (c.height + spacing)
-
-    def add_widget(self, *args):
-        super(ListContainerLayout, self).add_widget(*args)
-        self._trigger_layout()
-
-    def remove_widget(self, *args):
-        super(ListContainerLayout, self).remove_widget(*args)
-        self._trigger_layout()
-
-    """def clear_widgets(self, *args):
-        for _ in xrange(len(self.children)):
-            child = self.children.pop(-1)()
-            self._trigger_layout()
-            self.canvas.remove(child.canvas)
-            child.parent = None"""
 
 class DNDListView(Widget, ListViewAdapter):
     container = ObjectProperty(None)
