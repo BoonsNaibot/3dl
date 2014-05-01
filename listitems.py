@@ -45,6 +45,7 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
 
     def on_touch_down(self, touch):
         if ((self.collide_point(*touch.pos)) or (self.state == 'edit')):
+            #print type(self.parent)
             return super(NoteItemTitle, self).on_touch_down(touch)
         elif self.state <> 'normal':
             self.state = 'normal'
@@ -110,16 +111,10 @@ class NoteItem(AccordionListItem):
             Clock.schedule_once(_l, 0.25)
 
 class ListScreenItem(NoteItem):
-
-    def __init__(self, **kwargs):
-        super(ListScreenItem, self).__init__(**kwargs)
-        self.title.drop_zones = kwargs['drop_zones']
+    drop_zones = ListProperty(None)
 
 class ActionListItem(NoteItem):
-
-    def __init__(self, **kwargs):
-        super(ActionListItem, self).__init__(**kwargs)
-        self.title.drop_zones = kwargs['drop_zones']
+    drop_zones = ListProperty(None)
 
 class ArchiveScreenItem(NoteItem):
     pass
@@ -270,7 +265,7 @@ Builder.load_string("""
         id: icon_id
         text: 'e'
         font_name: 'breezi_font-webfont.ttf'
-        font_size: self.height*0.421875
+        font_size: self.height*0.7
         color: root.text_color
         size_hint: None, 0.25
         pos_hint: {'x': 0.05, 'center_y': 0.3}
@@ -361,6 +356,7 @@ Builder.load_string("""
         pos_hint: {'x': 0, 'top': 1}
         screen: root.screen
         font_size: self.width*0.07
+        drop_zones: root.drop_zones
         text_color: root.text_color
         state_color: root.state_color
         on_release: root.listview.handle_selection(root)
@@ -393,6 +389,7 @@ Builder.load_string("""
         size_hint: 1, None
         pos_hint: {'x': 0, 'top': 1}
         screen: root.screen
+        drop_zones: root.drop_zones
         text_color: root.text_color
         state_color: root.state_color
         on_release: root.listview.handle_selection(root)
