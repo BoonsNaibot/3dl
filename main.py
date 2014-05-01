@@ -1,14 +1,10 @@
-#import os
+import os
 from kivy.app import App
 from parents import Widget
 from kivy.lang import Builder
 from kivy.uix.screenmanager import NoTransition
 from kivy.properties import ListProperty, ObjectProperty
 from apsw import Connection, SQLITE_OPEN_READWRITE, CantOpenError
-
-from kivy.modules import inspector
-from kivy.core.window import Window
-#import cProfile
 
 kv = """
 #:import ListScreen listscreen.ListScreen
@@ -65,8 +61,7 @@ class ThreeDoListApp(App):
     black = ListProperty((0.0, 0.0, 0.0, 1.0))
     
     try:
-        db = ObjectProperty(Connection('db.db', flags=SQLITE_OPEN_READWRITE))
-        #db = ObjectProperty(Connection(os.path.expanduser('~/Documents/threedolist/db.db'), flags=SQLITE_OPEN_READWRITE))
+        db = ObjectProperty(Connection(os.path.expanduser('~/Documents/threedolist/db.db'), flags=SQLITE_OPEN_READWRITE))
     except CantOpenError:
         db = ObjectProperty(None)
 
@@ -75,8 +70,7 @@ class ThreeDoListApp(App):
         super(ThreeDoListApp, self).__init__(**kwargs)
 
         if not self.db:
-            connection = Connection('db.db')
-            #connection = Connection(self.user_data_dir + '/db.db')
+            connection = Connection(self.user_data_dir + '/db.db')
             cursor = connection.cursor()
             cursor.execute("""
                            PRAGMA user_version=1;
@@ -147,7 +141,6 @@ class ThreeDoListApp(App):
                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 7, 'Press and hold to Drag-N''-Drop', 'You can re-order your tasks this way.');
                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 8, 'Drag me to an "Action Item".', 'The "Action Items" are your top 3 tasks to focus on at a time.');
                            """)
-            #cursor.execute("commit")
             self.db = connection
             
         self.db.cursor().execute("PRAGMA foreign_keys=ON;")
@@ -165,8 +158,6 @@ class ThreeDoListApp(App):
         return app
 
     def on_start(self):
-        #self.profile = cProfile.Profile()
-        #self.profile.enable()
         app = self.root
         app.manager.transition = NoTransition()
         cursor = self.db.cursor()
@@ -179,7 +170,6 @@ class ThreeDoListApp(App):
         result = cursor.fetchall()
 
         if result:
-            #assert(len(set(result)) == 1)
             page, page_number, l = result[0]
 
             if l < 3:
@@ -201,8 +191,6 @@ class ThreeDoListApp(App):
 
     def on_stop(self):
         self.db.close()
-        #self.profile.disable()
-        #self.profile.dump_stats('myapp.profile')
 
 if __name__ == '__main__':
     ThreeDoListApp().run()
