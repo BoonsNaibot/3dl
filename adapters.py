@@ -1,11 +1,11 @@
-from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty
+from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, WeakListProperty
 from kivy.weakreflist import WeakList
 
 class ListViewAdapter(object):
     data = ListProperty([])
     cached_views = DictProperty({})
     list_item = ObjectProperty(None)
-    selection = ListProperty(WeakList())
+    selection = WeakListProperty(WeakList())
     args_converter = ObjectProperty(None)
     selection_mode = OptionProperty('single', options=('None', 'single'))
 
