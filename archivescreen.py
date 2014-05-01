@@ -5,7 +5,7 @@ Created on Jul 23, 2013
 '''
 from uiux import Screen_
 from kivy.lang import Builder
-from weakreflist import WeakList
+from kivy.weakreflist import WeakList
 from listitems import ArchiveScreenItem
 from kivy.properties import ObjectProperty, ListProperty
 
