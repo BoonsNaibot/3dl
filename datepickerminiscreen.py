@@ -66,7 +66,6 @@ class DateTimeMiniScreen(Screen_):
                 'text': self.text,
                 'size_hint_y': None,
                 'screen': self.proxy_ref,
-                'title_height_hint': 1.0/15.0,
                 'content_height_hint': self.height/6.0}
 
     def on_deselect(self, *args):
@@ -169,6 +168,7 @@ Builder.load_string("""
         spacing: 0
         list_item: Week
         size_hint: 1, 0.75
+        height_hint: 1.0/15.0
         pos_hint: {'x': 0, 'top': 0.8373}
         args_converter: root._args_converter
         data: range(6)
