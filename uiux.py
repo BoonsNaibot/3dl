@@ -741,7 +741,6 @@ class AccordionListItem(Selectable, StencilLayout):
     text_color = ListProperty([])
     text = StringProperty('')
     collapse_alpha = NumericProperty(1.0)
-    title_height_hint = NumericProperty(0.0)
     content_height_hint = NumericProperty(0.0)
 
     def _get_height(self):
