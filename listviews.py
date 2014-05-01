@@ -87,6 +87,7 @@ class DNDListView(Widget, ListViewAdapter):
     _wend = NumericProperty(None, allownone=True)
     _i_offset = NumericProperty(0)
     spacing = NumericProperty(1)
+    height_hint = NumericProperty(0.0)
     placeholder = ObjectProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
