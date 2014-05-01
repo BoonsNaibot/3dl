@@ -21,6 +21,7 @@ class Placeholder(Widget):
 class ListContainerLayout(Layout):
     spacing = NumericProperty(0)
     padding = NumericProperty(0)
+    height_hint = NumericProperty(0)
     children = ListProperty(WeakList())
     
     """def _get_children(self):
@@ -51,10 +52,12 @@ class ListContainerLayout(Layout):
             x, y = kwargs.get('pos', self.pos)
             spacing = self.spacing
             place = (y + h) - self.padding
+            child_height = self.parent.parent.height * self.height_hint
 
             for c in reversed(self.children):
                 c.width = w
                 c.x = x
+                c.height = child_height
                 c.top = place
                 #y += c.height + spacing
                 place -= (c.height + spacing)
