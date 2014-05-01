@@ -103,7 +103,7 @@ Builder.load_string("""
 #:import NavBar uiux
 #:import Week listitems.Week
 #:import Button_ uiux.Button_
-#:import BoxLayout parents.BoxLayout
+#:import BoxLayout kivy.uix.boxlayout.BoxLayout
 #:import DatePickerListView listviews.DatePickerListView
 
 <DayofTheWeek@Label>:
