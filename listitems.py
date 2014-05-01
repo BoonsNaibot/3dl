@@ -1,6 +1,8 @@
 from kivy.properties import AliasProperty, BooleanProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
 from uiux import Selectable, Clickable, Editable, Completable, Deletable, DragNDroppable, AccordionListItem
-from parents import BoxLayout, FloatLayout, GridLayout
+from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.uix.boxlayout import BoxLayout
 from kivy.animation import Animation
 from kivy.utils import escape_markup
 from kivy.lang import Builder
