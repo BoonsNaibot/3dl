@@ -5,8 +5,8 @@ Created on Jul 23, 2013
 '''
 from weakref import ref
 from uiux import Screen_
-from parents import Widget
 from kivy.lang import Builder
+from kivy.uix.widget import Widget
 from kivy.animation import Animation
 from listitems import PagesScreenItem
 from kivy.uix.screenmanager import SlideTransition
