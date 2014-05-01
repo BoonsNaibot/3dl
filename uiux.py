@@ -4,8 +4,8 @@ from kivy.graphics.transformation import Matrix
 from weakref import ref, WeakKeyDictionary
 from kivy.uix.textinput import TextInput
 from parents import Widget, FloatLayout
+from kivy.weakreflist import WeakList
 from kivy.animation import Animation
-from weakreflist import WeakList
 from kivy.vector import Vector
 from math import radians, ceil
 from kivy.lang import Builder
