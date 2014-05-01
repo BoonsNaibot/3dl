@@ -750,8 +750,14 @@ class AccordionListItem(Selectable, StencilLayout):
             return self.title.height + (self.content.height*(1-self.collapse_alpha))
         else:
             return 1
+            
+    def _set_height(self, height):
+        if (self.title and (self.title.height <> height)):
+            self.title.height = height
+        else:
+            return False
 
-    height = AliasProperty(_get_height, None, bind=('center_y', 'top', 'title', 'content', 'collapse_alpha'))
+    height = AliasProperty(_get_height, _set_height, bind=('center_y', 'top', 'title', 'content', 'collapse_alpha'))
 
     def _get_state(self):
         if self.title:
