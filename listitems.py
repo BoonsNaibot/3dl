@@ -149,7 +149,6 @@ class QuickViewScreenItem(BoxLayout):
 class Week(AccordionListItem):
     text = StringProperty('')
     screen = ObjectProperty(None)
-    title_height_hint = NumericProperty(0.0)
     content_height_hint = NumericProperty(0.0)
 
 class ContentMajor(FloatLayout):
@@ -360,7 +359,6 @@ Builder.load_string("""
         text_color: root.text_color
         state_color: root.state_color
         on_release: root.listview.handle_selection(root)
-        height: self.screen.height*root.title_height_hint
     ContentMinor:
         id: content_id
         why: root.why
@@ -393,7 +391,6 @@ Builder.load_string("""
         text_color: root.text_color
         state_color: root.state_color
         on_release: root.listview.handle_selection(root)
-        height: root.screen.height*root.title_height_hint
     ContentMajor:
         id: content_id
         why: root.why
@@ -426,7 +423,6 @@ Builder.load_string("""
         text_color: root.text_color
         state_color: root.state_color
         on_release: root.listview.handle_selection(root)
-        height: root.screen.height*root.title_height_hint
     ContentMinor:
         id: content_id
         disabled: True
@@ -539,7 +535,6 @@ Builder.load_string("""
         cols: 7
         rows: 1
         size_hint: 1, None
-        height: root.screen.height*root.title_height_hint
         pos_hint: {'top': 1, 'x': 0}
     DayDropDown:
         id: content_id
