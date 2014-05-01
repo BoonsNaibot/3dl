@@ -2,7 +2,8 @@ from math import ceil, floor
 from kivy.clock import Clock
 from kivy.lang import Builder
 from datetimewidgets import Day
-from parents import Widget, Layout
+from kivy.uix.widget import Widget
+from kivy.uix.layout import Layout
 from adapters import ListViewAdapter
 from datetime import date, timedelta
 from kivy.weakreflist import WeakList
