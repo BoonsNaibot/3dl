@@ -435,6 +435,7 @@ Builder.load_string("""
             x: root.x
             width: root.width
             spacing: root.spacing
+            height_hint: root.height_hint
 
 <-ActionListView>:
     container: container_id
@@ -447,6 +448,7 @@ Builder.load_string("""
         top: root.top
         size: root.size
         spacing: root.spacing
+        height_hint: root.height_hint
 
 <-QuickListView@DNDListView>:
     container: container_id
@@ -457,4 +459,5 @@ Builder.load_string("""
         id: container_id
         pos: root.pos
         size: root.size
+        height_hint: root.height_hint
 """)
