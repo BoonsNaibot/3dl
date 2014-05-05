@@ -50,7 +50,7 @@ class ListViewAdapter(object):
         if item is not None:
             item_args = self.args_converter(index, item)
             item_args['index'] = index
-            item_args['listview'] = self.proxy_ref
+            #item_args['listview'] = self.proxy_ref
             view_instance = self.list_item(**item_args)
 
             if self.selection_mode <> 'None':
