@@ -64,6 +64,8 @@ class StencilLayout(FloatLayout):
 
 class Screen_(Screen):
     _anim = lambda : None
+    _item = ObjectProperty(None)
+    list_view = ObjectProperty(None)
     root_directory = ObjectProperty(None)
     keyboard_height = NumericProperty(None)
     polestar = ObjectProperty(lambda : None)
@@ -74,6 +76,11 @@ class Screen_(Screen):
         self.register_event_type('on_status_bar')
         self.register_event_type('on_screen_change')
         super(Screen_, self).__init__(**kwargs)
+        
+    def on_list_view(self, instance, value):
+        if value:
+            instance._item.screen = instance.proxy_ref
+            instance._item.listview = value
 
     def on_polestar(self, instance, value):
         value = value()
