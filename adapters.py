@@ -54,7 +54,7 @@ class ListViewAdapter(object):
             view_instance = self.list_item(**item_args)
 
             if self.selection_mode <> 'None':
-                view_instance.bind(on_release=item_args['listview'].handle_selection)
+                view_instance.bind(on_release=self.proxy_ref.handle_selection)
 
             return view_instance
 
