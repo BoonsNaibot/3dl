@@ -40,8 +40,7 @@ class QuickViewScreen(Screen_):
         self.dispatch('on_screen_change', 'List Screen', kwargs)
 
     def _args_converter(self, row_index, an_obj):
-        _dict = {'size_hint_y': 0.3,
-                 'screen': self.proxy_ref}
+        _dict = {'size_hint_y': 0.3}
         _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
         what = self.format_title(_dict['text'])
         
