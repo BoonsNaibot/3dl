@@ -63,12 +63,12 @@ class StencilLayout(FloatLayout):
     pass
 
 class Screen_(Screen):
+    _anim = lambda : None
     root_directory = ObjectProperty(None)
     keyboard_height = NumericProperty(None)
     polestar = ObjectProperty(lambda : None)
 
     def __init__(self, **kwargs):
-        self._anim = lambda : None
         self.register_event_type('on_delete')
         self.register_event_type('on_complete')
         self.register_event_type('on_status_bar')
@@ -265,11 +265,11 @@ class DelayedClickable(Clickable):
 
 class Deletable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'delete'))
-    delete_button = ObjectProperty(lambda : None)
+    delete_button = lambda : None
     screen = ObjectProperty(None)
+    _anim = lambda : None
 
     def __init__(self, **kwargs):
-        self._anim = lambda : None
         self.register_event_type('on_delete_out')
         super(Deletable, self).__init__(**kwargs)
 
@@ -361,12 +361,12 @@ class Deletable(ButtonRoot):
         _anim.start(layout)
 
 class Completable(ButtonRoot):
+    _anim = lambda : None
     screen = ObjectProperty(None)
-    complete_button = ObjectProperty(lambda : None)
+    complete_button = lambda : None
     state = OptionProperty('normal', options=('normal', 'complete'))
 
     def __init__(self, **kwargs):
-        self._anim = lambda : None
         self.register_event_type('on_complete_out')
         super(Completable, self).__init__(**kwargs)
 
@@ -456,11 +456,11 @@ class Completable(ButtonRoot):
 
 class Editable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'edit'))
-    textinput = ObjectProperty(lambda : None)
     _double_tap_time = NumericProperty(0.0)
     _switch = BooleanProperty(False)
     max_chars = NumericProperty(31)
     screen = ObjectProperty(None)
+    textinput = lambda : None
 
     def __init__(self, **kwargs):
         self.register_event_type('on_text_validate')
@@ -729,6 +729,7 @@ class DoubleClickButton(DoubleClickable):
             return super(DoubleClickButton, self).on_touch_down(touch)
 
 class AccordionListItem(Selectable, StencilLayout):
+    _anim = lambda : None
     title = ObjectProperty(None)
     content = ObjectProperty(None)
     shadow_color = ListProperty([])
@@ -765,7 +766,6 @@ class AccordionListItem(Selectable, StencilLayout):
     state = AliasProperty(_get_state, _set_state, bind=('title',))
 
     def __init__(self, **kwargs):
-        self._anim = lambda : None
         super(AccordionListItem, self).__init__(**kwargs)
 
     def _do_select(self, alpha):
