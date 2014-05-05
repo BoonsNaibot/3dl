@@ -116,10 +116,6 @@ class Screen_(Screen):
         manager.transition = transition
         manager.current = destination
 
-    def add_widget(self, *args):
-        super(Screen_, self).add_widget(*args)
-        args[0].parent = self.proxy_ref
-
     def on_delete(self, *args):
         pass
 
