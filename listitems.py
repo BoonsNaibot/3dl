@@ -7,8 +7,9 @@ from kivy.lang import Builder
 from kivy.clock import Clock
 
 class PagesScreenItem(Clickable, Deletable, Editable):
+    screen = None
+    listview = None
     page_number = NumericProperty(-1)
-    screen = ObjectProperty(None)
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'edit', 'normal'))
 
     def on_text_validate(self, instance):
@@ -22,15 +23,61 @@ class PagesScreenItem(Clickable, Deletable, Editable):
         elif self.state <> 'normal':
             self.state = 'normal'
             return True
+            
+class QuickViewScreenItemTitle(Completable, Deletable):
+    screen = None
+    state = OptionProperty('normal', options=('complete', 'delete', 'normal'))
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            if self.state <> 'normal':
+                self.state = 'normal'
+                return True
+
+        else:
+            return super(QuickViewScreenItemTitle, self).on_touch_down(touch)
+
+class QuickViewScreenItem(BoxLayout):
+    screen = None
+    listview = None
+    how = StringProperty('')
+    text = StringProperty('')
+    when = StringProperty('')
+    ix = NumericProperty(None)
+    title = ObjectProperty(None)
+    why = BooleanProperty(False)
+    markup = BooleanProperty(False)
+    
+    def __init__(self, **kwargs):
+        super(QuickViewScreenItem, self).__init__(**kwargs)
+        self.title.screen = kwargs['screen']
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return False
+        else:
+            return super(QuickViewScreenItem, self).on_touch_down(touch)
+
+class ArchiveScreenItemTitle(Deletable, Clickable):
+    screen = None
+    listview = None
+    state = OptionProperty('normal', options=('delete', 'down', 'normal'))
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            if self.state <> 'normal':
+                self.state = 'normal'
+                return True
+
+        else:
+            return super(ArchiveScreenItemTitle, self).on_touch_down(touch)
 
 class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):
+    screen = None
+    listview = None
+    drop_zones = []
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'dragged', 'edit', 'normal'))
-    
-    def _get_listview(self):
-        return self.parent.listview
-        
-    listview = AliasProperty(_get_listview, None)
-        
+
     def on_press(self, *args):
         if (self.state == 'down'):
             self.hold_time = 0.0
@@ -68,27 +115,38 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
         instance = instance.parent
         super(NoteItemTitle, self).on_return(instance, *args)
 
-class ActionListItemTitle(NoteItemTitle):
-    pass
+class NoteContent(FloatLayout):
+    state_color = ListProperty([])
+    text_color = ListProperty([])
+    why = BooleanProperty(False)
+    when = StringProperty('')
+    how = StringProperty('')
+    screen = None
 
-class ArchiveScreenItemTitle(Deletable, Clickable):
-    state = OptionProperty('normal', options=('delete', 'down', 'normal'))
+    def __init__(self, **kwargs):
+        self.register_event_type('on_comments')
+        self.register_event_type('on_importance')
+        super(NoteContent, self).__init__(**kwargs)
 
     def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            if self.state <> 'normal':
-                self.state = 'normal'
-                return True
-
+        if self.collide_point(*touch.pos):
+            return super(NoteContent, self).on_touch_down(touch)
         else:
-            return super(ArchiveScreenItemTitle, self).on_touch_down(touch)
+            return False
+
+    def on_importance(self, *args):
+        pass
+
+    def on_comments(self, *args):
+        pass
 
 class NoteItem(AccordionListItem):
+    screen = None
+    listview = None
     how = StringProperty('')
     when = StringProperty('')
     ix = NumericProperty(None)
     why = BooleanProperty(False)
-    screen = ObjectProperty(None)
 
     def __init__(self, **kwargs):
         self.register_event_type('on_comments')
@@ -96,6 +154,8 @@ class NoteItem(AccordionListItem):
         super(NoteItem, self).__init__(**kwargs)
 
         self.title.aleft = kwargs['aleft']
+        self.title.listview = kwargs['listview']
+        self.title.screen = self.content.screen = kwargs['screen']
 
     def on_comments(self, value):
         value = value.lstrip()
@@ -111,73 +171,22 @@ class NoteItem(AccordionListItem):
             Clock.schedule_once(_l, 0.25)
 
 class ListScreenItem(NoteItem):
-    drop_zones = ListProperty(None)
-
-class ActionListItem(NoteItem):
-    drop_zones = ListProperty(None)
-
-class ArchiveScreenItem(NoteItem):
-    pass
-
-class QuickViewScreenItemTitle(Completable, Deletable):
-    state = OptionProperty('normal', options=('complete', 'delete', 'normal'))
-
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            if self.state <> 'normal':
-                self.state = 'normal'
-                return True
-
-        else:
-            return super(QuickViewScreenItemTitle, self).on_touch_down(touch)
-
-class QuickViewScreenItem(BoxLayout):
-    ix = NumericProperty(None)
-    text = StringProperty('')
-    when = StringProperty('')
-    why = BooleanProperty(False)
-    how = StringProperty('')
-    markup = BooleanProperty(False)
-    screen = ObjectProperty(None)
-
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            return False
-        else:
-            return super(QuickViewScreenItem, self).on_touch_down(touch)
-
-class Week(AccordionListItem):
-    text = StringProperty('')
-    screen = ObjectProperty(None)
-    content_height_hint = NumericProperty(0.0)
-
-class ContentMajor(FloatLayout):
-    state_color = ListProperty([])
-    text_color = ListProperty([])
-    screen = ObjectProperty(None)
-    when = StringProperty('')
-    why = BooleanProperty(False)
-    how = StringProperty('')
 
     def __init__(self, **kwargs):
-        self.register_event_type('on_comments')
-        self.register_event_type('on_importance')
-        super(ContentMajor, self).__init__(**kwargs)
+        super(ListScreenItem, self).__init__(**kwargs)
+        self.title.drop_zones = kwargs['drop_zones']
 
-    def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            return super(ContentMajor, self).on_touch_down(touch)
-        else:
-            return False
+class ActionListItem(NoteItem):
 
-    def on_importance(self, *args):
-        pass
+    def __init__(self, **kwargs):
+        super(ActionListItem, self).__init__(**kwargs)
+        self.title.drop_zones = kwargs['drop_zones']
 
-    def on_comments(self, *args):
-        pass
-
-class ContentMinor(ContentMajor):
-    pass
+class Week(AccordionListItem):
+    screen = None
+    listview = None
+    text = StringProperty('')
+    content_height_hint = NumericProperty(0.0)
 
 Builder.load_string("""
 #:import EditButton uiux.EditButton
@@ -198,7 +207,9 @@ Builder.load_string("""
             points: self.x, self.y, self.right, self.y
             width: 1.0
 
-<-ActionListItemTitle>:
+<ListItemTitle@NoteItemTitle>:
+
+<-ActionListItemTitle@NoteItemTitle>:
     label: label_id
     layout: layout_id
     font_size: self.width*0.062
@@ -235,7 +246,7 @@ Builder.load_string("""
             disabled_color: self.color
             text_size: (self.size[0]-(0.1*self.size[0]), None) if root.aleft else (None, None)
 
-<ContentMajor>:
+<ContentMajor@NoteContent>:
     canvas.before:
         Color:
             rgba: self.state_color
@@ -282,7 +293,7 @@ Builder.load_string("""
         text_color: root.text_color
         screen: root.screen
 
-<-ContentMinor>:
+<-ContentMinor@NoteContent>:
     canvas.before:
         Color:
             rgba: self.state_color
@@ -347,13 +358,12 @@ Builder.load_string("""
     text_color: app.dark_blue if (self.collapse_alpha==0.0 or title_id.state=='down') else (app.blue if title_id.state=='dragged' else app.dark_gray)
     state_color: app.no_color if title_id.state=='dragged' else app.smoke_white
 
-    NoteItemTitle:
+    ListScreenItemTitle:
         id: title_id
         text: root.text
         shorten: True
         size_hint: 1, None
         pos_hint: {'x': 0, 'top': 1}
-        screen: root.screen
         font_size: self.width*0.07
         drop_zones: root.drop_zones
         text_color: root.text_color
@@ -367,7 +377,6 @@ Builder.load_string("""
         top: title_id.y
         pos_hint: {'x': 0}
         size_hint: 1, None
-        screen: root.screen
         text_color: root.text_color
         state_color: root.state_color
         height: root.screen.height*root.content_height_hint
@@ -386,7 +395,6 @@ Builder.load_string("""
         text: root.text
         size_hint: 1, None
         pos_hint: {'x': 0, 'top': 1}
-        screen: root.screen
         drop_zones: root.drop_zones
         text_color: root.text_color
         state_color: root.state_color
@@ -399,26 +407,24 @@ Builder.load_string("""
         top: title_id.y
         pos_hint: {'x': 0}
         size_hint: 1, None
-        screen: root.screen
         text_color: root.text_color
         state_color: root.state_color
         height: root.screen.height*root.content_height_hint
         on_comments: root.dispatch('on_comments', args[-1])
         on_importance: root.dispatch('on_importance', *args[1:])
 
-<ArchiveScreenItem>:
+<ArchiveScreenItem@NoteItem>:
     title: title_id
     content: content_id
     size_hint: 1, None
-    state_color: app.no_color if title_id.state in ('down', 'dragged') else app.white
     text_color: app.dark_blue
+    state_color: app.no_color if title_id.state in ('down', 'dragged') else app.white
 
     ArchiveScreenItemTitle:
         id: title_id
         text: root.text
         size_hint: 1, None
         pos_hint: {'x': 0, 'top': 1}
-        screen: root.screen
         font_size: (self.height*0.3)
         text_color: root.text_color
         state_color: root.state_color
@@ -432,7 +438,6 @@ Builder.load_string("""
         top: title_id.y
         pos_hint: {'x': 0}
         size_hint: 1, None
-        screen: root.screen
         text_color: root.text_color
         state_color: root.state_color
         height: root.screen.height*root.content_height_hint
@@ -478,6 +483,7 @@ Builder.load_string("""
     disabled_color: self.color
 
 <QuickViewScreenItem>:
+    title: title_id
     orientation: 'vertical'
     padding: 10
     spacing: 5
@@ -487,7 +493,6 @@ Builder.load_string("""
     QuickViewScreenItemTitle:
         id: title_id
         text: root.text
-        screen: root.screen
         size_hint: 1, .4
         aleft: True
         markup: root.markup
