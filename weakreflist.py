@@ -12,7 +12,8 @@ class WeakList(list):
     def _get_ref(self, x):
         return ref(x, self._remove)
 
-    def __init__(self, items=[]):
+    def __init__(self, items=None):
+        items = items or []
         super(WeakList, self).__init__((self._get_ref(x) for x in items))
 
     def __contains__(self, item):
