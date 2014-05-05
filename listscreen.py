@@ -4,7 +4,7 @@ Created on Jul 27, 2013
 @author: Divine
 '''
 from kivy.properties import ObjectProperty, ListProperty, StringProperty, NumericProperty
-from listitems import ActionListItem, ListScreenItem
+from listitems import ActionListItem, ListScreenItem, ListScreenItemTitle, ActionListItemTitle
 from kivy.uix.screenmanager import RiseInTransition
 from kivy.animation import Animation
 from weakreflist import WeakList
@@ -15,14 +15,14 @@ from weakref import ref
 
 class ListScreen(Screen_):
     action_view = ObjectProperty(None)
-    accordion_view = ObjectProperty(None)
+    list_view = ObjectProperty(None)
     action_items = ListProperty([])
     list_items = ListProperty([])
     page = StringProperty('')
     page_number = NumericProperty(None)
     selection = ObjectProperty(WeakList())
     action_view_item = ObjectProperty(ActionListItem)
-    accordion_view_item = ObjectProperty(ListScreenItem)
+    list_item = ObjectProperty(ListScreenItem)
     
     def __init__(self, **kwargs):
         self.register_event_type('on_what')
@@ -33,6 +33,18 @@ class ListScreen(Screen_):
         self.register_event_type('on_due_date')
         self.register_event_type('on_importance')
         super(ListScreen, self).__init__(**kwargs)
+        
+    def on_list_view(self, instance, value):
+        if value:
+            ListScreenItemTitle.drop_zones = [value, instance.action_view]
+            instance.list_item.screen = instance.proxy_ref
+            instance.list_item.listview = value
+        
+    def on_action_view(self, instance, value):
+        if value:
+            instance.action_view_item.screen = instance.proxy_ref
+            instance.action_view_item.listview = value
+            ActionListItemTitle.drop_zones = [value,]
 
     def on_pre_enter(self):
         if self.page:
@@ -58,23 +70,18 @@ class ListScreen(Screen_):
             self.list_items, self.action_items = list_items, action_items
 
     def _args_converter(self, row_index, an_obj):
-        _dict = {'drop_zones': [self.action_view,],
-                 'screen': self.proxy_ref}
+        _dict = {}
         _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
         _dict['why'] = bool(_dict['why'])
 
         if _dict['ix'] < 4:
             _dict['content_height_hint'] = (322./1136.)
-            _dict['aleft'] = True
 
             if not _dict['text']:
                 _dict['text'] = 'Drag a Task here.'
                 _dict['disabled'] = True
         else:
             _dict['content_height_hint'] = (190./1136.)
-            _dict['drop_zones'].append(self.accordion_view)
-            #_dict['listview'] = self.accordion_view.proxy_ref
-            _dict['aleft'] = True
 
         return _dict
 
@@ -201,8 +208,8 @@ Builder.load_string("""
 
 <ListScreen>:
     name: 'List Screen'
+    list_view: list_view_id
     action_view: action_view_id
-    accordion_view: accordion_view_id
 
     NavBar:
         id: navbar_id
@@ -241,7 +248,7 @@ Builder.load_string("""
         args_converter: root._args_converter
         data: root.action_items
     AccordionListView:
-        id: accordion_view_id
+        id: list_view_id
         size_hint: 1, 0.4
         top: action_view_id.y
         height_hint: 0.088
