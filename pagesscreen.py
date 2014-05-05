@@ -38,6 +38,11 @@ class PagesScreen(Screen_):
         self.register_event_type('on_selected_page')
         self.register_event_type('on_root_directory')
         super(PagesScreen, self).__init__(**kwargs)
+        
+    def on_list_view(self, instance, value):
+        if value:
+            instance.list_item.listview = value
+            instance.list_item.screen = instance.proxy_ref
 
     def on_enter(self):
         if self.root_directory:
@@ -48,11 +53,10 @@ class PagesScreen(Screen_):
                            """)
 
     def _args_converter(self, row_index, an_obj):
-        dict = {'page_number': an_obj[0],
-                'text': an_obj[1],
-                'size_hint_y': None,
-                'screen': self.proxy_ref}
-        return dict
+        _dict = {'page_number': an_obj[0],
+                 'text': an_obj[1],
+                 'size_hint_y': None}
+        return _dict
 
     def on_root_directory(self, *args):
         cursor = self.root_directory.cursor()
