@@ -50,7 +50,7 @@ class QuickViewScreenItem(BoxLayout):
     
     def __init__(self, **kwargs):
         super(QuickViewScreenItem, self).__init__(**kwargs)
-        self.title.screen = kwargs['screen']
+        QuickViewScreenItemTitle.screen = self.screen
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
