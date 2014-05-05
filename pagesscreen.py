@@ -29,7 +29,7 @@ class ConfigPanel(Widget):
 class PagesScreen(Screen_):
     pages = ListProperty([])
     list_view = ObjectProperty(None)
-    list_item = ObjectProperty(PagesScreenItem)
+    _item = ObjectProperty(PagesScreenItem)
 
     def __init__(self, **kwargs):
         self.register_event_type('on_what')
@@ -38,11 +38,6 @@ class PagesScreen(Screen_):
         self.register_event_type('on_selected_page')
         self.register_event_type('on_root_directory')
         super(PagesScreen, self).__init__(**kwargs)
-        
-    def on_list_view(self, instance, value):
-        if value:
-            instance.list_item.listview = value
-            instance.list_item.screen = instance.proxy_ref
 
     def on_enter(self):
         if self.root_directory:
@@ -185,7 +180,7 @@ Builder.load_string("""
         id: list_view_id
         data: root.pages
         selection_mode: 'None'
-        list_item: root.list_item
+        list_item: root._item
         args_converter: root._args_converter
         size_hint: 1, .8
         pos_hint: {'top': 0.8873}
