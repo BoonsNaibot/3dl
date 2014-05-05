@@ -14,15 +14,14 @@ from uiux import Screen_
 from weakref import ref
 
 class ListScreen(Screen_):
+    action_view_item = ObjectProperty(ActionListItem)
+    _item = ObjectProperty(ListScreenItem)
     action_view = ObjectProperty(None)
-    list_view = ObjectProperty(None)
     action_items = ListProperty([])
     list_items = ListProperty([])
     page = StringProperty('')
     page_number = NumericProperty(None)
     selection = ObjectProperty(WeakList())
-    action_view_item = ObjectProperty(ActionListItem)
-    list_item = ObjectProperty(ListScreenItem)
     
     def __init__(self, **kwargs):
         self.register_event_type('on_what')
@@ -36,9 +35,8 @@ class ListScreen(Screen_):
         
     def on_list_view(self, instance, value):
         if value:
+            super(ListScreen, self).on_list_view(instance, value)
             ListScreenItemTitle.drop_zones = [value, instance.action_view]
-            instance.list_item.screen = instance.proxy_ref
-            instance.list_item.listview = value
         
     def on_action_view(self, instance, value):
         if value:
@@ -252,7 +250,7 @@ Builder.load_string("""
         size_hint: 1, 0.4
         top: action_view_id.y
         height_hint: 0.088
-        list_item: root.accordion_view_item
+        list_item: root._item
         args_converter: root._args_converter
         data: root.list_items
     NewItemWidget:
