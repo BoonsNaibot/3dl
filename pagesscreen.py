@@ -20,9 +20,10 @@ class ConfigPanel(Widget):
             return super(ConfigPanel, self).on_touch_down(touch)
         else:
             widget = self.parent
-            widget._anim = Animation(x=0, y=0, duration=0.2)
-            widget._anim.bind(on_complete=lambda *_: widget.remove_widget(self))
-            widget._anim.start(widget)
+            _anim = Animation(x=0, y=0, duration=0.2)
+            _anim.bind(on_complete=lambda *_: widget.remove_widget(self))
+            widget._anim = ref(_anim)
+            _anim.start(widget)
             widget.polestar = lambda : None
             return True
 
