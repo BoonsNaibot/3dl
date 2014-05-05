@@ -731,7 +731,6 @@ class DoubleClickButton(DoubleClickable):
 class AccordionListItem(Selectable, StencilLayout):
     title = ObjectProperty(None)
     content = ObjectProperty(None)
-    listview = ObjectProperty(None)
     shadow_color = ListProperty([])
     state_color = ListProperty([])
     text_color = ListProperty([])
