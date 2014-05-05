@@ -161,6 +161,7 @@ class ActionListItemTitle(NoteItemTitle):
 class ArchiveScreenItemTitle(Deletable, Clickable):
     screen = None
     listview = None
+    aleft = BooleanProperty(True)
     state = OptionProperty('normal', options=('delete', 'down', 'normal'))
 
     def on_touch_down(self, touch):
