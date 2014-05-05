@@ -58,20 +58,6 @@ class QuickViewScreenItem(BoxLayout):
         else:
             return super(QuickViewScreenItem, self).on_touch_down(touch)
 
-class ArchiveScreenItemTitle(Deletable, Clickable):
-    screen = None
-    listview = None
-    state = OptionProperty('normal', options=('delete', 'down', 'normal'))
-
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            if self.state <> 'normal':
-                self.state = 'normal'
-                return True
-
-        else:
-            return super(ArchiveScreenItemTitle, self).on_touch_down(touch)
-
 class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):
     screen = None
     listview = None
@@ -153,10 +139,6 @@ class NoteItem(AccordionListItem):
         self.register_event_type('on_importance')
         super(NoteItem, self).__init__(**kwargs)
 
-        self.title.aleft = kwargs['aleft']
-        self.title.listview = kwargs['listview']
-        self.title.screen = self.content.screen = kwargs['screen']
-
     def on_comments(self, value):
         value = value.lstrip()
         #instance.focus = False
@@ -169,18 +151,56 @@ class NoteItem(AccordionListItem):
         if self.why <> value:
             _l = lambda *_: self.screen.dispatch('on_importance', self, value)
             Clock.schedule_once(_l, 0.25)
+            
+class ListScreenItemTitle(NoteItemTitle):
+    aleft = BooleanProperty(True)
+
+class ActionListItemTitle(NoteItemTitle):
+    aleft = BooleanProperty(False)
+
+class ArchiveScreenItemTitle(Deletable, Clickable):
+    screen = None
+    listview = None
+    state = OptionProperty('normal', options=('delete', 'down', 'normal'))
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            if self.state <> 'normal':
+                self.state = 'normal'
+                return True
+
+        else:
+            return super(ArchiveScreenItemTitle, self).on_touch_down(touch)
+    
+class ContentMajor(NoteContent):
+    pass
+
+class ContentMinor(NoteContent):
+    pass
+
+class ArchiveContent(ContentMinor):
+    screen = None
 
 class ListScreenItem(NoteItem):
 
     def __init__(self, **kwargs):
         super(ListScreenItem, self).__init__(**kwargs)
-        self.title.drop_zones = kwargs['drop_zones']
+        ListScreenItemTitle.listview = self.listview
+        ListScreenItemTitle.screen = ContentMinor.screen = self.screen
 
 class ActionListItem(NoteItem):
 
     def __init__(self, **kwargs):
         super(ActionListItem, self).__init__(**kwargs)
-        self.title.drop_zones = kwargs['drop_zones']
+        ActionListItemTitle.listview = self.listview
+        ActionListItemTitle.screen = ContentMajor.screen = self.screen
+        
+class ArchiveScreenItem(NoteItem):
+
+    def __init__(self, **kwargs):
+        super(ArchiveScreenItem, self).__init__(**kwargs)
+        ArchiveScreenItemTitle.listview = self.listview
+        ArchiveScreenItemTitle.screen = ArchiveContent.screen = self.content.screen = self.screen
 
 class Week(AccordionListItem):
     screen = None
@@ -207,9 +227,7 @@ Builder.load_string("""
             points: self.x, self.y, self.right, self.y
             width: 1.0
 
-<ListItemTitle@NoteItemTitle>:
-
-<-ActionListItemTitle@NoteItemTitle>:
+<-ActionListItemTitle>:
     label: label_id
     layout: layout_id
     font_size: self.width*0.062
@@ -246,7 +264,7 @@ Builder.load_string("""
             disabled_color: self.color
             text_size: (self.size[0]-(0.1*self.size[0]), None) if root.aleft else (None, None)
 
-<ContentMajor@NoteContent>:
+<ContentMajor>:
     canvas.before:
         Color:
             rgba: self.state_color
@@ -293,7 +311,7 @@ Builder.load_string("""
         text_color: root.text_color
         screen: root.screen
 
-<-ContentMinor@NoteContent>:
+<ContentMinor>:
     canvas.before:
         Color:
             rgba: self.state_color
@@ -413,7 +431,7 @@ Builder.load_string("""
         on_comments: root.dispatch('on_comments', args[-1])
         on_importance: root.dispatch('on_importance', *args[1:])
 
-<ArchiveScreenItem@NoteItem>:
+<ArchiveScreenItem>:
     title: title_id
     content: content_id
     size_hint: 1, None
@@ -429,7 +447,7 @@ Builder.load_string("""
         text_color: root.text_color
         state_color: root.state_color
         on_release: root.listview.handle_selection(root)
-    ContentMinor:
+    ArchiveContent:
         id: content_id
         disabled: True
         why: root.why
