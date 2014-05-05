@@ -82,7 +82,6 @@ class QuickViewScreen(Screen_):
 Builder.load_string("""
 #:import NavBar uiux.NavBar
 #:import QuickListView listviews.QuickListView
-#:import QuickViewScreenItem listitems.QuickViewScreenItem
 
 <QuickViewScreen>:
     name: 'QuickView Screen'
