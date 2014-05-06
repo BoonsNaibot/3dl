@@ -6,9 +6,20 @@ from kivy.utils import escape_markup
 from kivy.lang import Builder
 from kivy.clock import Clock
 
+class EditButton(Editable):
+    
+    def on_touch_down(self, touch):
+        if ((self.collide_point(*touch.pos)) or (self.state == 'edit')):
+            return super(EditButton, self).on_touch_down(touch)
+
+    def on_text_validate(self, instance):
+        if super(EditButton, self).on_text_validate(instance, instance.text):
+            self.parent.dispatch('on_comments', instance.text)
+
 class PagesScreenItem(Clickable, Deletable, Editable):
     screen = None
     listview = None
+    height_hint = (153./1136.)
     page_number = NumericProperty(-1)
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'edit', 'normal'))
 
@@ -58,7 +69,8 @@ class QuickViewScreenItem(BoxLayout):
         else:
             return super(QuickViewScreenItem, self).on_touch_down(touch)
 
-class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):
+class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):    
+    aleft = True
     screen = None
     listview = None
     drop_zones = []
@@ -78,7 +90,6 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
 
     def on_touch_down(self, touch):
         if ((self.collide_point(*touch.pos)) or (self.state == 'edit')):
-            #print type(self.parent)
             return super(NoteItemTitle, self).on_touch_down(touch)
         elif self.state <> 'normal':
             self.state = 'normal'
@@ -151,12 +162,12 @@ class NoteItem(AccordionListItem):
         if self.why <> value:
             _l = lambda *_: self.screen.dispatch('on_importance', self, value)
             Clock.schedule_once(_l, 0.25)
-            
+
 class ListScreenItemTitle(NoteItemTitle):
-    aleft = BooleanProperty(True)
+    height_hint = 0.088
 
 class ActionListItemTitle(NoteItemTitle):
-    aleft = BooleanProperty(False)
+    height_hint = 2.0/15.0
 
 class ArchiveScreenItemTitle(Deletable, Clickable):
     screen = None
@@ -174,13 +185,14 @@ class ArchiveScreenItemTitle(Deletable, Clickable):
             return super(ArchiveScreenItemTitle, self).on_touch_down(touch)
     
 class ContentMajor(NoteContent):
-    pass
+    height_hint = (322./1136.)
 
 class ContentMinor(NoteContent):
-    pass
+    height_hint = (190./1136.)
 
 class ArchiveContent(ContentMinor):
     screen = None
+    height_hint = (322./1136.)
 
 class ListScreenItem(NoteItem):
 
@@ -207,18 +219,34 @@ class Week(AccordionListItem):
     screen = None
     listview = None
     text = StringProperty('')
-    content_height_hint = NumericProperty(0.0)
+    height_hint = NumericProperty(0.0)
 
 Builder.load_string("""
-#:import EditButton uiux.EditButton
 #:import DoubleClickButton uiux.DoubleClickButton
+
+<-EditButton>:
+    label: label_id
+
+    Label:
+        id: label_id
+        pos: root.pos
+        text: root.text
+        size: root.size
+        font_size: root.font_size
+        font_name: root.font_name
+        shorten: root.shorten
+        color: root.text_color
+        disabled_color: self.color
+        markup: root.markup
+        text_size: self.size
+        valign: 'top'
 
 <PagesScreenItem>:
     aleft: True
     shorten: True
     font_size: self.width*0.07
     #height: self.screen.height*0.088
-    height: self.screen.height*(153./1136.)
+    height: self.screen.height*self.height_hint
     state_color: app.no_color if self.state == 'down' else app.white
     on_release: self.screen.dispatch('on_selected_page', args[0].text, args[0].page_number)
     canvas.after:
@@ -310,7 +338,6 @@ Builder.load_string("""
         #font_size: self.width*0.053
         font_size: self.width*0.07
         text_color: root.text_color
-        screen: root.screen
 
 <ContentMinor>:
     canvas.before:
@@ -360,7 +387,6 @@ Builder.load_string("""
         font_name: 'Walkway Bold.ttf'
         font_size: root.width*0.05
         text_color: root.text_color
-        screen: root.screen
 
 <NoteItem>:
     canvas.after:
@@ -384,9 +410,9 @@ Builder.load_string("""
         size_hint: 1, None
         pos_hint: {'x': 0, 'top': 1}
         font_size: self.width*0.07
-        drop_zones: root.drop_zones
         text_color: root.text_color
         state_color: root.state_color
+        height: self.height_hint*root.screen.height
         on_release: root.listview.handle_selection(root)
     ContentMinor:
         id: content_id
@@ -398,7 +424,7 @@ Builder.load_string("""
         size_hint: 1, None
         text_color: root.text_color
         state_color: root.state_color
-        height: root.screen.height*root.content_height_hint
+        height: root.screen.height*self.height_hint
         on_comments: root.dispatch('on_comments', args[-1])
         on_importance: root.dispatch('on_importance', *args[1:])
 
@@ -414,9 +440,9 @@ Builder.load_string("""
         text: root.text
         size_hint: 1, None
         pos_hint: {'x': 0, 'top': 1}
-        drop_zones: root.drop_zones
         text_color: root.text_color
         state_color: root.state_color
+        height: self.height_hint*root.screen.height
         on_release: root.listview.handle_selection(root)
     ContentMajor:
         id: content_id
@@ -428,7 +454,7 @@ Builder.load_string("""
         size_hint: 1, None
         text_color: root.text_color
         state_color: root.state_color
-        height: root.screen.height*root.content_height_hint
+        height: root.screen.height*self.height_hint
         on_comments: root.dispatch('on_comments', args[-1])
         on_importance: root.dispatch('on_importance', *args[1:])
 
@@ -459,7 +485,7 @@ Builder.load_string("""
         size_hint: 1, None
         text_color: root.text_color
         state_color: root.state_color
-        height: root.screen.height*root.content_height_hint
+        height: root.screen.height*self.height_hint
 
 <-QuickViewScreenItemTitle>:
     label: label_id
