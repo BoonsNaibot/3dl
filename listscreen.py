@@ -14,10 +14,10 @@ from uiux import Screen_
 from weakref import ref
             
 class ListScreenItemTitle(NoteItemTitle):
-    pass
+    height_hint = 0.088
     
 class ActionListItemTitle(NoteItemTitle):
-    pass
+    height_hint = (2.0/15.0)
     
 class ContentMajor(NoteContent):
     height_hint = (322./1136.)
@@ -93,14 +93,10 @@ class ListScreen(Screen_):
         _dict['why'] = bool(_dict['why'])
 
         if _dict['ix'] < 4:
-            _dict['content_height_hint'] = (322./1136.)
 
             if not _dict['text']:
                 _dict['text'] = 'Drag a Task here.'
                 _dict['disabled'] = True
-
-        else:
-            _dict['content_height_hint'] = (190./1136.)
 
         return _dict
 
@@ -454,7 +450,6 @@ Builder.load_string("""
 
     ActionListView:
         id: action_view_id
-        height_hint: 2.0/15.0
         pos_hint: {'x': 0, 'top': 0.8873}
         height: 0.4*root.height
         #top: navbar_id.y
@@ -465,7 +460,6 @@ Builder.load_string("""
         id: list_view_id
         size_hint: 1, 0.4
         top: action_view_id.y
-        height_hint: 0.088
         list_item: root._item
         args_converter: root._args_converter
         data: root.list_items
