@@ -13,6 +13,7 @@ class ArchiveScreenItemTitle(Deletable, Clickable):
     aleft = True
     screen = None
     listview = None
+    height_hint = (2.0/15.0)
     state = OptionProperty('normal', options=('delete', 'down', 'normal'))
 
     def on_touch_down(self, touch):
@@ -179,7 +180,6 @@ Builder.load_string("""
     AccordionListView:
         id: list_view_id
         list_item: root._item
-        height_hint': (153.0/1136.0)
         args_converter: root._args_converter
         data: root.list_items
         size_hint: 1, 0.886
