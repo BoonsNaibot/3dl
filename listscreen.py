@@ -4,7 +4,7 @@ Created on Jul 27, 2013
 @author: Divine
 '''
 from kivy.properties import ObjectProperty, ListProperty, StringProperty, NumericProperty
-from listitems import ActionListItem, ListScreenItem, ListScreenItemTitle, ActionListItemTitle
+from listitems import ActionListItem, ListScreenItem, ListScreenItemTitle, ActionListItemTitle, EditButton
 from kivy.uix.screenmanager import RiseInTransition
 from kivy.animation import Animation
 from weakreflist import WeakList
@@ -21,7 +21,7 @@ class ListScreen(Screen_):
     list_items = ListProperty([])
     page = StringProperty('')
     page_number = NumericProperty(None)
-    selection = ObjectProperty(WeakList())
+    selection = ListProperty([])
     
     def __init__(self, **kwargs):
         self.register_event_type('on_what')
@@ -37,6 +37,7 @@ class ListScreen(Screen_):
         if value:
             super(ListScreen, self).on_list_view(instance, value)
             ListScreenItemTitle.drop_zones = [value, instance.action_view]
+            EditButton.screen = self.proxy_ref
         
     def on_action_view(self, instance, value):
         if value:
@@ -73,13 +74,10 @@ class ListScreen(Screen_):
         _dict['why'] = bool(_dict['why'])
 
         if _dict['ix'] < 4:
-            _dict['content_height_hint'] = (322./1136.)
 
             if not _dict['text']:
                 _dict['text'] = 'Drag a Task here.'
                 _dict['disabled'] = True
-        else:
-            _dict['content_height_hint'] = (190./1136.)
 
         return _dict
 
@@ -88,11 +86,11 @@ class ListScreen(Screen_):
 
         if text:
             #Mimic `ListAdapter.create_view`
-            listview = self.accordion_view.proxy_ref
+            listview = self.list_view.proxy_ref
             data = (9e9, text, u"", 0, u"")
             index = len(self.list_items)
             item_args = self._args_converter(index, data)
-            item_args.update({'index': index, 'listview': listview})
+            item_args.update({'index': index})#, 'listview': listview})
             new_item = listview.cached_views[index] = self.accordion_view_item(**item_args)
             new_item.bind(on_release=listview.handle_selection)
             listview.container.add_widget(new_item)
@@ -238,7 +236,6 @@ Builder.load_string("""
 
     ActionListView:
         id: action_view_id
-        height_hint: 2.0/15.0
         pos_hint: {'x': 0, 'top': 0.8873}
         height: 0.4*root.height
         #top: navbar_id.y
@@ -249,7 +246,6 @@ Builder.load_string("""
         id: list_view_id
         size_hint: 1, 0.4
         top: action_view_id.y
-        height_hint: 0.088
         list_item: root._item
         args_converter: root._args_converter
         data: root.list_items
