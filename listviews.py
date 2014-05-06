@@ -3,7 +3,8 @@ from kivy.clock import Clock
 from kivy.lang import Builder
 from datetimewidgets import Day
 from weakreflist import WeakList
-from parents import Widget, Layout
+from kivy.uix.widget import Widget
+from kivy.uix.layout import Layout
 from adapters import ListViewAdapter
 from datetime import date, timedelta
 from weakref import WeakKeyDictionary
