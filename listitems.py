@@ -191,25 +191,13 @@ class ArchiveContent(ContentMinor):
     height_hint = (322./1136.)
 
 class ListScreenItem(NoteItem):
-
-    def __init__(self, **kwargs):
-        super(ListScreenItem, self).__init__(**kwargs)
-        ListScreenItemTitle.listview = self.listview
-        ListScreenItemTitle.screen = ContentMinor.screen = self.screen
+    pass
 
 class ActionListItem(NoteItem):
-
-    def __init__(self, **kwargs):
-        super(ActionListItem, self).__init__(**kwargs)
-        ActionListItemTitle.listview = self.listview
-        ActionListItemTitle.screen = ContentMajor.screen = self.screen
+    pass
         
 class ArchiveScreenItem(NoteItem):
-
-    def __init__(self, **kwargs):
-        super(ArchiveScreenItem, self).__init__(**kwargs)
-        ArchiveScreenItemTitle.listview = self.listview
-        ArchiveScreenItemTitle.screen = ArchiveContent.screen = self.content.screen = self.screen
+    pass
 
 class Week(AccordionListItem):
     screen = None
