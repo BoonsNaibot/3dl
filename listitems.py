@@ -69,39 +69,6 @@ class QuickViewScreenItem(BoxLayout):
         else:
             return super(QuickViewScreenItem, self).on_touch_down(touch)
 
-class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):    
-    aleft = True
-
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            if self.state <> 'normal':
-                self.state = 'normal'
-                return True
-
-        else:
-            return super(QuickViewScreenItemTitle, self).on_touch_down(touch)
-
-class QuickViewScreenItem(BoxLayout):
-    screen = None
-    listview = None
-    how = StringProperty('')
-    text = StringProperty('')
-    when = StringProperty('')
-    ix = NumericProperty(None)
-    title = ObjectProperty(None)
-    why = BooleanProperty(False)
-    markup = BooleanProperty(False)
-    
-    def __init__(self, **kwargs):
-        super(QuickViewScreenItem, self).__init__(**kwargs)
-        QuickViewScreenItemTitle.screen = self.screen
-
-    def on_touch_down(self, touch):
-        if not self.collide_point(*touch.pos):
-            return False
-        else:
-            return super(QuickViewScreenItem, self).on_touch_down(touch)
-
 class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):
     screen = None
     listview = None
@@ -194,12 +161,9 @@ class NoteItem(AccordionListItem):
         if self.why <> value:
             _l = lambda *_: self.screen.dispatch('on_importance', self, value)
             Clock.schedule_once(_l, 0.25)
-
+            
 class ListScreenItemTitle(NoteItemTitle):
-    height_hint = 0.088
-
-class ActionListItemTitle(NoteItemTitle):
-    height_hint = 2.0/15.0
+    aleft = BooleanProperty(True)
 
 class ArchiveScreenItemTitle(Deletable, Clickable):
     screen = None
@@ -219,12 +183,12 @@ class ArchiveScreenItemTitle(Deletable, Clickable):
 class ContentMajor(NoteContent):
     height_hint = (322./1136.)
 
+class ContentMinor(NoteContent):
+    height_hint = (190./1136.)
+
 class ArchiveContent(ContentMinor):
     screen = None
     height_hint = (322./1136.)
-
-class ContentMinor(NoteContent):
-    height_hint = (190./1136.)
 
 class ListScreenItem(NoteItem):
 
@@ -251,8 +215,6 @@ class Week(AccordionListItem):
     screen = None
     listview = None
     text = StringProperty('')
-    height_hint = NumericProperty(0.0)
-    content_height_hint = NumericProperty(0.0)
 
 Builder.load_string("""
 #:import DoubleClickButton uiux.DoubleClickButton
