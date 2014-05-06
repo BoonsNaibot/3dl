@@ -28,7 +28,7 @@ class ArchiveScreen(Screen_):
             self.list_items = cursor.fetchall()
 
     def _args_converter(self, row_index, an_obj):
-        _dict = {'content_height_hint': (322./1136.)}
+        _dict = {}
         _dict['ix'], _dict['text'], _dict['when'], _dict['why'], _dict['how'] = an_obj
         _dict['why'] = bool(_dict['why'])
         return _dict

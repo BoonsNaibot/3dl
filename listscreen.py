@@ -4,7 +4,15 @@ Created on Jul 27, 2013
 @author: Divine
 '''
 from kivy.properties import ObjectProperty, ListProperty, StringProperty, NumericProperty
+<<<<<<< HEAD
+<<<<<<< HEAD
 from listitems import ActionListItem, ListScreenItem, ListScreenItemTitle, ActionListItemTitle, EditButton
+=======
+from listitems import ActionListItem, ListScreenItem, ListScreenItemTitle, ActionListItemTitle
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+from listitems import ActionListItem, ListScreenItem, ListScreenItemTitle, ActionListItemTitle
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
 from kivy.uix.screenmanager import RiseInTransition
 from kivy.animation import Animation
 from weakreflist import WeakList
@@ -21,7 +29,14 @@ class ListScreen(Screen_):
     list_items = ListProperty([])
     page = StringProperty('')
     page_number = NumericProperty(None)
+<<<<<<< HEAD
     selection = ListProperty([])
+=======
+    selection = ObjectProperty(WeakList())
+<<<<<<< HEAD
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
     
     def __init__(self, **kwargs):
         self.register_event_type('on_what')
@@ -37,7 +52,13 @@ class ListScreen(Screen_):
         if value:
             super(ListScreen, self).on_list_view(instance, value)
             ListScreenItemTitle.drop_zones = [value, instance.action_view]
+<<<<<<< HEAD
+<<<<<<< HEAD
             EditButton.screen = self.proxy_ref
+=======
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
         
     def on_action_view(self, instance, value):
         if value:
@@ -74,10 +95,26 @@ class ListScreen(Screen_):
         _dict['why'] = bool(_dict['why'])
 
         if _dict['ix'] < 4:
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+            _dict['content_height_hint'] = (322./1136.)
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+            _dict['content_height_hint'] = (322./1136.)
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
 
             if not _dict['text']:
                 _dict['text'] = 'Drag a Task here.'
                 _dict['disabled'] = True
+<<<<<<< HEAD
+=======
+        else:
+            _dict['content_height_hint'] = (190./1136.)
+<<<<<<< HEAD
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
 
         return _dict
 
@@ -236,6 +273,14 @@ Builder.load_string("""
 
     ActionListView:
         id: action_view_id
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        height_hint: 2.0/15.0
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+        height_hint: 2.0/15.0
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
         pos_hint: {'x': 0, 'top': 0.8873}
         height: 0.4*root.height
         #top: navbar_id.y
@@ -246,6 +291,14 @@ Builder.load_string("""
         id: list_view_id
         size_hint: 1, 0.4
         top: action_view_id.y
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+        height_hint: 0.088
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+        height_hint: 0.088
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
         list_item: root._item
         args_converter: root._args_converter
         data: root.list_items

@@ -19,7 +19,13 @@ class EditButton(Editable):
 class PagesScreenItem(Clickable, Deletable, Editable):
     screen = None
     listview = None
+<<<<<<< HEAD
+<<<<<<< HEAD
     height_hint = (153./1136.)
+=======
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
     page_number = NumericProperty(-1)
     state = OptionProperty('normal', options=('complete', 'delete', 'down', 'edit', 'normal'))
 
@@ -38,6 +44,8 @@ class PagesScreenItem(Clickable, Deletable, Editable):
 class QuickViewScreenItemTitle(Completable, Deletable):
     screen = None
     state = OptionProperty('normal', options=('complete', 'delete', 'normal'))
+<<<<<<< HEAD
+<<<<<<< HEAD
 
     def on_touch_down(self, touch):
         if not self.collide_point(*touch.pos):
@@ -71,6 +79,45 @@ class QuickViewScreenItem(BoxLayout):
 
 class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):    
     aleft = True
+=======
+=======
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            if self.state <> 'normal':
+                self.state = 'normal'
+                return True
+
+        else:
+            return super(QuickViewScreenItemTitle, self).on_touch_down(touch)
+
+class QuickViewScreenItem(BoxLayout):
+    screen = None
+    listview = None
+    how = StringProperty('')
+    text = StringProperty('')
+    when = StringProperty('')
+    ix = NumericProperty(None)
+    title = ObjectProperty(None)
+    why = BooleanProperty(False)
+    markup = BooleanProperty(False)
+    
+    def __init__(self, **kwargs):
+        super(QuickViewScreenItem, self).__init__(**kwargs)
+        QuickViewScreenItemTitle.screen = self.screen
+
+    def on_touch_down(self, touch):
+        if not self.collide_point(*touch.pos):
+            return False
+        else:
+            return super(QuickViewScreenItem, self).on_touch_down(touch)
+
+class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):
+<<<<<<< HEAD
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
     screen = None
     listview = None
     drop_zones = []
@@ -162,12 +209,25 @@ class NoteItem(AccordionListItem):
         if self.why <> value:
             _l = lambda *_: self.screen.dispatch('on_importance', self, value)
             Clock.schedule_once(_l, 0.25)
+            
+class ListScreenItemTitle(NoteItemTitle):
+    aleft = BooleanProperty(True)
 
+<<<<<<< HEAD
+<<<<<<< HEAD
 class ListScreenItemTitle(NoteItemTitle):
     height_hint = 0.088
 
 class ActionListItemTitle(NoteItemTitle):
     height_hint = 2.0/15.0
+=======
+class ActionListItemTitle(NoteItemTitle):
+    aleft = BooleanProperty(False)
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+class ActionListItemTitle(NoteItemTitle):
+    aleft = BooleanProperty(False)
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
 
 class ArchiveScreenItemTitle(Deletable, Clickable):
     screen = None
@@ -185,6 +245,8 @@ class ArchiveScreenItemTitle(Deletable, Clickable):
             return super(ArchiveScreenItemTitle, self).on_touch_down(touch)
     
 class ContentMajor(NoteContent):
+<<<<<<< HEAD
+<<<<<<< HEAD
     height_hint = (322./1136.)
 
 class ContentMinor(NoteContent):
@@ -193,7 +255,26 @@ class ContentMinor(NoteContent):
 class ArchiveContent(ContentMinor):
     screen = None
     height_hint = (322./1136.)
+=======
+    pass
 
+class ContentMinor(NoteContent):
+    pass
+
+class ArchiveContent(ContentMinor):
+    screen = None
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+
+=======
+    pass
+
+class ContentMinor(NoteContent):
+    pass
+
+class ArchiveContent(ContentMinor):
+    screen = None
+
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
 class ListScreenItem(NoteItem):
 
     def __init__(self, **kwargs):
@@ -219,7 +300,15 @@ class Week(AccordionListItem):
     screen = None
     listview = None
     text = StringProperty('')
+<<<<<<< HEAD
+<<<<<<< HEAD
     height_hint = NumericProperty(0.0)
+=======
+    content_height_hint = NumericProperty(0.0)
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+    content_height_hint = NumericProperty(0.0)
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
 
 Builder.load_string("""
 #:import DoubleClickButton uiux.DoubleClickButton
@@ -440,6 +529,13 @@ Builder.load_string("""
         text: root.text
         size_hint: 1, None
         pos_hint: {'x': 0, 'top': 1}
+<<<<<<< HEAD
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+        drop_zones: root.drop_zones
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
         text_color: root.text_color
         state_color: root.state_color
         height: self.height_hint*root.screen.height

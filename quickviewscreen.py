@@ -81,7 +81,14 @@ class QuickViewScreen(Screen_):
 
 Builder.load_string("""
 #:import NavBar uiux.NavBar
+<<<<<<< HEAD
 #:import QuickListView listviews
+=======
+#:import QuickListView listviews.QuickListView
+<<<<<<< HEAD
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
 
 <QuickViewScreen>:
     name: 'QuickView Screen'

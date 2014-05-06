@@ -63,7 +63,15 @@ class StencilLayout(FloatLayout):
     pass
 
 class Screen_(Screen):
+<<<<<<< HEAD
+<<<<<<< HEAD
     _anim = lambda *_: None
+=======
+    _anim = lambda : None
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+    _anim = lambda : None
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
     _item = ObjectProperty(None)
     list_view = ObjectProperty(None)
     root_directory = ObjectProperty(None)
@@ -272,9 +280,21 @@ class DelayedClickable(Clickable):
 
 class Deletable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'delete'))
+<<<<<<< HEAD
+<<<<<<< HEAD
     delete_button = lambda *_: None
     screen = ObjectProperty(None)
     _anim = lambda *_: None
+=======
+    delete_button = lambda : None
+    screen = ObjectProperty(None)
+    _anim = lambda : None
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+    delete_button = lambda : None
+    screen = ObjectProperty(None)
+    _anim = lambda : None
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
 
     def __init__(self, **kwargs):
         self.register_event_type('on_delete_out')
@@ -368,9 +388,21 @@ class Deletable(ButtonRoot):
         _anim.start(layout)
 
 class Completable(ButtonRoot):
+<<<<<<< HEAD
+<<<<<<< HEAD
     _anim = lambda *_: None
     screen = ObjectProperty(None)
     complete_button = lambda *_: None
+=======
+    _anim = lambda : None
+    screen = ObjectProperty(None)
+    complete_button = lambda : None
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+    _anim = lambda : None
+    screen = ObjectProperty(None)
+    complete_button = lambda : None
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
     state = OptionProperty('normal', options=('normal', 'complete'))
 
     def __init__(self, **kwargs):
@@ -467,7 +499,15 @@ class Editable(ButtonRoot):
     _switch = BooleanProperty(False)
     max_chars = NumericProperty(31)
     screen = ObjectProperty(None)
+<<<<<<< HEAD
+<<<<<<< HEAD
     textinput = lambda *_: None
+=======
+    textinput = lambda : None
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+    textinput = lambda : None
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
 
     def __init__(self, **kwargs):
         self.register_event_type('on_text_validate')
@@ -726,7 +766,15 @@ class DoubleClickButton(DoubleClickable):
             return super(DoubleClickButton, self).on_touch_down(touch)
 
 class AccordionListItem(Selectable, StencilLayout):
+<<<<<<< HEAD
+<<<<<<< HEAD
     _anim = lambda *_: None
+=======
+    _anim = lambda : None
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
+=======
+    _anim = lambda : None
+>>>>>>> 2514c443e297d42a49b7038a59440e76898113a4
     title = ObjectProperty(None)
     content = ObjectProperty(None)
     shadow_color = ListProperty([])

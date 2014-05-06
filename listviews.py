@@ -21,6 +21,7 @@ class Placeholder(Widget):
 class ListContainerLayout(Layout):
     spacing = NumericProperty(0)
     padding = NumericProperty(0)
+    height_hint = NumericProperty(0)
     children = ListProperty(WeakList())
 
     def __init__(self, **kwargs):
@@ -38,10 +39,12 @@ class ListContainerLayout(Layout):
             x, y = kwargs.get('pos', self.pos)
             spacing = self.spacing
             place = (y + h) - self.padding
+            child_height = self.parent.parent.height * self.height_hint
 
             for c in reversed(self.children):
                 c.width = w
                 c.x = x
+                c.height = child_height
                 c.top = place
                 place -= (c.height + spacing)
 
@@ -70,6 +73,7 @@ class DNDListView(Widget, ListViewAdapter):
     _wend = NumericProperty(None, allownone=True)
     _i_offset = NumericProperty(0)
     spacing = NumericProperty(1)
+    height_hint = NumericProperty(0.0)
     placeholder = ObjectProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
@@ -418,6 +422,7 @@ Builder.load_string("""
             x: root.x
             width: root.width
             spacing: root.spacing
+            height_hint: root.height_hint
 
 <-ActionListView>:
     container: container_id
@@ -430,6 +435,7 @@ Builder.load_string("""
         top: root.top
         size: root.size
         spacing: root.spacing
+        height_hint: root.height_hint
 
 <-QuickListView@DNDListView>:
     container: container_id
@@ -440,4 +446,5 @@ Builder.load_string("""
         id: container_id
         pos: root.pos
         size: root.size
+        height_hint: root.height_hint
 """)

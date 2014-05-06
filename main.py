@@ -145,7 +145,7 @@ class ThreeDoListApp(App):
                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 5, 'Swipe left to delete me', 'You can also delete a list itself in the "List Screen" this way.');
                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 6, 'Double-tap to rename me', 'You can also rename a list itself in the "List Screen" this way.');
                            INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 7, 'Press and hold to Drag-N''-Drop', 'You can re-order your tasks this way.');
-                           INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 8, 'Drag me to an "Action Item".', 'The "Action Items" are your top 3 tasks to focus on at a time.');
+                           INSERT INTO [notebook](page, ix, what, how) VALUES('Sample List', 8, 'Drag me to an Action Item.', 'The Action Items are your top 3 tasks to focus on at a time.');
                            """)
             #cursor.execute("commit")
             self.db = connection
