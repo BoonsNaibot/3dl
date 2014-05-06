@@ -14,10 +14,10 @@ from uiux import Screen_
 from weakref import ref
             
 class ListScreenItemTitle(NoteItemTitle):
-    aleft = True
+    pass
     
 class ActionListItemTitle(NoteItemTitle):
-    aleft = True
+    pass
     
 class ContentMajor(NoteContent):
     height_hint = (322./1136.)
