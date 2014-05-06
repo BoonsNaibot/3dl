@@ -13,8 +13,9 @@ class EditButton(Editable):
             return super(EditButton, self).on_touch_down(touch)
 
     def on_text_validate(self, instance):
-        if super(EditButton, self).on_text_validate(instance, instance.text):
-            self.parent.dispatch('on_comments', instance.text)
+        text = instance.text.lstrip()
+        self.text = text
+        self.parent.dispatch('on_comments', text)
 
 class PagesScreenItem(Clickable, Deletable, Editable):
     screen = None
@@ -151,9 +152,6 @@ class NoteItem(AccordionListItem):
         super(NoteItem, self).__init__(**kwargs)
 
     def on_comments(self, value):
-        value = value.lstrip()
-        #instance.focus = False
-
         if self.how <> value:
             _l = lambda *_: self.screen.dispatch('on_comments', self, value)
             Clock.schedule_once(_l, 0.25)
