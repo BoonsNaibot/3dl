@@ -70,6 +70,7 @@ class QuickViewScreenItem(BoxLayout):
             return super(QuickViewScreenItem, self).on_touch_down(touch)
 
 class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable):
+    aleft = True
     screen = None
     listview = None
     drop_zones = []
