@@ -1,10 +1,11 @@
 from kivy.properties import ObjectProperty, NumericProperty, ListProperty, OptionProperty, StringProperty, BooleanProperty, DictProperty, AliasProperty
 from kivy.uix.screenmanager import SlideTransition, Screen
 from kivy.graphics.transformation import Matrix
+from kivy.uix.floatlayout import FloatLayout
 from weakref import ref, WeakKeyDictionary
 from kivy.uix.textinput import TextInput
-from parents import Widget, FloatLayout
 from kivy.animation import Animation
+from kivy.uix.widget import Widget
 from weakreflist import WeakList
 from kivy.vector import Vector
 from math import radians, ceil
@@ -968,7 +969,7 @@ class FreeRotateLayout(Widget):
 
 
 Builder.load_string("""
-#:import BoxLayout parents.BoxLayout
+#:import BoxLayout kivy.uix.BoxLayout
 
 <NavBar>:
     size_hint: 1, 0.1127
