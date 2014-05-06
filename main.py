@@ -78,7 +78,7 @@ class ThreeDoListApp(App):
                            CREATE TABLE [table of contents](
                            page_number UNSIGNED INTEGER,
                            page TEXT PRIMARY KEY,
-                           bookmark UNSIGNED SHORT INTEGER DEFAULT 0;
+                           bookmark UNSIGNED SHORT INTEGER DEFAULT 0);
 
                            CREATE TABLE [notebook](
                            ix UNSIGNED INTEGER,
