@@ -194,21 +194,12 @@ class NoteItem(AccordionListItem):
         if self.why <> value:
             _l = lambda *_: self.screen.dispatch('on_importance', self, value)
             Clock.schedule_once(_l, 0.25)
-            
-class ListScreenItemTitle(NoteItemTitle):
-    aleft = BooleanProperty(True)
 
 class ListScreenItemTitle(NoteItemTitle):
     height_hint = 0.088
 
 class ActionListItemTitle(NoteItemTitle):
     height_hint = 2.0/15.0
-
-class ActionListItemTitle(NoteItemTitle):
-    aleft = BooleanProperty(True)
-
-class ActionListItemTitle(NoteItemTitle):
-    aleft = BooleanProperty(True)
 
 class ArchiveScreenItemTitle(Deletable, Clickable):
     screen = None
@@ -228,24 +219,12 @@ class ArchiveScreenItemTitle(Deletable, Clickable):
 class ContentMajor(NoteContent):
     height_hint = (322./1136.)
 
-class ContentMinor(NoteContent):
-    height_hint = (190./1136.)
-
 class ArchiveContent(ContentMinor):
     screen = None
     height_hint = (322./1136.)
 
 class ContentMinor(NoteContent):
-    pass
-
-class ArchiveContent(ContentMinor):
-    screen = None
-
-class ContentMinor(NoteContent):
-    pass
-
-class ArchiveContent(ContentMinor):
-    screen = None
+    height_hint = (190./1136.)
 
 class ListScreenItem(NoteItem):
 
