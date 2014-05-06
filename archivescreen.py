@@ -6,14 +6,20 @@ Created on Jul 23, 2013
 from uiux import Screen_
 from kivy.lang import Builder
 from weakreflist import WeakList
-from listitems import ArchiveScreenItem
 from kivy.properties import ObjectProperty, ListProperty
+from listitems import ArchiveScreenItem, ArchiveScreenItemTitle
 
 class ArchiveScreen(Screen_):
     list_items = ListProperty([])
     list_view = ObjectProperty(None)
     selection = ListProperty(WeakList())
     _item = ObjectProperty(ArchiveScreenItem)
+        
+    def on_list_view(self, instance, value):
+        if value:
+            super(ArchiveScreen, self).on_list_view(instance, value)
+            ArchiveScreenItemTitle.screen = instance.proxy_ref
+            ArchiveScreenItemTitle.listview = value
 
     def on_pre_enter(self):
         if self.page:
