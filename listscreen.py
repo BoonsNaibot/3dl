@@ -3,7 +3,7 @@ Created on Jul 27, 2013
 
 @author: Divine
 '''
-from listitems import ActionListItem, ListScreenItem, ListScreenItemTitle, ActionListItemTitle, EditButton
+from listitems import ActionListItem, ListScreenItem, ContentMajor, ContentMinor, ListScreenItemTitle, ActionListItemTitle, EditButton
 from kivy.uix.screenmanager import RiseInTransition
 from kivy.animation import Animation
 from weakreflist import WeakList
@@ -35,13 +35,14 @@ class ListScreen(Screen_):
     def on_list_view(self, instance, value):
         if value:
             super(ListScreen, self).on_list_view(instance, value)
+            ListScreenItemTitle.screen = ContentMinor.screen = EditButton.screen = instance.proxy_ref
             ListScreenItemTitle.drop_zones = [value, instance.action_view]
-            EditButton.screen = self.proxy_ref
+            ListScreenItemTitle.listview = value
         
     def on_action_view(self, instance, value):
         if value:
-            instance.action_view_item.screen = instance.proxy_ref
-            instance.action_view_item.listview = value
+            ActionListItemTitle.screen = ContentMajor.screen = instance.action_view_item.screen = instance.proxy_ref
+            ActionListItemTitle.listview = instance.action_view_item.listview = value
             ActionListItemTitle.drop_zones = [value,]
 
     def on_pre_enter(self):
