@@ -55,13 +55,13 @@ class ListScreen(Screen_):
         if value:
             super(ListScreen, self).on_list_view(instance, value)
             ListScreenItemTitle.screen = ContentMinor.screen = EditButton.screen = instance.proxy_ref
-            ListScreenItemTitle.drop_zones = [value, instance.action_view]
             ListScreenItemTitle.listview = value
         
     def on_action_view(self, instance, value):
         if value:
             ActionListItemTitle.screen = ContentMajor.screen = instance.action_view_item.screen = instance.proxy_ref
             ActionListItemTitle.listview = instance.action_view_item.listview = value
+            ListScreenItemTitle.drop_zones = [value, instance.list_view]
             ActionListItemTitle.drop_zones = [value,]
 
     def on_pre_enter(self):

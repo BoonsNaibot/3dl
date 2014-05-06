@@ -1,7 +1,7 @@
 from kivy.properties import AliasProperty, BooleanProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
 from uiux import Selectable, Clickable, Editable, Completable, Deletable, DragNDroppable, AccordionListItem
 from kivy.uix.floatlayout import FloatLayout
-from kivy.uix.GridLayout import GridLayout
+from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
 from kivy.animation import Animation
 from kivy.utils import escape_markup
@@ -104,15 +104,15 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
             Clock.schedule_once(_l, 0.25)
 
     def on_drag(self, instance, *args):
-        instance = instance.parent
+        instance = instance.parent.__self__
         super(NoteItemTitle, self).on_drag(instance, *args)
         
     def on_drop(self, instance, *args):
-        instance = instance.parent
+        instance = instance.parent.__self__
         super(NoteItemTitle, self).on_drop(instance, *args)
         
     def on_return(self, instance, *args):
-        instance = instance.parent
+        instance = instance.parent.__self__
         super(NoteItemTitle, self).on_return(instance, *args)
 
 class NoteContent(FloatLayout):

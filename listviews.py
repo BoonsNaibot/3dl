@@ -308,11 +308,11 @@ class AccordionListView(DNDListView):
                 instance._i_offset = int((numerator/_min) - (numerator/r_h)) + 1
 
     def on_drag(self, instance, *args):
-        instance = instance.parent
+        instance = instance.parent.__self__
         return super(AccordionListView, self).on_drag(instance, *args)
         
     def deparent(self, instance):
-        instance = instance.parent
+        instance = instance.parent.__self__
         super(AccordionListView, self).deparent(instance)
 
     def on_motion_out(self, widget, indices):

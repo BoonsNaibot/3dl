@@ -7,7 +7,7 @@ from kivy.lang import Builder
 from weakreflist import WeakList
 from listitems import NoteItem, NoteContent
 from uiux import Screen_, Clickable, Deletable
-from kivy.properties import ObjectProperty, ListProperty
+from kivy.properties import ListProperty, ObjectProperty, OptionProperty
 
 class ArchiveScreenItemTitle(Deletable, Clickable):
     aleft = True

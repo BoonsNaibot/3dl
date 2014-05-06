@@ -728,6 +728,7 @@ class DoubleClickButton(DoubleClickable):
 
 class AccordionListItem(Selectable, StencilLayout):
     _anim = lambda *_: None
+    title = ObjectProperty(None)
     content = ObjectProperty(None)
     shadow_color = ListProperty([])
     state_color = ListProperty([])
@@ -969,7 +970,7 @@ class FreeRotateLayout(Widget):
 
 
 Builder.load_string("""
-#:import BoxLayout kivy.uix.BoxLayout
+#:import BoxLayout kivy.uix.boxlayout
 
 <NavBar>:
     size_hint: 1, 0.1127
