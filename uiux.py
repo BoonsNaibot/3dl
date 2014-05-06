@@ -13,8 +13,8 @@ from kivy.clock import Clock
 
 class NavBar(FloatLayout):
     text = StringProperty('')
-    shorten = BooleanProperty(False)
     font_size = NumericProperty(0)
+    shorten = BooleanProperty(False)
     font_name = StringProperty('Walkway Bold.ttf')
 
 class StatusBar(Widget):
@@ -63,7 +63,7 @@ class StencilLayout(FloatLayout):
     pass
 
 class Screen_(Screen):
-    _anim = lambda : None
+    _anim = lambda *_: None
     _item = ObjectProperty(None)
     list_view = ObjectProperty(None)
     root_directory = ObjectProperty(None)
@@ -272,9 +272,9 @@ class DelayedClickable(Clickable):
 
 class Deletable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'delete'))
-    delete_button = lambda : None
+    delete_button = lambda *_: None
     screen = ObjectProperty(None)
-    _anim = lambda : None
+    _anim = lambda *_: None
 
     def __init__(self, **kwargs):
         self.register_event_type('on_delete_out')
@@ -368,9 +368,9 @@ class Deletable(ButtonRoot):
         _anim.start(layout)
 
 class Completable(ButtonRoot):
-    _anim = lambda : None
+    _anim = lambda *_: None
     screen = ObjectProperty(None)
-    complete_button = lambda : None
+    complete_button = lambda *_: None
     state = OptionProperty('normal', options=('normal', 'complete'))
 
     def __init__(self, **kwargs):
@@ -467,7 +467,7 @@ class Editable(ButtonRoot):
     _switch = BooleanProperty(False)
     max_chars = NumericProperty(31)
     screen = ObjectProperty(None)
-    textinput = lambda : None
+    textinput = lambda *_: None
 
     def __init__(self, **kwargs):
         self.register_event_type('on_text_validate')
@@ -621,7 +621,7 @@ class DragNDroppable(ButtonRoot):
         if touch.grab_current is self:
             assert(ref(self) in touch.ud)
 
-            if self.state == 'dragged':
+            if self.state == 'dragged' and self.collide_point(*touch.pos):
                 self.dispatch('on_drag', self, touch.y)
 
                 for zone in self.drop_zones:
@@ -717,16 +717,6 @@ class CompleteButton(DeleteButton):
     def on_press(self):
         self.button.screen.dispatch('on_complete', self.button)
 
-class EditButton(Editable):
-    
-    def on_touch_down(self, touch):
-        if ((self.collide_point(*touch.pos)) or (self.state == 'edit')):
-            return super(EditButton, self).on_touch_down(touch)
-
-    def on_text_validate(self, instance):
-        if super(EditButton, self).on_text_validate(instance, instance.text):
-            self.parent.dispatch('on_comments', instance.text)
-
 class DoubleClickButton(DoubleClickable):
     icon_text = StringProperty('')
     icon_font_name = StringProperty('heydings_icons.ttf')
@@ -736,7 +726,7 @@ class DoubleClickButton(DoubleClickable):
             return super(DoubleClickButton, self).on_touch_down(touch)
 
 class AccordionListItem(Selectable, StencilLayout):
-    _anim = lambda : None
+    _anim = lambda *_: None
     title = ObjectProperty(None)
     content = ObjectProperty(None)
     shadow_color = ListProperty([])
@@ -1054,23 +1044,6 @@ Builder.load_string("""
     text: 'O'
     state_color: app.purple
     text_color: app.white
-
-<-EditButton>:
-    label: label_id
-
-    Label:
-        id: label_id
-        pos: root.pos
-        text: root.text
-        size: root.size
-        font_size: root.font_size
-        font_name: root.font_name
-        shorten: root.shorten
-        color: root.text_color
-        disabled_color: self.color
-        markup: root.markup
-        text_size: self.size
-        valign: 'top'
 
 <-DoubleClickButton>:
     label: label_id
