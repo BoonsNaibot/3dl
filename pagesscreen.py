@@ -1,8 +1,3 @@
-'''
-Created on Jul 23, 2013
-
-@author: Divine
-'''
 from uiux import Screen_
 from kivy.lang import Builder
 from weakref import ref, proxy
@@ -103,14 +98,19 @@ class PagesScreen(Screen_):
         text = text.lstrip()
 
         if text:
-            cursor = self.root_directory.cursor()
-            cursor.execute("""
-                           INSERT INTO [table of contents](page_number, page)
-                           VALUES((SELECT IFNULL(MAX(ROWID), 0) FROM [table of contents])+1, ?);
-                           """,
-                           (text,))
-            #cursor.execute('commit')
-            self.dispatch('on_root_directory')
+            for page in self.pages:
+                if page[1] == text:
+                    #raise error?
+                    break
+            else:
+                cursor = self.root_directory.cursor()
+                cursor.execute("""
+                               INSERT INTO [table of contents](page_number, page)
+                               VALUES((SELECT IFNULL(MAX(ROWID), 0) FROM [table of contents])+1, ?);
+                               """,
+                               (text,))
+                #cursor.execute('commit')
+                self.dispatch('on_root_directory')
 
         instance.text = ''
         instance.focus = False
