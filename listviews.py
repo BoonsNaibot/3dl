@@ -46,18 +46,9 @@ class ListContainerLayout(Layout):
                 c.top = place
                 place -= (c.height + spacing)
 
-    def add_widget(self, *args):
-        super(ListContainerLayout, self).add_widget(*args)
-        self._trigger_layout()
-
-    def remove_widget(self, *args):
-        super(ListContainerLayout, self).remove_widget(*args)
-        self._trigger_layout()
-
     """def clear_widgets(self, *args):
         for _ in xrange(len(self.children)):
             child = self.children.pop(-1)()
-            self._trigger_layout()
             self.canvas.remove(child.canvas)
             child.parent = None"""
 
