@@ -99,6 +99,7 @@ class Scroller(StencilLayout):
                     vp.y = y - self.scroll_y * sh
                 else:
                     vp.y = (y + h) - vp.height
+                    self.scroll_y = 1.0
                   
     def on_height(self, instance, *args):
         self.effect_y.value = self.effect_y.min * self.scroll_y
