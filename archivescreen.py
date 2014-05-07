@@ -3,6 +3,7 @@ Created on Jul 23, 2013
 
 @author: Divine
 '''
+from weakref import proxy
 from kivy.lang import Builder
 from weakreflist import WeakList
 from listitems import NoteItem, NoteContent
@@ -36,7 +37,7 @@ class ArchiveScreen(Screen_):
     list_items = ListProperty([])
     list_view = ObjectProperty(None)
     selection = ListProperty(WeakList())
-    _item = ObjectProperty(ArchiveScreenItem)
+    _item = ObjectProperty(proxy(ArchiveScreenItem))
         
     def on_list_view(self, instance, value):
         if value:

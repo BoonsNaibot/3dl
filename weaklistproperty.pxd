@@ -1,3 +1,4 @@
+from weakreflist cimport WeakList
 from kivy._event cimport EventDispatcher
 from kivy._properties cimport Property, PropertyStorage, observable_list_dispatch
 

@@ -2,10 +2,11 @@ from kivy.properties import ListProperty, NumericProperty, ObjectProperty, Strin
 from listitems import QuickViewScreenItem
 from kivy.utils import escape_markup
 from kivy.lang import Builder
+from weakref import proxy
 from uiux import Screen_
 
 class QuickViewScreen(Screen_):
-    _item = ObjectProperty(QuickViewScreenItem)
+    _item = ObjectProperty(proxy(QuickViewScreenItem))
     action_items = ListProperty([])
     page = StringProperty('')
     page_number = NumericProperty(None)

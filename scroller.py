@@ -56,7 +56,6 @@ class Scroller(StencilLayout):
     bar_color = ListProperty([0.7, 0.7, 0.7, 0.9])
     bar_width = NumericProperty('2dp')
     bar_margin = NumericProperty(0)
-    effect_y = ObjectProperty(None)
     _viewport = ObjectProperty(lambda : None)
     bar_alpha = NumericProperty(1.0)
     mode = OptionProperty('normal', options=('down', 'normal', 'scrolling'))
@@ -83,7 +82,6 @@ class Scroller(StencilLayout):
     def __init__(self, **kwargs):
         self.effect_y = ScrollerEffect(_parent=self.proxy_ref, round_value=False)
         super(Scroller, self).__init__(**kwargs)
-
         self.bind(scroll_y=self._trigger_layout)
 
     def do_layout(self, *args, **kwargs):

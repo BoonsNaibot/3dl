@@ -8,10 +8,10 @@ from listitems import NoteItemTitle, NoteContent, NoteItem, EditButton
 from kivy.uix.screenmanager import RiseInTransition
 from kivy.animation import Animation
 from weakreflist import WeakList
+from weakref import ref, proxy
 from kivy.lang import Builder
 from kivy.clock import Clock
 from uiux import Screen_
-from weakref import ref
             
 class ListScreenItemTitle(NoteItemTitle):
     height_hint = 0.088
@@ -32,8 +32,8 @@ class ActionListItem(NoteItem):
     pass
 
 class ListScreen(Screen_):
-    action_view_item = ObjectProperty(ActionListItem)
-    _item = ObjectProperty(ListScreenItem)
+    action_view_item = ObjectProperty(proxy(ActionListItem))
+    _item = ObjectProperty(proxy(ListScreenItem))
     action_view = ObjectProperty(None)
     action_items = ListProperty([])
     list_items = ListProperty([])

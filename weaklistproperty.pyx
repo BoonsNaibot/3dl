@@ -1,5 +1,3 @@
-from weakreflist import WeakList
-
 class ObservableWeakList(WeakList):
     # Internal class to observe changes inside a WeakList.
     def __init__(self, *largs):

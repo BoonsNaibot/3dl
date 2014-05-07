@@ -3,9 +3,9 @@ Created on Jul 23, 2013
 
 @author: Divine
 '''
-from weakref import ref
 from uiux import Screen_
 from kivy.lang import Builder
+from weakref import ref, proxy
 from kivy.uix.widget import Widget
 from kivy.animation import Animation
 from listitems import PagesScreenItem
@@ -30,7 +30,7 @@ class ConfigPanel(Widget):
 class PagesScreen(Screen_):
     pages = ListProperty([])
     list_view = ObjectProperty(None)
-    _item = ObjectProperty(PagesScreenItem)
+    _item = ObjectProperty(proxy(PagesScreenItem))
 
     def __init__(self, **kwargs):
         self.register_event_type('on_what')
