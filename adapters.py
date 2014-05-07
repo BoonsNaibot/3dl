@@ -24,6 +24,7 @@ class ListViewAdapter(object):
 
     def delete_cache(self, **args):
         self.cached_views.clear()
+        self.container.canvas.clear()
 
     def get_count(self):
         return len(self.data)
