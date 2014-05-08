@@ -62,4 +62,4 @@ class WeakList(list):
         super(WeakList, self).insert(i, self._get_ref(item))
 
     def remove(self, item):
-        self._remove(self._get_ref(item))
+        super(WeakList, self).remove(self._get_ref(item))
