@@ -118,7 +118,8 @@ class Screen_(Screen):
             else:
                 return super(Screen_, self).on_touch_down(touch)
 
-    def on_screen_change(self, destination, kwargs, transition=SlideTransition):
+    def on_screen_change(self, destination, kwargs, transition=None):
+        transition = transition or SlideTransition
         manager =  self.manager
         transition = transition(**kwargs)
         manager.transition = transition
