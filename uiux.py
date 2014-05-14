@@ -61,9 +61,6 @@ class NewItemWidget(FloatLayout):
     def on_text_validate(self, *args):
         pass
 
-class StencilLayout(FloatLayout):
-    pass
-
 class Screen_(Screen):
     _anim = lambda *_: None
     _item = ObjectProperty(None)
@@ -1072,20 +1069,6 @@ Builder.load_string("""
         font_name: 'Walkway Bold.ttf'
         font_size: root.font_size
         text_size: self.size[0], None
-
-<StencilLayout>:
-    canvas.before:
-        StencilPush
-        Rectangle:
-            pos: self.pos
-            size: self.size
-        StencilUse
-    canvas.after:
-        StencilUnUse
-        Rectangle:
-            pos: self.pos
-            size: self.size
-        StencilPop
 
 <AccordionListItem>:
     size_hint: 1, None
