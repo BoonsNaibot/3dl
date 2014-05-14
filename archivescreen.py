@@ -133,13 +133,15 @@ Builder.load_string("""
     content: content_id
     size_hint: 1, None
     text_color: app.dark_blue
+    height: title_id.height + (content_id.height*(1-self.collapse_alpha))
     state_color: app.no_color if title_id.state in ('down', 'dragged') else app.white
 
     ArchiveScreenItemTitle:
         id: title_id
         text: root.text
-        size_hint: 1, None
-        pos_hint: {'x': 0, 'top': 1}
+        x: root.x
+        top: root.top
+        width: root.width
         font_size: (self.height*0.3)
         text_color: root.text_color
         state_color: root.state_color
@@ -150,9 +152,9 @@ Builder.load_string("""
         why: root.why
         how: root.how
         when: root.when
+        x: root.x
         top: title_id.y
-        pos_hint: {'x': 0}
-        size_hint: 1, None
+        width: root.width
         text_color: root.text_color
         state_color: root.state_color
         height: root.screen.height*self.height_hint

@@ -306,17 +306,20 @@ Builder.load_string("""
     title: title_id
     content: content_id
     shadow_color: app.no_color
+    height: title_id.height + (content_id.height*(1-self.collapse_alpha))
 
     GridLayout:
         id: title_id
         cols: 7
         rows: 1
-        size_hint: 1, None
-        pos_hint: {'top': 1, 'x': 0}
+        x: root.x
+        top: root.top
+        width: root.width
     DayDropDown:
         id: content_id
         text: root.text
-        size_hint: 1, None
-        height: 83 + (1.0/3.0)
+        x: root.x
         top: title_id.y
+        width: root.width
+        height: 83 + (1.0/3.0)
 """)
