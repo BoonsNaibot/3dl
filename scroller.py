@@ -1,7 +1,7 @@
 from weakref import ref
 from kivy.clock import Clock
 from kivy.lang import Builder
-from uiux import StencilLayout
+from kivy.uix.stencilview import StencilLayout
 from kivy.effects.dampedscroll import DampedScrollEffect
 from kivy.properties import AliasProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty
 
