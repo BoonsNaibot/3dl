@@ -6,8 +6,8 @@ Created on Jul 27, 2013
 from kivy.properties import ListProperty, NumericProperty, ObjectProperty, StringProperty
 from listitems import NoteItemTitle, NoteContent, NoteItem, EditButton
 from kivy.uix.screenmanager import RiseInTransition
+from kivy.weakreflist import WeakList
 from kivy.animation import Animation
-from weakreflist import WeakList
 from weakref import ref, proxy
 from kivy.lang import Builder
 from kivy.clock import Clock
@@ -84,8 +84,10 @@ class ListScreen(Screen_):
                     action_items.append(i)
                 else:
                     list_items.append(i)
+                del i
 
             self.list_items, self.action_items = list_items, action_items
+            del list_items, action_items
 
     def _args_converter(self, row_index, an_obj):
         _dict = {}
@@ -98,6 +100,7 @@ class ListScreen(Screen_):
                 _dict['text'] = 'Drag a Task here.'
                 _dict['disabled'] = True
 
+        del an_obj
         return _dict
 
     def on_new_item(self, instance, text):
@@ -111,7 +114,7 @@ class ListScreen(Screen_):
             item_args = self._args_converter(index, data)
             item_args.update({'index': index})#, 'listview': listview})
             new_item = listview.cached_views[index] = self.accordion_view_item(**item_args)
-            new_item.bind(on_release=listview.handle_selection)
+            #new_item.bind(on_release=listview.handle_selection)
             listview.container.add_widget(new_item)
 
             def _on_start(a, w):
@@ -134,7 +137,7 @@ class ListScreen(Screen_):
             _anim = Animation(y=0, t='out_expo', d=0.3)
             _anim.bind(on_start=_on_start, on_complete=_on_complete)
             instance._anim = ref(_anim)
-            _anim.start(self)
+            _anim.start(self.proxy_ref)
 
     def on_what(self, instance, value):
         instance.text = value
@@ -208,16 +211,19 @@ class ListScreen(Screen_):
                                """,
                                items)
             self.dispatch('on_pre_enter')
+        del items
 
     def on_archive(self, *args):
         screen = self.manager.get_screen('Archive Screen')
         screen.page, screen.page_number = self.page, self.page_number
         kwargs = {'direction': 'left', 'duration': 0.2}
         self.dispatch('on_screen_change', 'Archive Screen', kwargs)
+        del screen, kwargs
 
 Builder.load_string("""
 #:import NavBar uiux.NavBar
 #:import NewItemWidget uiux.NewItemWidget
+#:import WeakMethod kivy.weakmethod.WeakMethod
 #:import ActionListView listviews.ActionListView
 #:import DoubleClickButton uiux.DoubleClickButton
 #:import AccordionListView listviews.AccordionListView
@@ -275,7 +281,7 @@ Builder.load_string("""
         font_size: self.width*0.07
         text_color: app.blue if self.double_click_switch else app.dark_gray
         double_click_switch: root.why
-        on_double_click_switch: root.dispatch('on_importance', *args)
+        #on_double_click_switch: root.dispatch('on_importance', *args)
     DoubleClickButton:
         size_hint: 0.9, 0.25
         pos_hint: {'center_x': 0.5, 'center_y': 0.6}
@@ -283,7 +289,7 @@ Builder.load_string("""
         text: root.when
         font_size: self.width*0.07
         text_color: root.text_color
-        on_double_click_switch: root.screen.dispatch('on_due_date', root.parent, args[1])
+        #on_double_click_switch: root.screen.dispatch('on_due_date', root.parent, args[1])
     Label:
         id: icon_id
         text: 'e'
@@ -321,7 +327,7 @@ Builder.load_string("""
         font_size: root.width*0.043
         text: root.when
         text_color: root.text_color
-        on_double_click_switch: root.screen.dispatch('on_due_date', root.parent, args[1])
+        #on_double_click_switch: root.screen.dispatch('on_due_date', root.parent, args[1])
     DoubleClickButton:
         size_hint: 0.1, 0.3
         pos_hint: {'x': 0.85, 'top': 1}
@@ -331,7 +337,7 @@ Builder.load_string("""
         #font_size: self.height*0.421875
         text_color: app.blue if self.double_click_switch else app.dark_gray
         double_click_switch: root.why
-        on_double_click_switch: root.dispatch('on_importance', *args)
+        #on_double_click_switch: root.dispatch('on_importance', *args)
     Label:
         id: icon_id
         text: 'Notes:'
@@ -357,6 +363,7 @@ Builder.load_string("""
 <ListScreenItem>:
     title: title_id
     content: content_id
+    height: title_id.height + (content_id.height*(1-self.collapse_alpha))
     shadow_color: app.dark_blue if title_id.state=='dragged' else (app.blue if title_id.state=='down' else app.no_color)
     text_color: app.dark_blue if (self.collapse_alpha==0.0 or title_id.state=='down') else (app.blue if title_id.state=='dragged' else app.dark_gray)
     state_color: app.no_color if title_id.state=='dragged' else app.smoke_white
@@ -365,56 +372,53 @@ Builder.load_string("""
         id: title_id
         text: root.text
         shorten: True
-        size_hint: 1, None
-        pos_hint: {'x': 0, 'top': 1}
+        x: root.x
+        top: root.top
+        width: root.width
         font_size: self.width*0.07
         text_color: root.text_color
         state_color: root.state_color
         height: self.height_hint*root.screen.height
-        on_release: root.listview.handle_selection(root)
     ContentMinor:
         id: content_id
         why: root.why
         how: root.how
         when: root.when
+        x: root.x
         top: title_id.y
-        pos_hint: {'x': 0}
-        size_hint: 1, None
+        width: root.width
         text_color: root.text_color
         state_color: root.state_color
         height: root.screen.height*self.height_hint
-        on_comments: root.dispatch('on_comments', args[-1])
-        on_importance: root.dispatch('on_importance', *args[1:])
 
 <ActionListItem>:
     title: title_id
     content: content_id
     shadow_color: app.shadow_gray
+    height: title_id.height + (content_id.height*(1-self.collapse_alpha))
     state_color: app.no_color if title_id.state=='dragged' else (app.light_blue if title_id.state=='down' else app.white)
     text_color: app.dark_gray if self.disabled else app.dark_blue
 
     ActionListItemTitle:
         id: title_id
         text: root.text
-        size_hint: 1, None
-        pos_hint: {'x': 0, 'top': 1}
+        x: root.x
+        top: root.top
+        width: root.width
         text_color: root.text_color
         state_color: root.state_color
         height: self.height_hint*root.screen.height
-        on_release: root.listview.handle_selection(root)
     ContentMajor:
         id: content_id
         why: root.why
         how: root.how
         when: root.when
+        x: root.x
         top: title_id.y
-        pos_hint: {'x': 0}
-        size_hint: 1, None
+        width: root.width
         text_color: root.text_color
         state_color: root.state_color
         height: root.screen.height*self.height_hint
-        on_comments: root.dispatch('on_comments', args[-1])
-        on_importance: root.dispatch('on_importance', *args[1:])
 
 <ListScreen>:
     name: 'List Screen'
@@ -469,3 +473,4 @@ Builder.load_string("""
         pos_hint: {'y': 0}
         on_text_validate: root.dispatch('on_new_item', *args[1:])
 """)
+

@@ -8,7 +8,7 @@ from apsw import Connection, SQLITE_OPEN_READWRITE, CantOpenError
 
 from kivy.modules import inspector
 from kivy.core.window import Window
-#import cProfile
+#import cProfile, pstats
 
 kv = """
 #:import ListScreen listscreen.ListScreen
@@ -165,8 +165,7 @@ class ThreeDoListApp(App):
         return app
 
     def on_start(self):
-        #self.profile = cProfile.Profile()
-        #self.profile.enable()
+        #self.profile = cProfile.Profile(); self.profile.enable()
         app = self.root
         app.manager.transition = NoTransition()
         cursor = self.db.cursor()
@@ -195,14 +194,26 @@ class ThreeDoListApp(App):
 
         else:
             app.manager.current = 'Pages Screen'
+        #print 'first'
+        #objgraph.show_growth()
 
     def on_pause(self):
         return True
 
     def on_stop(self):
         self.db.close()
+        #print 'last'
+        #objgraph.show_growth()
+        #x = objgraph.get_leaking_objects()
+        #objgraph.show_most_common_types(objects=x)
+        #objgraph.show_refs(x[:3], refcounts=True, filename='roots.png')
         #self.profile.disable()
         #self.profile.dump_stats('myapp.profile')
+        #stream = open('stats.txt', 'w')
+        #stats = pstats.Stats('myapp.profile', stream=stream)
+        #stats.sort_stats('cumtime', 'tottime', 'ncalls')
+        #stats.print_stats()
+        #stream.close()
 
 if __name__ == '__main__':
     ThreeDoListApp().run()

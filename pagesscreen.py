@@ -44,10 +44,9 @@ class PagesScreen(Screen_):
                            """)
 
     def _args_converter(self, row_index, an_obj):
-        _dict = {'page_number': an_obj[0],
-                 'text': an_obj[1],
-                 'size_hint_y': None}
-        return _dict
+        return {'page_number': an_obj[0],
+                'text': an_obj[1],
+                'size_hint_y': None}
 
     def on_root_directory(self, *args):
         cursor = self.root_directory.cursor()
@@ -74,14 +73,12 @@ class PagesScreen(Screen_):
         else:
             screen_name = 'QuickView Screen'
 
-        screen = manager.get_screen(screen_name)
+        screen = manager.get_screen(screen_name).proxy_ref
         screen.page = text
         screen.page_number = index
         kwargs = {'direction': 'left', 'duration': 0.2}
         self.dispatch('on_screen_change', screen_name, kwargs)
-
-    def on_status_bar(self, *args):
-        self.list_view.scroll_to()
+        del kwargs
 
     def on_settings(self, *args):
         polestar = self.polestar()

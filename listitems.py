@@ -3,7 +3,6 @@ from uiux import Selectable, Clickable, Editable, Completable, Deletable, DragND
 from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.boxlayout import BoxLayout
-from kivy.animation import Animation
 from kivy.utils import escape_markup
 from kivy.lang import Builder
 from kivy.clock import Clock
@@ -37,6 +36,9 @@ class PagesScreenItem(Clickable, Deletable, Editable):
         elif self.state <> 'normal':
             self.state = 'normal'
             return True
+
+    def on_release(self):
+        self.screen.dispatch('on_selected_page', self.text, self.page_number)
             
 class QuickViewScreenItemTitle(Completable, Deletable):
     screen = None
@@ -115,6 +117,9 @@ class NoteItemTitle(Clickable, Completable, Deletable, DragNDroppable, Editable)
         instance = instance.parent.__self__
         super(NoteItemTitle, self).on_return(instance, *args)
 
+    def on_release(self):
+        self.listview.handle_selection(self.parent)
+
 class NoteContent(FloatLayout):
     state_color = ListProperty([])
     text_color = ListProperty([])
@@ -135,10 +140,10 @@ class NoteContent(FloatLayout):
             return False
 
     def on_importance(self, *args):
-        pass
+        self.parent.dispatch('on_importance', *args)
 
     def on_comments(self, *args):
-        pass
+        self.parent.dispatch('on_comments', *args)
 
 class NoteItem(AccordionListItem):
     screen = None
@@ -155,12 +160,12 @@ class NoteItem(AccordionListItem):
 
     def on_comments(self, value):
         if self.how <> value:
-            _l = lambda *_: self.screen.dispatch('on_comments', self, value)
+            _l = lambda *_: self.screen.dispatch('on_comments', self.proxy_ref, value)
             Clock.schedule_once(_l, 0.25)
 
     def on_importance(self, instance, value):
         if self.why <> value:
-            _l = lambda *_: self.screen.dispatch('on_importance', self, value)
+            _l = lambda *_: self.screen.dispatch('on_importance', self.proxy_ref, value)
             Clock.schedule_once(_l, 0.25)
 
 class Week(AccordionListItem):
@@ -194,7 +199,6 @@ Builder.load_string("""
     #height: self.screen.height*0.088
     height: self.screen.height*self.height_hint
     state_color: app.no_color if self.state == 'down' else app.white
-    on_release: self.screen.dispatch('on_selected_page', args[0].text, args[0].page_number)
     canvas.after:
         Color:
             rgba: app.shadow_gray

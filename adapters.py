@@ -1,5 +1,6 @@
 from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty
-from weakreflist import WeakList
+from kivy.weakreflist import WeakList
+import objgraph, random
 
 class ListViewAdapter(object):
     data = ListProperty([])
@@ -18,11 +19,12 @@ class ListViewAdapter(object):
 
         if len(instance.selection) > 0:
             instance.selection[:] = WeakList()
+        del instance, value
 
     def on_selection(self, instance, value):
         instance.dispatch('on_selection_change')
 
-    def delete_cache(self, **args):
+    def delete_cache(self, *args):
         self.cached_views.clear()
         self.container.canvas.clear()
 
@@ -34,15 +36,13 @@ class ListViewAdapter(object):
             return self.data[index]
 
     def get_view(self, index):
-        cached_views = self.cached_views
-
-        if index in cached_views:
-            return cached_views[index]
+        if index in self.cached_views:
+            return self.cached_views[index]
         else:
             item_view = self.create_view(index)
 
             if item_view:
-                cached_views[index] = item_view
+                self.cached_views[index] = item_view
                 return item_view
 
     def create_view(self, index):
@@ -84,4 +84,15 @@ class ListViewAdapter(object):
 
     def on_selection_change(self, *args):
         pass
-        
+        """if self.selection:
+            from listscreen import ListScreenItem
+            objgraph.show_growth()
+            print '...'
+            roots = objgraph.get_leaking_objects()
+            objgraph.show_most_common_types(objects=roots)
+            print '...'
+            objgraph.show_refs(roots[:3], refcounts=True, filename='sad.png')
+            #objgraph.show_chain(objgraph.find_backref_chain(random.choice(objgraph.by_type('ListScreenItem')), objgraph.is_proper_module),filename='chain.png')
+            #objgraph.show_backrefs(ListScreenItem, filename='sample-backref-graph.png')
+            print '...'"""
+            

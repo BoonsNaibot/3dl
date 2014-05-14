@@ -2,12 +2,12 @@ from math import ceil, floor
 from kivy.clock import Clock
 from kivy.lang import Builder
 from datetimewidgets import Day
-from weakreflist import WeakList
 from kivy.uix.widget import Widget
 from kivy.uix.layout import Layout
 from adapters import ListViewAdapter
 from datetime import date, timedelta
 from weakref import WeakKeyDictionary
+from kivy.weakreflist import WeakList
 from itertools import repeat, izip, chain
 from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty
 
@@ -32,11 +32,10 @@ class ListContainerLayout(Layout):
                   size_hint=self._trigger_layout,
                   size=self._trigger_layout)
 
-    def do_layout(self, *args, **kwargs):
+    def do_layout(self, *args):
         if 1 not in self.size:
-            # Just like `FloatLayout`
-            w, h = kwargs.get('size', self.size)
-            x, y = kwargs.get('pos', self.pos)
+            x, y = self.pos
+            w, h = self.size
             spacing = self.spacing
             place = (y + h) - self.padding
 
@@ -45,12 +44,6 @@ class ListContainerLayout(Layout):
                 c.x = x
                 c.top = place
                 place -= (c.height + spacing)
-
-    """def clear_widgets(self, *args):
-        for _ in xrange(len(self.children)):
-            child = self.children.pop(-1)()
-            self.canvas.remove(child.canvas)
-            child.parent = None"""
 
 class DNDListView(Widget, ListViewAdapter):
     container = ObjectProperty(None)
@@ -84,8 +77,7 @@ class DNDListView(Widget, ListViewAdapter):
         if self.row_height:
             self._scroll_y = scroll_y
             scroll_y = 1 - min(1, max(scroll_y, 0))
-            container = self.container
-            mstart = (container.height - self.height) * scroll_y
+            mstart = (self.container.height - self.height) * scroll_y
             mend = mstart + self.height
 
             # convert distance to index
@@ -153,7 +145,6 @@ class DNDListView(Widget, ListViewAdapter):
             # fill with a "padding"
             for x in xrange(istart):
                 fh += sizes[x]+spacing if x in sizes else rh+spacing
-            #container.add_widget(Widget(size_hint_y=None, height=fh))
             container.padding = fh
 
             # now fill with real item_view
@@ -162,7 +153,9 @@ class DNDListView(Widget, ListViewAdapter):
                 item_view = get_view(index)
                 index += 1
 
-                if item_view is not None:
+                if item_view is None:
+                    break
+                else:
                     d[index] = item_view.height
                     container.add_widget(item_view)
 
@@ -184,10 +177,7 @@ class DNDListView(Widget, ListViewAdapter):
                     available_height -= item_view.height
                     real_height += item_view.height
 
-        new_sizes = dict(sizes, **d)
-
-        if new_sizes <> sizes:
-            self._sizes = new_sizes
+        self._sizes.update(d)
 
     def deparent(self, widget):
         container = self.container
@@ -255,8 +245,10 @@ class DNDListView(Widget, ListViewAdapter):
 
                     d[widget] = placeholder.ix = child_ix
                     break
+            del child
 
         _dict = WeakKeyDictionary(dict(indices, **d))
+        del d, indices, children
         return _dict
 
     def on_motion_over(self, *args):
@@ -313,7 +305,6 @@ class AccordionListView(DNDListView):
             point = widget.center
             page = widget.screen.page
             deleting = self.placeholder is None
-            #deleting = widget.listview.__self__ is not self
 
             for k, v in indices.iteritems():
 
@@ -323,6 +314,7 @@ class AccordionListView(DNDListView):
                     args.append((u"", u"", 0, u"", v, page))
                 else:
                     args.append((k.text, k.when, int(k.why), k.how, v, page))
+                del k, v
 
         return tuple(args)
 
@@ -342,6 +334,8 @@ class ActionListView(AccordionListView):
 
                 if child in indices:
                     del indices[child]
+
+            del child
 
         _dict = WeakKeyDictionary(dict(indices, **d))
         return _dict
@@ -380,6 +374,7 @@ class DatePickerListView(AccordionListView):
         
                 for child in cached_views.itervalues():
                     child.title.clear_widgets()
+                    del child
         
                 these = ravel(_repeat(i, 7) for i in sorted(cached_views.itervalues(), key=cached_views.get))
                 those = (_args_converter((_date+timedelta(days=delta)), delta) for delta in xrange(-dt, ((7*6)-dt)))

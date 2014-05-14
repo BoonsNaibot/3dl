@@ -4,13 +4,14 @@ from kivy.graphics.transformation import Matrix
 from kivy.uix.floatlayout import FloatLayout
 from weakref import ref, WeakKeyDictionary
 from kivy.uix.textinput import TextInput
+from kivy.weakreflist import WeakList
 from kivy.animation import Animation
 from kivy.uix.widget import Widget
-from weakreflist import WeakList
 from kivy.vector import Vector
 from math import radians, ceil
 from kivy.lang import Builder
 from kivy.clock import Clock
+from kivy.uix.stencilview import StencilView
 
 class NavBar(FloatLayout):
     text = StringProperty('')
@@ -94,12 +95,12 @@ class Screen_(Screen):
             if y < kh:
                 _anim = Animation(y=(kh-y), t='out_expo', d=0.3)
                 instance._anim = ref(_anim)
-                _anim.start(instance)
+                _anim.start(instance.proxy_ref)
 
         elif instance.y <> 0:
             _anim = Animation(y=0, t='out_expo', d=0.3)
             instance._anim = ref(_anim)
-            _anim.start(instance)
+            _anim.start(instance.proxy_ref)
 
     def on_touch_down(self, touch):
         if self._anim() is None:
@@ -350,7 +351,7 @@ class Deletable(ButtonRoot):
                     if (layout.right < db.center_x):
                         _anim = Animation(right=db.x, t='out_quad', d=0.2)
                         self._anim = ref(_anim)
-                        _anim.start(layout)
+                        _anim.start(layout.proxy_ref)
                     else:
                         self.state = 'normal'
                     return True
@@ -367,7 +368,7 @@ class Deletable(ButtonRoot):
         _anim = Animation(right=self.right, t='out_quad', d=0.2)
         _anim.bind(on_complete=_do_release)
         self._anim = ref(_anim)
-        _anim.start(layout)
+        _anim.start(layout.proxy_ref)
 
 class Completable(ButtonRoot):
     _anim = lambda *_: None
@@ -444,7 +445,7 @@ class Completable(ButtonRoot):
                     if (layout.x > cb.center_x):
                         _anim = Animation(x=cb.right, t='out_quad', d=0.2)
                         self._anim = ref(_anim)
-                        _anim.start(layout)
+                        _anim.start(layout.proxy_ref)
                     else:
                         self.state = 'normal'
                     return True
@@ -461,7 +462,7 @@ class Completable(ButtonRoot):
         _anim = Animation(x=self.x, t='out_quad', d=0.2)
         _anim.bind(on_complete=_do_release)
         self._anim = ref(_anim)
-        _anim.start(layout)
+        _anim.start(layout.proxy_ref)
 
 class Editable(ButtonRoot):
     state = OptionProperty('normal', options=('normal', 'edit'))
@@ -629,6 +630,7 @@ class DragNDroppable(ButtonRoot):
                 for zone in self.drop_zones:
                     if self.collide_widget(zone):
                         touch.ud['indices'] = zone.dispatch('on_drag', self, touch.ud['indices'])
+                    del zone
                 return True
 
         return super(DragNDroppable, self).on_touch_move(touch)
@@ -646,6 +648,7 @@ class DragNDroppable(ButtonRoot):
                 for viewer in self.drop_zones:
                     if viewer.collide_point(*self.center):
                         break
+                    del viewer
                 else:
                     viewer = None
 
@@ -667,6 +670,7 @@ class DragNDroppable(ButtonRoot):
                     if child.state == 'down':
                         _anim = DropAnimation(y=child.y, d=0.1)
                         break
+                    #del child
                 else:
                     viewer = instance.listview
                     child = viewer.placeholder
@@ -688,7 +692,7 @@ class DragNDroppable(ButtonRoot):
 
         _anim.bind(on_start=_on_start, on_complete=_on_complete)
         instance._anim = ref(_anim)
-        _anim.start(instance)
+        _anim.start(instance.proxy_ref)
 
     def cancel(self):
         Clock.unschedule(self.on_hold_down)
@@ -727,7 +731,7 @@ class DoubleClickButton(DoubleClickable):
         if ((self.collide_point(*touch.pos)) and (self.state == 'normal')):
             return super(DoubleClickButton, self).on_touch_down(touch)
 
-class AccordionListItem(Selectable, StencilLayout):
+class AccordionListItem(Selectable, StencilView):
     _anim = lambda *_: None
     title = ObjectProperty(None)
     content = ObjectProperty(None)
@@ -738,19 +742,13 @@ class AccordionListItem(Selectable, StencilLayout):
     collapse_alpha = NumericProperty(1.0)
     content_height_hint = NumericProperty(0.0)
 
-    def _get_height(self):
+    """def _get_height(self):
         if self.title and self.content:
             return self.title.height + (self.content.height*(1-self.collapse_alpha))
         else:
             return 1
-            
-    def _set_height(self, height):
-        if (self.title and (self.title.height <> height)):
-            self.title.height = height
-        else:
-            return False
 
-    height = AliasProperty(_get_height, _set_height, bind=('center_y', 'top', 'title', 'content', 'collapse_alpha'))
+    height = AliasProperty(_get_height, None, bind=('title', 'content', 'collapse_alpha'))"""
 
     def _get_state(self):
         if self.title:
@@ -773,9 +771,9 @@ class AccordionListItem(Selectable, StencilLayout):
             self._anim = None"""
 
         _anim = Animation(collapse_alpha=alpha, t='out_expo', d=0.25)
-        _anim.bind(on_progress=self._do_progress)
+        _anim.bind(on_progress=self.proxy_ref._do_progress)
         self._anim = ref(_anim)
-        _anim.start(self)
+        _anim.start(self.proxy_ref)
 
     def _do_progress(self, anim, instance, progression):
         instance.listview._sizes[instance.index] = instance.height
