@@ -49,7 +49,6 @@ class DNDListView(Widget, ListViewAdapter):
     container = ObjectProperty(None)
     row_height = NumericProperty(None)
     scrolling = BooleanProperty(False)
-    _index = NumericProperty(0)
     _sizes = DictProperty({})
     _wstart = NumericProperty(0)
     _wend = NumericProperty(-1)
@@ -62,16 +61,15 @@ class DNDListView(Widget, ListViewAdapter):
         self.register_event_type("on_motion_out")
         self.register_event_type("on_drag")
         self._trigger_populate = Clock.create_trigger(self._do_layout, -1)
-        self._trigger_reset_populate = Clock.create_trigger(self._reset_spopulate, -1)
+        #self._trigger_reset_populate = Clock.create_trigger(self._reset_spopulate, -1)
         super(DNDListView, self).__init__(**kwargs)
         self.bind(pos=self._trigger_populate,
-                  size=self._trigger_populate,
-                  data=self._trigger_reset_populate)
+                  size=self._trigger_populate)#,
+                  #data=self._trigger_reset_populate)
 
-    """def on_data(self, instance, value):
+    def on_data(self, instance, value):
         super(DNDListView, self).on_data(instance, value)
-        #instance._sizes.clear()
-        #instance._trigger_reset_populate()"""
+        instance._do_layout()
 
     def _scroll(self, scroll_y):
         if self.row_height:
@@ -111,7 +109,7 @@ class DNDListView(Widget, ListViewAdapter):
             instance.row_height = rh = next(value.itervalues(), 0) #since they're all the same
             container.height = (rh + instance.spacing) * instance.get_count()
 
-    def _reset_spopulate(self, *args):
+    """def _reset_spopulate(self, *args):
         self._sizes.clear()
         self._wend = -1
         self.populate()
@@ -119,7 +117,7 @@ class DNDListView(Widget, ListViewAdapter):
         # the position might not be the same, mostly because we don't know the
         # size of the new item.
         if hasattr(self, '_scroll_y'):
-            self._scroll(self._scroll_y)
+            self._scroll(self._scroll_y)"""
 
     def populate(self, istart=None, iend=None):
         container = self.container
@@ -161,8 +159,7 @@ class DNDListView(Widget, ListViewAdapter):
 
         else:
             available_height = self.height
-            real_height = count = 0
-            index = self._index
+            real_height = index = 0
 
             while available_height > 0:
                 item_view = get_view(index)
@@ -172,7 +169,6 @@ class DNDListView(Widget, ListViewAdapter):
                 else:
                     d[index] = item_view.height
                     index += 1
-                    count += 1
                     container.add_widget(item_view)
                     available_height -= item_view.height
                     real_height += item_view.height
