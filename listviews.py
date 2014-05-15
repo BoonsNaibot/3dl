@@ -123,16 +123,13 @@ class DNDListView(Widget, ListViewAdapter):
             self._scroll(self._scroll_y)"""
 
     def populate(self, istart=None, iend=None):
+        istart = istart or self._wstart
+        iend = iend or self._wend
         container = self.container
         get_view = self.get_view
         rh = self.row_height
         sizes = self._sizes
         #d = {}
-
-        # ensure we know what we want to show
-        if istart is None:
-            istart = self._wstart
-            iend = self._wend
 
         # clear the view
         container.clear_widgets()
