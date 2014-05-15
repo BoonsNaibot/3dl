@@ -52,7 +52,7 @@ class DNDListView(Widget, ListViewAdapter):
     _index = NumericProperty(0)
     _sizes = DictProperty({})
     _wstart = NumericProperty(0)
-    _wend = NumericProperty(None, allownone=True)
+    _wend = NumericProperty(-1)
     _i_offset = NumericProperty(0)
     spacing = NumericProperty(1)
     placeholder = ObjectProperty(None, allownone=True)
@@ -113,7 +113,7 @@ class DNDListView(Widget, ListViewAdapter):
 
     def _reset_spopulate(self, *args):
         self._sizes.clear()
-        self._wend = None
+        self._wend = -1
         self.populate()
         # simulate the scroll again, only if we already scrolled before
         # the position might not be the same, mostly because we don't know the
@@ -138,7 +138,7 @@ class DNDListView(Widget, ListViewAdapter):
         container.padding = 0
 
         # guess only ?
-        if iend is not None:
+        if iend > -1:
             spacing = self.spacing
             fh = 0
 
