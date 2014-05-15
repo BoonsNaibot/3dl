@@ -102,6 +102,9 @@ class DNDListView(Widget, ListViewAdapter):
     def _do_layout(self, *args):
         self._sizes.clear()
         self.populate()
+        children = self.container.children
+        t = ((c.index, c.height) for c in children)
+        self._sizes.update(t)
 
     def on__sizes(self, instance, value):
         if value:
@@ -124,7 +127,7 @@ class DNDListView(Widget, ListViewAdapter):
         get_view = self.get_view
         rh = self.row_height
         sizes = self._sizes
-        d = {}
+        #d = {}
 
         # ensure we know what we want to show
         if istart is None:
@@ -149,13 +152,13 @@ class DNDListView(Widget, ListViewAdapter):
             index = istart
             while index <= iend:
                 item_view = get_view(index)
-                index += 1
 
                 if item_view is None:
                     break
                 else:
-                    d[index] = item_view.height
+                    #d[index] = item_view.height
                     container.add_widget(item_view)
+                index += 1
 
         else:
             available_height = self.height
@@ -167,13 +170,13 @@ class DNDListView(Widget, ListViewAdapter):
                 if item_view is None:
                     break
                 else:
-                    d[index] = item_view.height
+                    #d[index] = item_view.height
                     index += 1
                     container.add_widget(item_view)
                     available_height -= item_view.height
                     real_height += item_view.height
 
-        self._sizes.update(d)
+        #self._sizes.update(d)
 
     def deparent(self, widget):
         container = self.container
