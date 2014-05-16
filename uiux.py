@@ -2,8 +2,10 @@ from kivy.properties import ObjectProperty, NumericProperty, ListProperty, Optio
 from kivy.uix.screenmanager import SlideTransition, Screen
 from kivy.graphics.transformation import Matrix
 from kivy.uix.floatlayout import FloatLayout
+from kivy.uix.stencilview import StencilView
 from weakref import ref, WeakKeyDictionary
 from kivy.uix.textinput import TextInput
+from kivy.event import EventDispatcher
 from kivy.weakreflist import WeakList
 from kivy.animation import Animation
 from kivy.uix.widget import Widget
@@ -11,7 +13,6 @@ from kivy.vector import Vector
 from math import radians, ceil
 from kivy.lang import Builder
 from kivy.clock import Clock
-from kivy.uix.stencilview import StencilView
 
 class NavBar(FloatLayout):
     text = StringProperty('')
@@ -132,12 +133,9 @@ class Screen_(Screen):
     def on_status_bar(self, *args):
         pass
 
-class Selectable(object):
+class Selectable(EventDispatcher):
     index = NumericProperty(None)
     is_selected = BooleanProperty(False)
-
-    def __init__(self, **kwargs):
-        super(Selectable, self).__init__(**kwargs)
 
     def on_is_selected(self, instance, value):
         if value:
