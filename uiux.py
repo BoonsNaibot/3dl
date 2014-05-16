@@ -1,4 +1,4 @@
-from kivy.properties import ObjectProperty, NumericProperty, ListProperty, OptionProperty, StringProperty, BooleanProperty, DictProperty, AliasProperty
+from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty
 from kivy.uix.screenmanager import SlideTransition, Screen
 from kivy.graphics.transformation import Matrix
 from kivy.uix.floatlayout import FloatLayout
@@ -726,7 +726,7 @@ class DoubleClickButton(DoubleClickable):
         if ((self.collide_point(*touch.pos)) and (self.state == 'normal')):
             return super(DoubleClickButton, self).on_touch_down(touch)
 
-class AccordionListItem(Selectable, StencilView):
+class AccordionListItem(StencilView, Selectable):
     _anim = lambda *_: None
     title = ObjectProperty(None)
     content = ObjectProperty(None)
