@@ -6,9 +6,9 @@ from kivy.uix.screenmanager import NoTransition
 from kivy.properties import ListProperty, ObjectProperty
 from apsw import Connection, SQLITE_OPEN_READWRITE, CantOpenError
 
-from kivy.modules import inspector
-from kivy.core.window import Window
-#import cProfile, pstats
+#from kivy.modules import inspector
+#from kivy.core.window import Window
+import cProfile, pstats
 
 kv = """
 #:import ListScreen listscreen.ListScreen
@@ -161,11 +161,11 @@ class ThreeDoListApp(App):
         ''''''
         self.dispatch('on_pre_start')
         app = Application()
-        inspector.create_inspector(Window, app)
+        #inspector.create_inspector(Window, app)
         return app
 
     def on_start(self):
-        #self.profile = cProfile.Profile(); self.profile.enable()
+        self.profile = cProfile.Profile(); self.profile.enable()
         app = self.root
         app.manager.transition = NoTransition()
         cursor = self.db.cursor()
@@ -207,13 +207,13 @@ class ThreeDoListApp(App):
         #x = objgraph.get_leaking_objects()
         #objgraph.show_most_common_types(objects=x)
         #objgraph.show_refs(x[:3], refcounts=True, filename='roots.png')
-        #self.profile.disable()
-        #self.profile.dump_stats('myapp.profile')
-        #stream = open('stats.txt', 'w')
-        #stats = pstats.Stats('myapp.profile', stream=stream)
-        #stats.sort_stats('cumtime', 'tottime', 'ncalls')
-        #stats.print_stats()
-        #stream.close()
+        self.profile.disable()
+        self.profile.dump_stats('myapp.profile')
+        stream = open('stats.txt', 'w')
+        stats = pstats.Stats('myapp.profile', stream=stream)
+        stats.sort_stats('cumtime', 'tottime', 'ncalls')
+        stats.print_stats()
+        stream.close()
 
 if __name__ == '__main__':
     ThreeDoListApp().run()
