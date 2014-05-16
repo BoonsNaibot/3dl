@@ -51,13 +51,7 @@ class ListViewAdapter(object):
         if item is not None:
             item_args = self.args_converter(index, item)
             item_args['index'] = index
-            #item_args['listview'] = self.proxy_ref
-            view_instance = self.list_item(**item_args)
-
-            if self.selection_mode <> 'None':
-                view_instance.bind(on_release=self.proxy_ref.handle_selection)
-
-            return view_instance
+            return self.list_item(**item_args)
 
     def deselect_all(self, *args):
         selection = self.selection
