@@ -759,9 +759,6 @@ class AccordionListItem(Selectable, StencilView):
 
     state = AliasProperty(_get_state, _set_state, bind=('title',))
 
-    def __init__(self, **kwargs):
-        super(AccordionListItem, self).__init__(**kwargs)
-
     def _do_select(self, alpha):
         """if self._anim():
             self._anim().stop()
