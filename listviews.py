@@ -9,7 +9,7 @@ from datetime import date, timedelta
 from weakref import WeakKeyDictionary
 from kivy.weakreflist import WeakList
 from itertools import repeat, izip, chain
-from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, VariableListProperty
+from kivy.properties import AliasProperty, BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, StringProperty, WeakListProperty
 
 class Placeholder(Widget):
     ix = NumericProperty(None)
@@ -22,7 +22,7 @@ class Placeholder(Widget):
 class ListContainerLayout(Layout):
     spacing = NumericProperty(0)
     padding = NumericProperty(0)
-    children = ListProperty(WeakList())
+    children = WeakListProperty(WeakList())
 
     def __init__(self, **kwargs):
         super(ListContainerLayout, self).__init__(**kwargs)
@@ -48,12 +48,12 @@ class ListContainerLayout(Layout):
 class DNDListView(Widget, ListViewAdapter):
     container = ObjectProperty(None)
     row_height = NumericProperty(None)
-    scrolling = BooleanProperty(False)
     _sizes = DictProperty({})
     _wstart = NumericProperty(0)
     _wend = NumericProperty(-1)
     _i_offset = NumericProperty(0)
     spacing = NumericProperty(1)
+    count = NumericProperty(10)
     placeholder = ObjectProperty(None, allownone=True)
 
     def __init__(self, **kwargs):
@@ -90,21 +90,21 @@ class DNDListView(Widget, ListViewAdapter):
             iend += self._i_offset
 
             if istart < self._wstart:
-                rstart = max(0, istart - 10)
+                rstart = max(0, istart - self.count)
                 self.populate(rstart, iend)
                 self._wstart = rstart
                 self._wend = iend
             elif iend > self._wend:
-                self.populate(istart, iend + 10)
+                self.populate(istart, iend + self.count)
                 self._wstart = istart
-                self._wend = iend + 10
+                self._wend = iend + self.count
 
     def _do_layout(self, *args):
         self._sizes.clear()
         self.populate()
-        children = self.container.children
-        t = ((c.index, c.height) for c in children)
-        self._sizes.update(t)
+        #children = self.container.children
+        #t = ((c.index, c.height) for c in children)
+        #self._sizes.update(t)
 
     def on__sizes(self, instance, value):
         if value:
@@ -123,20 +123,25 @@ class DNDListView(Widget, ListViewAdapter):
             self._scroll(self._scroll_y)"""
 
     def populate(self, istart=None, iend=None):
-        istart = istart or self._wstart
-        iend = iend or self._wend
+        #print istart, iend
+        #istart = istart or self._wstart
+        #iend = iend or self._wend
         container = self.container
         get_view = self.get_view
         rh = self.row_height
         sizes = self._sizes
-        #d = {}
+        d = {}
+        
+        if istart is None:
+            istart = self._wstart
+            iend = self._wend
 
         # clear the view
         container.clear_widgets()
         container.padding = 0
 
         # guess only ?
-        if iend > -1:
+        if iend <> -1:
             spacing = self.spacing
             fh = 0
 
@@ -153,13 +158,13 @@ class DNDListView(Widget, ListViewAdapter):
                 if item_view is None:
                     break
                 else:
-                    #d[index] = item_view.height
+                    d[index] = item_view.height
                     container.add_widget(item_view)
                 index += 1
 
         else:
             available_height = self.height
-            real_height = index = 0
+            real_height = index = count = 0
 
             while available_height > 0:
                 item_view = get_view(index)
@@ -167,13 +172,15 @@ class DNDListView(Widget, ListViewAdapter):
                 if item_view is None:
                     break
                 else:
-                    #d[index] = item_view.height
+                    d[index] = item_view.height
                     index += 1
+                    count += 1
                     container.add_widget(item_view)
                     available_height -= item_view.height
                     real_height += item_view.height
+            self.count = count
 
-        #self._sizes.update(d)
+        self._sizes.update(d)
 
     def deparent(self, widget):
         container = self.container

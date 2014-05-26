@@ -1,4 +1,4 @@
-from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty
+from kivy.properties import BooleanProperty, DictProperty, ListProperty, NumericProperty, ObjectProperty, OptionProperty, WeakListProperty
 from kivy.weakreflist import WeakList
 import objgraph, random
 
@@ -6,7 +6,7 @@ class ListViewAdapter(object):
     data = ListProperty([])
     cached_views = DictProperty({})
     list_item = ObjectProperty(None)
-    selection = ListProperty(WeakList())
+    selection = WeakListProperty(WeakList())
     args_converter = ObjectProperty(None)
     selection_mode = OptionProperty('single', options=('None', 'single'))
 
@@ -18,8 +18,7 @@ class ListViewAdapter(object):
         instance.delete_cache()
 
         if len(instance.selection) > 0:
-            instance.selection[:] = WeakList()
-        del instance, value
+            instance.selection[:] = []
 
     def on_selection(self, instance, value):
         instance.dispatch('on_selection_change')
@@ -77,16 +76,16 @@ class ListViewAdapter(object):
         self.selection.remove(view)
 
     def on_selection_change(self, *args):
-        pass
-        """if self.selection:
+        #pass
+        if self.selection:
             from listscreen import ListScreenItem
             objgraph.show_growth()
             print '...'
             roots = objgraph.get_leaking_objects()
             objgraph.show_most_common_types(objects=roots)
             print '...'
-            objgraph.show_refs(roots[:3], refcounts=True, filename='sad.png')
-            #objgraph.show_chain(objgraph.find_backref_chain(random.choice(objgraph.by_type('ListScreenItem')), objgraph.is_proper_module),filename='chain.png')
-            #objgraph.show_backrefs(ListScreenItem, filename='sample-backref-graph.png')
-            print '...'"""
+            #objgraph.show_refs(roots[:3], refcounts=True, filename='sad.png')
+            #objgraph.show_chain(objgraph.find_backref_chain(self.selection[0].__self__, objgraph.is_proper_module),filename='chain.png')
+            objgraph.show_backrefs(self.selection[0].__self__, filename='sample-backref-graph.png')
+            print '...'
             

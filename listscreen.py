@@ -113,7 +113,7 @@ class ListScreen(Screen_):
             index = len(self.list_items)
             item_args = self._args_converter(index, data)
             item_args.update({'index': index})#, 'listview': listview})
-            new_item = listview.cached_views[index] = self.accordion_view_item(**item_args)
+            new_item = listview.cached_views[index] = self._item(**item_args)
             #new_item.bind(on_release=listview.handle_selection)
             listview.container.add_widget(new_item)
 
