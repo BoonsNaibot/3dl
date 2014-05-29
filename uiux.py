@@ -498,7 +498,6 @@ class Editable(ButtonRoot):
             if not self._switch:
                 self._switch = True
             else:
-                touch.ungrab(self)
                 self.state = 'edit'
                 return True
 
@@ -604,7 +603,6 @@ class DragNDroppable(ButtonRoot):
 
     def on_touch_down(self, touch):
         if self.state == 'normal':
-            sup = super(ButtonRoot, self).on_touch_down(touch)
             touch.ud['indices'] = WeakKeyDictionary()
 
         return super(DragNDroppable, self).on_touch_down(touch)
@@ -619,14 +617,11 @@ class DragNDroppable(ButtonRoot):
                 for zone in self.drop_zones:
                     if self.collide_widget(zone):
                         touch.ud['indices'] = zone.dispatch('on_drag', self, touch.ud['indices'])
-                    del zone
                 return True
 
         return super(DragNDroppable, self).on_touch_move(touch)
 
     def on_touch_up(self, touch):
-        #super(ButtonRoot, self).on_touch_up(touch)
-
         if touch.grab_current is self:
             assert(ref(self) in touch.ud)
 
