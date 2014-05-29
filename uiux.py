@@ -498,6 +498,7 @@ class Editable(ButtonRoot):
             if not self._switch:
                 self._switch = True
             else:
+                touch.ungrab(self)
                 self.state = 'edit'
                 return True
 
@@ -602,16 +603,9 @@ class DragNDroppable(ButtonRoot):
         super(DragNDroppable, self).on_state(instance, value)
 
     def on_touch_down(self, touch):
-        """if self.state == 'dragged':
-            touch.ungrab(self)
-            return True"""
         if self.state == 'normal':
             sup = super(ButtonRoot, self).on_touch_down(touch)
-
-            if not sup:
-                touch.ud['indices'] = WeakKeyDictionary()
-            else:
-                return sup
+            touch.ud['indices'] = WeakKeyDictionary()
 
         return super(DragNDroppable, self).on_touch_down(touch)
 
