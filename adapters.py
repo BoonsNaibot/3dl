@@ -78,14 +78,14 @@ class ListViewAdapter(object):
     def on_selection_change(self, *args):
         #pass
         if self.selection:
-            from listscreen import ListScreenItem
+            #from listscreen import ListScreenItem
             objgraph.show_growth()
             print '...'
             roots = objgraph.get_leaking_objects()
             objgraph.show_most_common_types(objects=roots)
             print '...'
-            #objgraph.show_refs(roots[:3], refcounts=True, filename='sad.png')
+            objgraph.show_refs(roots[:3], refcounts=True, filename='sad.png')
             #objgraph.show_chain(objgraph.find_backref_chain(self.selection[0].__self__, objgraph.is_proper_module),filename='chain.png')
-            objgraph.show_backrefs(self.selection[0].__self__, filename='sample-backref-graph.png')
+            #objgraph.show_backrefs(self.selection[0].__self__, filename='sample-backref-graph.png')
             print '...'
             

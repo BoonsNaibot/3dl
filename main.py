@@ -27,7 +27,7 @@ kv = """
         pos: root.pos
         canvas.before:
             Color:
-                rgba: app.smoke_white
+                rgba: app.white
             Rectangle:
                 size: self.size
                 pos: self.pos
@@ -62,7 +62,9 @@ class ThreeDoListApp(App):
     gray = ListProperty((0.9137, 0.933, 0.9451, 1.0))
     dark_gray = ListProperty((0.533, 0.533, 0.533, 1.0))
     shadow_gray = ListProperty((0.8, 0.8, 0.8, 1.0))
+
     black = ListProperty((36.0/255, 38.0/255, 37.0/255, 1.0))
+    cloud = ListProperty((243.0/255, 242.0/255, 238.0/255, 1.0))
     
     try:
         db = ObjectProperty(Connection('db.db', flags=SQLITE_OPEN_READWRITE))
@@ -165,7 +167,7 @@ class ThreeDoListApp(App):
         return app
 
     def on_start(self):
-        #self.profile = cProfile.Profile(); self.profile.enable()
+        self.profile = cProfile.Profile(); self.profile.enable()
         app = self.root
         app.manager.transition = NoTransition()
         cursor = self.db.cursor()
@@ -207,13 +209,13 @@ class ThreeDoListApp(App):
         #x = objgraph.get_leaking_objects()
         #objgraph.show_most_common_types(objects=x)
         #objgraph.show_refs(x[:3], refcounts=True, filename='roots.png')
-        """self.profile.disable()
+        self.profile.disable()
         self.profile.dump_stats('myapp.profile')
         stream = open('stats.txt', 'w')
         stats = pstats.Stats('myapp.profile', stream=stream)
         stats.sort_stats('cumtime', 'tottime', 'ncalls')
         stats.print_stats()
-        stream.close()"""
+        stream.close()
 
 if __name__ == '__main__':
     ThreeDoListApp().run()

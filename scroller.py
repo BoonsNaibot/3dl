@@ -33,16 +33,10 @@ class ScrollerEffect(DampedScrollEffect):
 
             if sh >= 1:
                 sy = value/float(sh)
-                del vp
-                
-                if parent.scroll_y == -sy:
-                    parent._trigger_layout()
-                else:
-                    parent.scroll_y = -sy
+                parent.scroll_y = -sy
 
             if ((not instance.is_manual) and ((abs(instance.velocity) <= instance.min_velocity) or (not value))):
                 parent.mode = 'normal'
-            del parent
 
     def cancel(self):
         self.is_manual = False
@@ -97,8 +91,6 @@ class Scroller(StencilLayout):
                     vp.y = y - self.scroll_y * sh
                 else:
                     vp.y = (y + h) - vp.height
-                    self.scroll_y = 1.0
-                del vp
                   
     def on_height(self, instance, *args):
         self.effect_y.value = self.effect_y.min * self.scroll_y
@@ -172,6 +164,9 @@ class Scroller(StencilLayout):
         super(Scroller, self).remove_widget(widget)
         if widget is self._viewport():
             self._viewport = lambda : None
+
+    def on_scroll_y(self, instance, value):
+        self.parent.scroll_y = (1 - min(1, max(value, 0)))
 
 Builder.load_string("""
 <Scroller>:

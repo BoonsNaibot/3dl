@@ -55,6 +55,7 @@ class DNDListView(Widget, ListViewAdapter):
     spacing = NumericProperty(1)
     count = NumericProperty(10)
     placeholder = ObjectProperty(None, allownone=True)
+    scroll_y = NumericProperty(0)
 
     def __init__(self, **kwargs):
         self.register_event_type("on_motion_over")
@@ -71,33 +72,31 @@ class DNDListView(Widget, ListViewAdapter):
         super(DNDListView, self).on_data(instance, value)
         instance._do_layout()
 
-    def _scroll(self, scroll_y):
-        if self.row_height:
-            self._scroll_y = scroll_y
-            scroll_y = 1 - min(1, max(scroll_y, 0))
-            mstart = (self.container.height - self.height) * scroll_y
-            mend = mstart + self.height
+    def on_scroll_y(self, instance, scroll_y):
+        if self.row_height is not None:
+            #self._scroll_y = scroll_y
+            #scroll_y = 1 - min(1, max(scroll_y, 0)); print self._scroll_y, scroll_y
+            mstart = (instance.container.height - instance.height) * scroll_y
+            mend = mstart + instance.height
+            i = instance._i_offset
 
             # convert distance to index
-            rh = self.row_height
+            rh = instance.row_height
             istart = int(ceil(mstart / rh))
             iend = int(floor(mend / rh))
 
-            istart = max(0, istart - 1)
-            iend = max(0, iend - 1)
+            istart = max(0, istart - 1) - i
+            iend = max(0, iend - 1) + i
 
-            istart -= self._i_offset
-            iend += self._i_offset
-
-            if istart < self._wstart:
-                rstart = max(0, istart - self.count)
-                self.populate(rstart, iend)
-                self._wstart = rstart
-                self._wend = iend
-            elif iend > self._wend:
-                self.populate(istart, iend + self.count)
-                self._wstart = istart
-                self._wend = iend + self.count
+            if istart < instance._wstart:
+                rstart = max(0, istart - instance.count)
+                instance.populate(rstart, iend)
+                instance._wstart = rstart
+                instance._wend = iend
+            elif iend > instance._wend:
+                instance.populate(istart, iend + instance.count)
+                instance._wstart = istart
+                instance._wend = iend + instance.count
 
     def _do_layout(self, *args):
         self._sizes.clear()
@@ -123,7 +122,7 @@ class DNDListView(Widget, ListViewAdapter):
             self._scroll(self._scroll_y)"""
 
     def populate(self, istart=None, iend=None):
-        #print istart, iend
+        #print istart, iend, self.scroll_y
         #istart = istart or self._wstart
         #iend = iend or self._wend
         container = self.container
@@ -401,7 +400,6 @@ Builder.load_string("""
     Scroller:
         pos: root.pos
         size: root.size
-        on_scroll_y: root._scroll(args[1])
 
         ListContainerLayout:
             id: container_id

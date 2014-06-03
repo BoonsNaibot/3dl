@@ -198,7 +198,7 @@ Builder.load_string("""
     font_size: self.width*0.07
     #height: self.screen.height*0.088
     height: self.screen.height*self.height_hint
-    state_color: app.no_color if self.state == 'down' else app.white
+    state_color: app.no_color if self.state == 'down' else app.cloud
     canvas.after:
         Color:
             rgba: app.shadow_gray

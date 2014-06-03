@@ -164,7 +164,7 @@ Builder.load_string("""
     NavBar:
         id: navbar_id
         text: 'Lists'
-        font_size: root.width*0.2
+        font_size: root.width*0.1
 
         #Button_:
         #    font_size: self.height*0.8
