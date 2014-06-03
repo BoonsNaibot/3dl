@@ -619,7 +619,6 @@ class DragNDroppable(ButtonRoot):
                 for zone in self.drop_zones:
                     if self.collide_widget(zone):
                         touch.ud['indices'] = zone.dispatch('on_drag', self, touch.ud['indices'])
-                    del zone
                 return True
 
         return super(DragNDroppable, self).on_touch_move(touch)
