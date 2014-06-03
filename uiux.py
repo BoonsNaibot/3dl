@@ -51,6 +51,9 @@ class NewItemWidget(FloatLayout):
         self.register_event_type('on_text_validate')
         super(NewItemWidget, self).__init__(**kwargs)
 
+    def on_opacity(self, *args):
+        pass
+
     def on_state(self, instance, value):
         screen = instance.parent
 
@@ -604,7 +607,6 @@ class DragNDroppable(ButtonRoot):
     def on_touch_down(self, touch):
         if self.state == 'normal':
             touch.ud['indices'] = WeakKeyDictionary()
-
         return super(DragNDroppable, self).on_touch_down(touch)
 
     def on_touch_move(self, touch):
@@ -725,14 +727,6 @@ class AccordionListItem(StencilView, Selectable):
     text = StringProperty('')
     collapse_alpha = NumericProperty(1.0)
     content_height_hint = NumericProperty(0.0)
-
-    """def _get_height(self):
-        if self.title and self.content:
-            return self.title.height + (self.content.height*(1-self.collapse_alpha))
-        else:
-            return 1
-
-    height = AliasProperty(_get_height, None, bind=('title', 'content', 'collapse_alpha'))"""
 
     def _get_state(self):
         if self.title:
@@ -957,14 +951,13 @@ Builder.load_string("""
     pos_hint:{'top': 1, 'x': 0}
     canvas.before:
         Color:
-            rgba: app.dark_blue
+            rgba: app.black
         Rectangle:
             size: self.size
             pos: self.pos
 
     Label:
         text: root.text
-        opacity: 0.5
         shorten: root.shorten
         font_size: root.font_size
         font_name: 'Walkway Bold.ttf'
@@ -1095,7 +1088,7 @@ Builder.load_string("""
     state: 'edit' if textinput_id.focus else 'normal'
     canvas.before:
         Color:
-            rgba: app.dark_blue
+            rgba: app.black
         Rectangle:
             size: self.size
             pos: self.pos
